@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TOKEN - Deck Builder v1.0.0</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    .back-btn {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      padding: 8px 16px;
+      background: #27272A;
+      border: 1px solid #3f3f46;
+      border-radius: 8px;
+      color: #FFFFFF;
+      text-decoration: none;
+      font-size: 13px;
+      z-index: 100;
+      transition: all 0.2s;
+    }
+    .back-btn:hover {
+      background: #3f3f46;
+      border-color: #F7931A;
+    }
+    
+    body {
+      min-height: 100vh;
+      background: linear-gradient(180deg, #0a0a0f 0%, #12121f 50%, #0a0a0f 100%);
+      padding: 20px;
+      font-family: 'Inter', system-ui, sans-serif;
+      color: #FFFFFF;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      font-size: 28px;
+      font-family: 'Bebas Neue', sans-serif;
+      color: #FFFFFF;
+      letter-spacing: 4px;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    
+    .subtitle {
+      text-align: center;
+      color: #71717A;
+      font-size: 12px;
+      margin-bottom: 20px;
+    }
+    
+    /* Rules reminder */
+    .rules-box {
+      background: #141419;
+      border: 1px solid #27272A;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      font-size: 11px;
+      color: #A1A1AA;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+    }
+    
+    .rule-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .rule-icon {
+      font-size: 14px;
+    }
+    
+    /* Main Layout */
+    .builder-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    
+    @media (max-width: 900px) {
+      .builder-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    /* Deck Panel */
+    .deck-panel {
+      background: #141419;
+      border: 2px solid #27272A;
+      border-radius: 12px;
+      padding: 16px;
+      min-height: 400px;
+      transition: border-color 0.3s;
+    }
+    
+    .deck-panel.valid {
+      border-color: #10B981;
+    }
+    
+    .deck-panel.invalid {
+      border-color: #EF4444;
+    }
+    
+    .deck-panel.drag-over {
+      border-color: #F7931A;
+      background: #1a1a24;
+    }
+    
+    .deck-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #27272A;
+    }
+    
+    .deck-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: 2px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .deck-house-select {
+      padding: 6px 12px;
+      background: #0a0a0f;
+      border: 1px solid #27272A;
+      border-radius: 6px;
+      color: #FFFFFF;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    
+    .deck-house-select:focus {
+      outline: none;
+      border-color: #F7931A;
+    }
+    
+    .deck-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+    }
+    
+    .deck-count.complete {
+      color: #10B981;
+    }
+    
+    .deck-count.incomplete {
+      color: #F7931A;
+    }
+    
+    /* Validation messages */
+    .deck-validation {
+      margin-bottom: 12px;
+      font-size: 11px;
+    }
+    
+    .validation-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+    
+    .validation-item.valid {
+      color: #10B981;
+    }
+    
+    .validation-item.invalid {
+      color: #EF4444;
+    }
+    
+    .validation-item.warning {
+      color: #F7931A;
+    }
+    
+    /* Deck Cards Grid */
+    .deck-cards {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      min-height: 200px;
+    }
+    
+    .deck-slot {
+      aspect-ratio: 2/3;
+      background: #0a0a0f;
+      border: 2px dashed #27272A;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: #27272A;
+      transition: all 0.2s;
+    }
+    
+    .deck-slot.filled {
+      border-style: solid;
+      cursor: pointer;
+    }
+    
+    .deck-slot.drag-over {
+      border-color: #F7931A;
+      background: #1a1a24;
+    }
+    
+    .deck-slot:hover.filled {
+      transform: scale(1.05);
+    }
+    
+    /* Mini Card in Deck */
+    .mini-card {
+      width: 100%;
+      height: 100%;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .mini-card.bitcoin { background: linear-gradient(135deg, #1a1a2e, #0f0f1a); border: 2px solid #F7931A; }
+    .mini-card.ethereum { background: linear-gradient(135deg, #1a1a2e, #0f0f1a); border: 2px solid #C0C0C0; }
+    .mini-card.base { background: linear-gradient(135deg, #1a1a2e, #0f0f1a); border: 2px solid #0052FF; }
+    .mini-card.tysm { background: linear-gradient(135deg, #1a1a2e, #0f0f1a); border: 2px solid #10B981; }
+    
+    .mini-card-value {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
+      color: #FFFFFF;
+    }
+    
+    .mini-card-name {
+      font-size: 8px;
+      color: #A1A1AA;
+      text-align: center;
+      padding: 0 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      width: 100%;
+    }
+    
+    .mini-card-remove {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 16px;
+      height: 16px;
+      background: #EF4444;
+      border: none;
+      border-radius: 50%;
+      color: #FFFFFF;
+      font-size: 10px;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .mini-card:hover .mini-card-remove {
+      display: flex;
+    }
+    
+    /* Clear Deck Button */
+    .clear-deck-btn {
+      margin-top: 12px;
+      padding: 8px 16px;
+      background: #27272A;
+      border: none;
+      border-radius: 6px;
+      color: #A1A1AA;
+      font-size: 11px;
+      cursor: pointer;
+      width: 100%;
+    }
+    
+    .clear-deck-btn:hover {
+      background: #3f3f46;
+    }
+    
+    /* Collection Section */
+    .collection-section {
+      background: #141419;
+      border: 1px solid #27272A;
+      border-radius: 12px;
+      padding: 16px;
+    }
+    
+    .collection-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    
+    .collection-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18px;
+      letter-spacing: 2px;
+    }
+    
+    .collection-filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .filter-btn {
+      padding: 6px 12px;
+      background: #0a0a0f;
+      border: 1px solid #27272A;
+      border-radius: 6px;
+      color: #A1A1AA;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .filter-btn:hover {
+      border-color: #F7931A;
+    }
+    
+    .filter-btn.active {
+      background: #F7931A;
+      border-color: #F7931A;
+      color: #000000;
+    }
+    
+    .filter-btn.bitcoin.active { background: #F7931A; border-color: #F7931A; }
+    .filter-btn.ethereum.active { background: #C0C0C0; border-color: #C0C0C0; color: #000; }
+    .filter-btn.base.active { background: #0052FF; border-color: #0052FF; }
+    .filter-btn.tysm.active { background: #10B981; border-color: #10B981; color: #000; }
+    
+    /* Collection Grid */
+    .collection-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 10px;
+      max-height: 300px;
+      overflow-y: auto;
+      padding: 4px;
+    }
+    
+    .collection-card {
+      aspect-ratio: 2/3;
+      border-radius: 6px;
+      cursor: grab;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    
+    .collection-card:hover {
+      transform: scale(1.08);
+      z-index: 10;
+    }
+    
+    .collection-card.dragging {
+      opacity: 0.5;
+    }
+    
+    .collection-card.used {
+      opacity: 0.3;
+      pointer-events: none;
+    }
+    
+    .collection-card.bitcoin { background: linear-gradient(135deg, #1a1a2e, #0f0f1a); border: 2px solid #F7931A; }
+    .collection-card.ethereum { background: linear-gradient(135deg, #1a1a2e, #0f0f1a); border: 2px solid #C0C0C0; }
+    .collection-card.base { background: linear-gradient(135deg, #1a1a2e, #0f0f1a); border: 2px solid #0052FF; }
+    .collection-card.tysm { background: linear-gradient(135deg, #1a1a2e, #0f0f1a); border: 2px solid #10B981; }
+    
+    .collection-card-symbol {
+      font-size: 16px;
+    }
+    
+    .collection-card-value {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 24px;
+      color: #FFFFFF;
+    }
+    
+    .collection-card-name {
+      font-size: 7px;
+      color: #A1A1AA;
+      text-align: center;
+      padding: 0 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      width: 100%;
+    }
+    
+    /* Empty collection */
+    .collection-empty {
+      text-align: center;
+      padding: 40px;
+      color: #52525B;
+    }
+    
+    .collection-empty-icon {
+      font-size: 36px;
+      margin-bottom: 12px;
+    }
+    
+    /* Action Buttons */
+    .actions-bar {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    
+    .action-btn {
+      padding: 14px 28px;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18px;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .action-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .action-btn.primary {
+      background: linear-gradient(135deg, #10B981 0%, #6EE7B7 100%);
+      color: #000000;
+    }
+    
+    .action-btn.primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px #10B98144;
+    }
+    
+    .action-btn.secondary {
+      background: #27272A;
+      color: #FFFFFF;
+    }
+    
+    .action-btn.secondary:hover:not(:disabled) {
+      background: #3f3f46;
+    }
+    
+    /* Saved Decks */
+    .saved-section {
+      margin-top: 24px;
+      background: #141419;
+      border: 1px solid #27272A;
+      border-radius: 12px;
+      padding: 16px;
+    }
+    
+    .saved-header {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18px;
+      letter-spacing: 2px;
+      margin-bottom: 12px;
+    }
+    
+    .saved-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .saved-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      background: #0a0a0f;
+      border-radius: 8px;
+    }
+    
+    .saved-item-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .saved-item-name {
+      font-weight: 600;
+    }
+    
+    .saved-item-details {
+      font-size: 11px;
+      color: #71717A;
+    }
+    
+    .saved-item-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .saved-btn {
+      padding: 6px 12px;
+      background: #27272A;
+      border: none;
+      border-radius: 6px;
+      color: #FFFFFF;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    
+    .saved-btn:hover {
+      background: #3f3f46;
+    }
+    
+    .saved-btn.danger:hover {
+      background: #DC2626;
+    }
+    
+    .saved-empty {
+      text-align: center;
+      color: #52525B;
+      font-size: 13px;
+      padding: 20px;
+    }
+    
+    /* House colors */
+    .house-bitcoin { color: #F7931A; }
+    .house-ethereum { color: #C0C0C0; }
+    .house-base { color: #0052FF; }
+    .house-tysm { color: #10B981; }
+    
+    .version {
+      text-align: center;
+      color: #3f3f46;
+      font-size: 9px;
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-btn">← Home</a>
+  <div class="container">
+    <h1>🔧 DECK BUILDER</h1>
+    <p class="subtitle">Build your 2 battle decks (10 cards each)</p>
+    
+    <!-- Rules Reminder -->
+    <div class="rules-box">
+      <div class="rule-item"><span class="rule-icon">📦</span> 10 cards per deck</div>
+      <div class="rule-item"><span class="rule-icon">🏠</span> Same House per deck</div>
+      <div class="rule-item"><span class="rule-icon">↔️</span> Different Houses between decks</div>
+      <div class="rule-item"><span class="rule-icon">👥</span> 8 cards Faction A + 2 Faction B</div>
+      <div class="rule-item"><span class="rule-icon">🔢</span> Unique values only</div>
+    </div>
+    
+    <!-- Deck Panels -->
+    <div class="builder-layout">
+      <!-- Deck 1 -->
+      <div class="deck-panel" id="deck1Panel">
+        <div class="deck-header">
+          <div class="deck-title">
+            DECK 1
+            <select class="deck-house-select" id="deck1House" onchange="onHouseChange(1)">
+              <option value="">Select House</option>
+              <option value="bitcoin">₿ Bitcoin</option>
+              <option value="ethereum">◊ Ethereum</option>
+              <option value="base">■ Base</option>
+              <option value="tysm">🙏 Tysm</option>
+            </select>
+          </div>
+          <div class="deck-count incomplete" id="deck1Count">0/10</div>
+        </div>
+        <div class="deck-validation" id="deck1Validation">
+          <!-- Validation messages -->
+        </div>
+        <div class="deck-cards" id="deck1Cards">
+          <!-- 10 slots -->
+        </div>
+        <button class="clear-deck-btn" onclick="clearDeck(1)">Clear Deck 1</button>
+      </div>
+      
+      <!-- Deck 2 -->
+      <div class="deck-panel" id="deck2Panel">
+        <div class="deck-header">
+          <div class="deck-title">
+            DECK 2
+            <select class="deck-house-select" id="deck2House" onchange="onHouseChange(2)">
+              <option value="">Select House</option>
+              <option value="bitcoin">₿ Bitcoin</option>
+              <option value="ethereum">◊ Ethereum</option>
+              <option value="base">■ Base</option>
+              <option value="tysm">🙏 Tysm</option>
+            </select>
+          </div>
+          <div class="deck-count incomplete" id="deck2Count">0/10</div>
+        </div>
+        <div class="deck-validation" id="deck2Validation">
+          <!-- Validation messages -->
+        </div>
+        <div class="deck-cards" id="deck2Cards">
+          <!-- 10 slots -->
+        </div>
+        <button class="clear-deck-btn" onclick="clearDeck(2)">Clear Deck 2</button>
+      </div>
+    </div>
+    
+    <!-- Collection -->
+    <div class="collection-section">
+      <div class="collection-header">
+        <div class="collection-title">📚 YOUR COLLECTION</div>
+        <div class="collection-filters">
+          <button class="filter-btn active" data-filter="all" onclick="filterCollection('all')">All</button>
+          <button class="filter-btn bitcoin" data-filter="bitcoin" onclick="filterCollection('bitcoin')">₿</button>
+          <button class="filter-btn ethereum" data-filter="ethereum" onclick="filterCollection('ethereum')">◊</button>
+          <button class="filter-btn base" data-filter="base" onclick="filterCollection('base')">■</button>
+          <button class="filter-btn tysm" data-filter="tysm" onclick="filterCollection('tysm')">🙏</button>
+        </div>
+      </div>
+      <div class="collection-grid" id="collectionGrid">
+        <!-- Cards -->
+      </div>
+    </div>
+    
+    <!-- Actions -->
+    <div class="actions-bar">
+      <button class="action-btn secondary" onclick="clearAll()">Clear All</button>
+      <button class="action-btn primary" id="saveBtn" onclick="saveBattleDeck()" disabled>
+        ✓ SAVE BATTLE DECK
+      </button>
+    </div>
+    
+    <!-- Saved Battle Decks -->
+    <div class="saved-section">
+      <div class="saved-header">💾 SAVED BATTLE DECKS</div>
+      <div class="saved-list" id="savedList">
+        <!-- Saved decks -->
+      </div>
+    </div>
+    
+    <p class="version">Deck Builder v1.0.0</p>
+  </div>
+
+  <script>
+    // ============================================
+    // CONFIGURATION
+    // ============================================
+    const HOUSES = {
+      bitcoin: { name: 'Bitcoin', symbol: '₿', primary: '#F7931A' },
+      ethereum: { name: 'Ethereum', symbol: '◊', primary: '#C0C0C0' },
+      base: { name: 'Base', symbol: '■', primary: '#0052FF' },
+      tysm: { name: 'Tysm', symbol: '🙏', primary: '#10B981' }
+    };
+    
+    const DB_KEYS = {
+      CARDS: 'token_cards',
+      DECKS: 'token_decks',
+      BATTLE_DECKS: 'token_battle_decks'
+    };
+    
+    // State
+    let allCards = [];
+    let deck1 = [];
+    let deck2 = [];
+    let deck1House = '';
+    let deck2House = '';
+    let currentFilter = 'all';
+    let draggedCard = null;
+    
+    // ============================================
+    // DATA LOADING
+    // ============================================
+    function loadAllCards() {
+      allCards = [];
+      
+      // Load single cards
+      const singleCards = JSON.parse(localStorage.getItem(DB_KEYS.CARDS) || '[]');
+      singleCards.forEach(card => {
+        allCards.push({
+          ...card,
+          uid: `card-${card.id}`,
+          source: 'minter'
+        });
+      });
+      
+      // Load deck cards
+      const decks = JSON.parse(localStorage.getItem(DB_KEYS.DECKS) || '[]');
+      decks.forEach(deck => {
+        deck.cards.forEach(card => {
+          allCards.push({
+            uid: `deck-${deck.id}-${card.value}`,
+            id: `${deck.id}-${card.value}`,
+            house: deck.house,
+            value: card.value,
+            displayValue: card.displayValue,
+            cardName: card.cardName,
+            factionName: deck.faction,
+            factionIcon: deck.factionIcon,
+            source: 'deck'
+          });
+        });
+      });
+      
+      return allCards;
+    }
+    
+    function loadSavedBattleDecks() {
+      return JSON.parse(localStorage.getItem(DB_KEYS.BATTLE_DECKS) || '[]');
+    }
+    
+    // ============================================
+    // RENDERING
+    // ============================================
+    function renderDeckSlots(deckNum) {
+      const container = document.getElementById(`deck${deckNum}Cards`);
+      const deck = deckNum === 1 ? deck1 : deck2;
+      
+      container.innerHTML = '';
+      
+      for (let i = 0; i < 10; i++) {
+        const slot = document.createElement('div');
+        slot.className = 'deck-slot';
+        slot.dataset.deck = deckNum;
+        slot.dataset.slot = i;
+        
+        if (deck[i]) {
+          slot.classList.add('filled');
+          const card = deck[i];
+          slot.innerHTML = `
+            <div class="mini-card ${card.house}">
+              <div class="mini-card-value">${card.displayValue}</div>
+              <div class="mini-card-name">${card.cardName}</div>
+              <button class="mini-card-remove" onclick="removeFromDeck(${deckNum}, ${i}, event)">×</button>
+            </div>
+          `;
+        } else {
+          slot.innerHTML = '+';
+        }
+        
+        // Drop events
+        slot.addEventListener('dragover', handleDragOver);
+        slot.addEventListener('dragleave', handleDragLeave);
+        slot.addEventListener('drop', (e) => handleDrop(e, deckNum, i));
+        
+        container.appendChild(slot);
+      }
+    }
+    
+    function renderCollection() {
+      const container = document.getElementById('collectionGrid');
+      const usedUids = [...deck1, ...deck2].filter(c => c).map(c => c.uid);
+      
+      // Filter cards
+      let filtered = allCards;
+      if (currentFilter !== 'all') {
+        filtered = allCards.filter(c => c.house === currentFilter);
+      }
+      
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="collection-empty" style="grid-column: 1/-1;">
+            <div class="collection-empty-icon">🃏</div>
+            <div>No cards available. Mint some cards first!</div>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = '';
+      
+      filtered.forEach(card => {
+        const div = document.createElement('div');
+        div.className = `collection-card ${card.house}`;
+        div.draggable = true;
+        div.dataset.uid = card.uid;
+        
+        if (usedUids.includes(card.uid)) {
+          div.classList.add('used');
+        }
+        
+        const house = HOUSES[card.house];
+        div.innerHTML = `
+          <span class="collection-card-symbol" style="color: ${house.primary}">${house.symbol}</span>
+          <span class="collection-card-value">${card.displayValue}</span>
+          <span class="collection-card-name">${card.cardName}</span>
+        `;
+        
+        // Drag events
+        div.addEventListener('dragstart', (e) => handleDragStart(e, card));
+        div.addEventListener('dragend', handleDragEnd);
+        
+        // Click to add to first available deck
+        div.addEventListener('click', () => addCardToDeck(card));
+        
+        container.appendChild(div);
+      });
+    }
+    
+    function renderSavedDecks() {
+      const container = document.getElementById('savedList');
+      const saved = loadSavedBattleDecks();
+      
+      if (saved.length === 0) {
+        container.innerHTML = '<div class="saved-empty">No saved battle decks yet</div>';
+        return;
+      }
+      
+      container.innerHTML = '';
+      
+      saved.forEach((bd, index) => {
+        const div = document.createElement('div');
+        div.className = 'saved-item';
+        
+        const house1 = HOUSES[bd.deck1House];
+        const house2 = HOUSES[bd.deck2House];
+        const date = new Date(bd.created).toLocaleDateString();
+        
+        div.innerHTML = `
+          <div class="saved-item-info">
+            <span class="saved-item-name">${bd.name || `Battle Deck ${index + 1}`}</span>
+            <span class="saved-item-details">
+              <span class="house-${bd.deck1House}">${house1.symbol}</span> vs 
+              <span class="house-${bd.deck2House}">${house2.symbol}</span>
+              • ${date}
+            </span>
+          </div>
+          <div class="saved-item-actions">
+            <button class="saved-btn" onclick="loadBattleDeck(${index})">Load</button>
+            <button class="saved-btn danger" onclick="deleteBattleDeck(${index})">Delete</button>
+          </div>
+        `;
+        
+        container.appendChild(div);
+      });
+    }
+    
+    // ============================================
+    // VALIDATION
+    // ============================================
+    function validateDeck(deckNum) {
+      const deck = deckNum === 1 ? deck1 : deck2;
+      const house = deckNum === 1 ? deck1House : deck2House;
+      const otherHouse = deckNum === 1 ? deck2House : deck1House;
+      const container = document.getElementById(`deck${deckNum}Validation`);
+      const panel = document.getElementById(`deck${deckNum}Panel`);
+      const countEl = document.getElementById(`deck${deckNum}Count`);
+      
+      const cards = deck.filter(c => c);
+      const messages = [];
+      let isValid = true;
+      
+      // Count
+      countEl.textContent = `${cards.length}/10`;
+      countEl.className = cards.length === 10 ? 'deck-count complete' : 'deck-count incomplete';
+      
+      // House selected
+      if (!house) {
+        messages.push({ text: 'Select a House', valid: false });
+        isValid = false;
+      } else {
+        messages.push({ text: `House: ${HOUSES[house].name}`, valid: true });
+      }
+      
+      // Different from other deck
+      if (house && otherHouse && house === otherHouse) {
+        messages.push({ text: 'Must be different House from other deck', valid: false });
+        isValid = false;
+      } else if (house && otherHouse) {
+        messages.push({ text: 'Different Houses ✓', valid: true });
+      }
+      
+      // Card count
+      if (cards.length < 10) {
+        messages.push({ text: `Need ${10 - cards.length} more cards`, valid: false, warning: true });
+        isValid = false;
+      } else {
+        messages.push({ text: '10 cards ✓', valid: true });
+      }
+      
+      // Unique values
+      const values = cards.map(c => c.value);
+      const uniqueValues = new Set(values);
+      if (values.length !== uniqueValues.size) {
+        messages.push({ text: 'Duplicate values!', valid: false });
+        isValid = false;
+      } else if (cards.length > 0) {
+        messages.push({ text: 'Unique values ✓', valid: true });
+      }
+      
+      // Faction rule (8+2)
+      if (cards.length > 0) {
+        const factions = {};
+        cards.forEach(c => {
+          factions[c.factionName] = (factions[c.factionName] || 0) + 1;
+        });
+        const factionCounts = Object.values(factions).sort((a, b) => b - a);
+        
+        if (cards.length === 10) {
+          if (Object.keys(factions).length > 2) {
+            messages.push({ text: 'Max 2 Factions allowed', valid: false });
+            isValid = false;
+          } else if (factionCounts[0] < 8 || (factionCounts[1] && factionCounts[1] > 2)) {
+            messages.push({ text: 'Need 8 cards + 2 cards split', valid: false });
+            isValid = false;
+          } else {
+            messages.push({ text: 'Factions 8+2 ✓', valid: true });
+          }
+        } else {
+          const factionNames = Object.keys(factions).join(', ');
+          messages.push({ text: `Factions: ${factionNames}`, valid: true, warning: true });
+        }
+      }
+      
+      // Render validation
+      container.innerHTML = messages.map(m => `
+        <div class="validation-item ${m.valid ? 'valid' : (m.warning ? 'warning' : 'invalid')}">
+          ${m.valid ? '✓' : (m.warning ? '⚠' : '✗')} ${m.text}
+        </div>
+      `).join('');
+      
+      // Panel styling
+      panel.classList.remove('valid', 'invalid');
+      if (cards.length === 10 && isValid) {
+        panel.classList.add('valid');
+      } else if (cards.length > 0 && !isValid) {
+        panel.classList.add('invalid');
+      }
+      
+      return isValid && cards.length === 10;
+    }
+    
+    function validateAll() {
+      const valid1 = validateDeck(1);
+      const valid2 = validateDeck(2);
+      
+      // Check houses are different
+      const housesValid = deck1House && deck2House && deck1House !== deck2House;
+      
+      const saveBtn = document.getElementById('saveBtn');
+      saveBtn.disabled = !(valid1 && valid2 && housesValid);
+    }
+    
+    // ============================================
+    // DRAG & DROP
+    // ============================================
+    function handleDragStart(e, card) {
+      draggedCard = card;
+      e.target.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    }
+    
+    function handleDragEnd(e) {
+      e.target.classList.remove('dragging');
+      draggedCard = null;
+      
+      // Remove drag-over from all slots
+      document.querySelectorAll('.deck-slot').forEach(s => s.classList.remove('drag-over'));
+    }
+    
+    function handleDragOver(e) {
+      e.preventDefault();
+      e.currentTarget.classList.add('drag-over');
+    }
+    
+    function handleDragLeave(e) {
+      e.currentTarget.classList.remove('drag-over');
+    }
+    
+    function handleDrop(e, deckNum, slotIndex) {
+      e.preventDefault();
+      e.currentTarget.classList.remove('drag-over');
+      
+      if (!draggedCard) return;
+      
+      const deck = deckNum === 1 ? deck1 : deck2;
+      const house = deckNum === 1 ? deck1House : deck2House;
+      
+      // Check house matches
+      if (house && draggedCard.house !== house) {
+        alert(`This deck requires ${HOUSES[house].name} cards only!`);
+        return;
+      }
+      
+      // Check not already in a deck
+      const usedUids = [...deck1, ...deck2].filter(c => c).map(c => c.uid);
+      if (usedUids.includes(draggedCard.uid)) {
+        return;
+      }
+      
+      // Check duplicate value
+      const existingValues = deck.filter(c => c).map(c => c.value);
+      if (existingValues.includes(draggedCard.value)) {
+        alert(`Value ${draggedCard.displayValue} already in deck!`);
+        return;
+      }
+      
+      // Auto-set house if not set
+      if (!house) {
+        if (deckNum === 1) {
+          deck1House = draggedCard.house;
+          document.getElementById('deck1House').value = draggedCard.house;
+        } else {
+          deck2House = draggedCard.house;
+          document.getElementById('deck2House').value = draggedCard.house;
+        }
+      }
+      
+      // Add to deck
+      deck[slotIndex] = draggedCard;
+      
+      renderDeckSlots(deckNum);
+      renderCollection();
+      validateAll();
+    }
+    
+    // ============================================
+    // ACTIONS
+    // ============================================
+    function addCardToDeck(card) {
+      const usedUids = [...deck1, ...deck2].filter(c => c).map(c => c.uid);
+      if (usedUids.includes(card.uid)) return;
+      
+      // Try deck 1 first
+      if (canAddToDeck(1, card)) {
+        const emptySlot = deck1.findIndex((c, i) => !c);
+        if (emptySlot !== -1) {
+          if (!deck1House) {
+            deck1House = card.house;
+            document.getElementById('deck1House').value = card.house;
+          }
+          deck1[emptySlot] = card;
+          renderDeckSlots(1);
+          renderCollection();
+          validateAll();
+          return;
+        }
+      }
+      
+      // Try deck 2
+      if (canAddToDeck(2, card)) {
+        const emptySlot = deck2.findIndex((c, i) => !c);
+        if (emptySlot !== -1) {
+          if (!deck2House) {
+            deck2House = card.house;
+            document.getElementById('deck2House').value = card.house;
+          }
+          deck2[emptySlot] = card;
+          renderDeckSlots(2);
+          renderCollection();
+          validateAll();
+          return;
+        }
+      }
+    }
+    
+    function canAddToDeck(deckNum, card) {
+      const deck = deckNum === 1 ? deck1 : deck2;
+      const house = deckNum === 1 ? deck1House : deck2House;
+      
+      // Check house
+      if (house && card.house !== house) return false;
+      
+      // Check not full
+      if (deck.filter(c => c).length >= 10) return false;
+      
+      // Check value not duplicate
+      const values = deck.filter(c => c).map(c => c.value);
+      if (values.includes(card.value)) return false;
+      
+      return true;
+    }
+    
+    function removeFromDeck(deckNum, slotIndex, event) {
+      event.stopPropagation();
+      
+      if (deckNum === 1) {
+        deck1[slotIndex] = null;
+      } else {
+        deck2[slotIndex] = null;
+      }
+      
+      renderDeckSlots(deckNum);
+      renderCollection();
+      validateAll();
+    }
+    
+    function onHouseChange(deckNum) {
+      const select = document.getElementById(`deck${deckNum}House`);
+      const newHouse = select.value;
+      
+      if (deckNum === 1) {
+        deck1House = newHouse;
+        // Clear cards if house changed
+        if (deck1.some(c => c && c.house !== newHouse)) {
+          if (confirm('Changing house will clear current cards. Continue?')) {
+            deck1 = new Array(10).fill(null);
+          } else {
+            select.value = deck1.find(c => c)?.house || '';
+            deck1House = select.value;
+            return;
+          }
+        }
+      } else {
+        deck2House = newHouse;
+        if (deck2.some(c => c && c.house !== newHouse)) {
+          if (confirm('Changing house will clear current cards. Continue?')) {
+            deck2 = new Array(10).fill(null);
+          } else {
+            select.value = deck2.find(c => c)?.house || '';
+            deck2House = select.value;
+            return;
+          }
+        }
+      }
+      
+      renderDeckSlots(deckNum);
+      renderCollection();
+      validateAll();
+    }
+    
+    function clearDeck(deckNum) {
+      if (!confirm(`Clear Deck ${deckNum}?`)) return;
+      
+      if (deckNum === 1) {
+        deck1 = new Array(10).fill(null);
+        deck1House = '';
+        document.getElementById('deck1House').value = '';
+      } else {
+        deck2 = new Array(10).fill(null);
+        deck2House = '';
+        document.getElementById('deck2House').value = '';
+      }
+      
+      renderDeckSlots(deckNum);
+      renderCollection();
+      validateAll();
+    }
+    
+    function clearAll() {
+      if (!confirm('Clear both decks?')) return;
+      
+      deck1 = new Array(10).fill(null);
+      deck2 = new Array(10).fill(null);
+      deck1House = '';
+      deck2House = '';
+      document.getElementById('deck1House').value = '';
+      document.getElementById('deck2House').value = '';
+      
+      renderDeckSlots(1);
+      renderDeckSlots(2);
+      renderCollection();
+      validateAll();
+    }
+    
+    function filterCollection(filter) {
+      currentFilter = filter;
+      
+      // Update buttons
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.filter === filter);
+      });
+      
+      renderCollection();
+    }
+    
+    // ============================================
+    // SAVE / LOAD
+    // ============================================
+    function saveBattleDeck() {
+      const name = prompt('Enter a name for this battle deck:', `Battle ${new Date().toLocaleDateString()}`);
+      if (!name) return;
+      
+      const battleDeck = {
+        id: Date.now(),
+        name: name,
+        deck1House: deck1House,
+        deck2House: deck2House,
+        deck1Cards: deck1.filter(c => c).map(c => c.uid),
+        deck2Cards: deck2.filter(c => c).map(c => c.uid),
+        created: Date.now()
+      };
+      
+      const saved = loadSavedBattleDecks();
+      saved.push(battleDeck);
+      localStorage.setItem(DB_KEYS.BATTLE_DECKS, JSON.stringify(saved));
+      
+      renderSavedDecks();
+      alert('Battle deck saved!');
+    }
+    
+    function loadBattleDeck(index) {
+      const saved = loadSavedBattleDecks();
+      const bd = saved[index];
+      if (!bd) return;
+      
+      // Reset
+      deck1 = new Array(10).fill(null);
+      deck2 = new Array(10).fill(null);
+      deck1House = bd.deck1House;
+      deck2House = bd.deck2House;
+      
+      document.getElementById('deck1House').value = deck1House;
+      document.getElementById('deck2House').value = deck2House;
+      
+      // Load cards
+      bd.deck1Cards.forEach((uid, i) => {
+        const card = allCards.find(c => c.uid === uid);
+        if (card) deck1[i] = card;
+      });
+      
+      bd.deck2Cards.forEach((uid, i) => {
+        const card = allCards.find(c => c.uid === uid);
+        if (card) deck2[i] = card;
+      });
+      
+      renderDeckSlots(1);
+      renderDeckSlots(2);
+      renderCollection();
+      validateAll();
+    }
+    
+    function deleteBattleDeck(index) {
+      if (!confirm('Delete this battle deck?')) return;
+      
+      const saved = loadSavedBattleDecks();
+      saved.splice(index, 1);
+      localStorage.setItem(DB_KEYS.BATTLE_DECKS, JSON.stringify(saved));
+      
+      renderSavedDecks();
+    }
+    
+    // ============================================
+    // INIT
+    // ============================================
+    function init() {
+      deck1 = new Array(10).fill(null);
+      deck2 = new Array(10).fill(null);
+      
+      loadAllCards();
+      renderDeckSlots(1);
+      renderDeckSlots(2);
+      renderCollection();
+      renderSavedDecks();
+      validateAll();
+    }
+    
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

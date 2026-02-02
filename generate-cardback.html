@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head><title>Generate Cardback</title></head>
+<body style="background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;">
+<canvas id="c" width="540" height="810"></canvas>
+<br>
+<a id="dl" download="cardback.png" style="color:#fff;padding:12px 24px;background:#F7931A;border-radius:8px;text-decoration:none;margin-top:20px;">Download cardback.png</a>
+<script>
+const c = document.getElementById('c'), ctx = c.getContext('2d');
+const w = 540, h = 810;
+
+// Diagonal gradient background
+const grad = ctx.createLinearGradient(0, 0, w, h);
+grad.addColorStop(0, '#10B981');
+grad.addColorStop(0.5, '#065F46');
+grad.addColorStop(0.5, '#7F1D1D');
+grad.addColorStop(1, '#EF4444');
+
+ctx.fillStyle = grad;
+ctx.beginPath();
+ctx.roundRect(0, 0, w, h, 24);
+ctx.fill();
+
+// Diagonal line
+ctx.strokeStyle = '#000';
+ctx.lineWidth = 6;
+ctx.beginPath();
+ctx.moveTo(0, 0);
+ctx.lineTo(w, h);
+ctx.stroke();
+
+// TOKEN text rotated on diagonal
+ctx.save();
+ctx.translate(w/2, h/2);
+ctx.rotate(Math.atan2(h, w));
+ctx.fillStyle = '#000';
+ctx.font = 'bold 72px Arial';
+ctx.textAlign = 'center';
+ctx.textBaseline = 'middle';
+ctx.fillText('TOKEN', 0, 0);
+ctx.restore();
+
+// Bull emoji top-left
+ctx.font = '48px Arial';
+ctx.fillText('🐂', 30, 60);
+
+// Bear emoji bottom-right
+ctx.fillText('🐻', w - 70, h - 25);
+
+// Border
+ctx.strokeStyle = '#000';
+ctx.lineWidth = 8;
+ctx.beginPath();
+ctx.roundRect(4, 4, w-8, h-8, 20);
+ctx.stroke();
+
+document.getElementById('dl').href = c.toDataURL('image/png');
+</script>
+</body>
+</html>

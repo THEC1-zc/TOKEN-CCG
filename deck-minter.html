@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TOKEN - Deck Minter v1.2.0</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    .back-btn {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      padding: 8px 16px;
+      background: #27272A;
+      border: 1px solid #3f3f46;
+      border-radius: 8px;
+      color: #FFFFFF;
+      text-decoration: none;
+      font-size: 13px;
+      z-index: 100;
+      transition: all 0.2s;
+    }
+    .back-btn:hover {
+      background: #3f3f46;
+      border-color: #F7931A;
+    }
+    
+    body {
+      min-height: 100vh;
+      background: linear-gradient(180deg, #0a0a0f 0%, #12121f 50%, #0a0a0f 100%);
+      padding: 20px;
+      font-family: 'Inter', system-ui, sans-serif;
+      color: #FFFFFF;
+    }
+    
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      font-size: 28px;
+      font-family: 'Bebas Neue', sans-serif;
+      color: #FFFFFF;
+      letter-spacing: 4px;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    
+    .subtitle {
+      text-align: center;
+      color: #71717A;
+      font-size: 12px;
+      margin-bottom: 24px;
+    }
+    
+    /* Stats */
+    .stats-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .stat-item {
+      background: #141419;
+      border: 1px solid #27272A;
+      border-radius: 8px;
+      padding: 8px 16px;
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      color: #F7931A;
+    }
+    
+    .stat-label {
+      font-size: 9px;
+      color: #71717A;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    /* Config Section */
+    .config-section {
+      background: #141419;
+      border: 1px solid #27272A;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    
+    .config-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18px;
+      letter-spacing: 2px;
+      color: #F7931A;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    
+    .config-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    
+    .config-group {
+      text-align: center;
+    }
+    
+    .config-label {
+      display: block;
+      font-size: 11px;
+      color: #A1A1AA;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+    }
+    
+    /* House Selector */
+    .house-selector {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    
+    .house-option {
+      width: 60px;
+      height: 60px;
+      border: 2px solid #27272A;
+      border-radius: 12px;
+      background: #0a0a0f;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      transition: all 0.2s;
+    }
+    
+    .house-option:hover {
+      border-color: #52525B;
+      transform: scale(1.05);
+    }
+    
+    .house-option.selected {
+      transform: scale(1.1);
+    }
+    
+    .house-option.bitcoin.selected { border-color: #F7931A; box-shadow: 0 0 20px #F7931A44; }
+    .house-option.ethereum.selected { border-color: #C0C0C0; box-shadow: 0 0 20px #C0C0C044; }
+    .house-option.base.selected { border-color: #0052FF; box-shadow: 0 0 20px #0052FF44; }
+    .house-option.tysm.selected { border-color: #10B981; box-shadow: 0 0 20px #10B98144; }
+    
+    /* Faction Input */
+    .faction-input {
+      width: 100%;
+      max-width: 300px;
+      padding: 12px 16px;
+      background: #0a0a0f;
+      border: 2px solid #27272A;
+      border-radius: 10px;
+      color: #FFFFFF;
+      font-size: 16px;
+      font-family: 'Bebas Neue', sans-serif;
+      letter-spacing: 2px;
+      text-align: center;
+      text-transform: uppercase;
+      transition: border-color 0.2s;
+    }
+    
+    .faction-input:focus {
+      outline: none;
+      border-color: #F7931A;
+    }
+    
+    .faction-input::placeholder {
+      color: #52525B;
+      text-transform: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      letter-spacing: 0;
+    }
+    
+    .input-hint {
+      font-size: 10px;
+      color: #52525B;
+      margin-top: 6px;
+    }
+    
+    /* Icon Selector */
+    .icon-selector {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      max-width: 300px;
+      margin: 0 auto;
+    }
+    
+    .icon-option {
+      width: 40px;
+      height: 40px;
+      border: 2px solid #27272A;
+      border-radius: 8px;
+      background: #0a0a0f;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      transition: all 0.2s;
+    }
+    
+    .icon-option:hover {
+      border-color: #52525B;
+      transform: scale(1.1);
+    }
+    
+    .icon-option.selected {
+      border-color: #F7931A;
+      box-shadow: 0 0 12px #F7931A44;
+      transform: scale(1.15);
+    }
+    
+    /* Generate Button */
+    .generate-section {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    
+    .generate-btn {
+      padding: 16px 48px;
+      background: linear-gradient(135deg, #F7931A 0%, #FFD93D 100%);
+      border: none;
+      border-radius: 12px;
+      color: #000000;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 24px;
+      letter-spacing: 3px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .generate-btn:hover:not(:disabled) {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px #F7931A44;
+    }
+    
+    .generate-btn:disabled {
+      background: #27272A;
+      color: #52525B;
+      cursor: not-allowed;
+    }
+    
+    .generate-btn.generating {
+      animation: pulse 1s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    
+    /* Progress */
+    .progress-section {
+      display: none;
+      text-align: center;
+      margin: 24px 0;
+    }
+    
+    .progress-section.visible {
+      display: block;
+    }
+    
+    .progress-bar {
+      width: 100%;
+      max-width: 400px;
+      height: 8px;
+      background: #27272A;
+      border-radius: 4px;
+      margin: 12px auto;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #F7931A, #FFD93D);
+      border-radius: 4px;
+      transition: width 0.3s;
+    }
+    
+    .progress-text {
+      font-size: 12px;
+      color: #71717A;
+    }
+    
+    /* Deck Preview */
+    .deck-section {
+      display: none;
+    }
+    
+    .deck-section.visible {
+      display: block;
+    }
+    
+    .deck-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    
+    .deck-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: 2px;
+    }
+    
+    .deck-info {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+    
+    .deck-house {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      background: #141419;
+      border-radius: 6px;
+    }
+    
+    .deck-house-symbol {
+      font-size: 20px;
+    }
+    
+    .deck-house-name {
+      font-size: 12px;
+      color: #A1A1AA;
+    }
+    
+    .deck-faction {
+      font-size: 12px;
+      color: #F7931A;
+      background: #F7931A22;
+      padding: 6px 12px;
+      border-radius: 6px;
+    }
+    
+    /* Cards Grid */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .card-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .card-preview {
+      width: 120px;
+      height: 180px;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transition: transform 0.2s;
+      cursor: pointer;
+    }
+    
+    .card-preview:hover {
+      transform: scale(1.05);
+    }
+    
+    .card-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .card-value-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: #71717A;
+    }
+    
+    /* Actions */
+    .actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    
+    .action-btn {
+      padding: 12px 24px;
+      background: #27272A;
+      border: 1px solid #3f3f46;
+      border-radius: 8px;
+      color: #FFFFFF;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .action-btn:hover {
+      background: #3f3f46;
+    }
+    
+    .action-btn.primary {
+      background: linear-gradient(135deg, #10B981 0%, #6EE7B7 100%);
+      border: none;
+      color: #000000;
+      font-weight: 600;
+    }
+    
+    .action-btn.primary:hover {
+      opacity: 0.9;
+    }
+    
+    /* House colors */
+    .house-bitcoin { color: #F7931A; }
+    .house-ethereum { color: #C0C0C0; }
+    .house-base { color: #0052FF; }
+    .house-tysm { color: #10B981; }
+    
+    .version {
+      text-align: center;
+      color: #3f3f46;
+      font-size: 9px;
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-btn">← Home</a>
+  
+  <div class="container">
+    <h1>DECK MINTER</h1>
+    <p class="subtitle">Generate a complete 10-card deck</p>
+    
+    <!-- Stats -->
+    <div class="stats-bar">
+      <div class="stat-item">
+        <div class="stat-value" id="statDecks">0</div>
+        <div class="stat-label">Decks Generated</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="statCards">0</div>
+        <div class="stat-label">Total Cards</div>
+      </div>
+    </div>
+    
+    <!-- Config Section -->
+    <div class="config-section">
+      <div class="config-title">⚙️ DECK CONFIGURATION</div>
+      
+      <div class="config-grid">
+        <!-- House Selection -->
+        <div class="config-group">
+          <label class="config-label">Choose House</label>
+          <div class="house-selector">
+            <div class="house-option bitcoin" data-house="bitcoin" onclick="selectHouse('bitcoin')">₿</div>
+            <div class="house-option ethereum" data-house="ethereum" onclick="selectHouse('ethereum')">◊</div>
+            <div class="house-option base" data-house="base" onclick="selectHouse('base')">■</div>
+            <div class="house-option tysm" data-house="tysm" onclick="selectHouse('tysm')">🙏</div>
+          </div>
+        </div>
+        
+        <!-- Faction Name -->
+        <div class="config-group">
+          <label class="config-label">Faction Name</label>
+          <input 
+            type="text" 
+            class="faction-input" 
+            id="factionInput" 
+            placeholder="Enter faction name..."
+            maxlength="16"
+            oninput="validateInputs()"
+          >
+          <p class="input-hint">Max 16 characters</p>
+        </div>
+        
+        <!-- Faction Icon -->
+        <div class="config-group">
+          <label class="config-label">Faction Icon</label>
+          <div class="icon-selector" id="iconSelector">
+            <!-- Icons populated by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Generate Button -->
+    <div class="generate-section">
+      <button class="generate-btn" id="generateBtn" onclick="generateDeck()" disabled>
+        GENERATE DECK
+      </button>
+    </div>
+    
+    <!-- Progress -->
+    <div class="progress-section" id="progressSection">
+      <div class="progress-text" id="progressText">Generating card 1 of 10...</div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+      </div>
+    </div>
+    
+    <!-- Deck Preview -->
+    <div class="deck-section" id="deckSection">
+      <div class="deck-header">
+        <div class="deck-title">YOUR DECK</div>
+        <div class="deck-info">
+          <div class="deck-house">
+            <span class="deck-house-symbol" id="deckHouseSymbol">₿</span>
+            <span class="deck-house-name" id="deckHouseName">Bitcoin</span>
+          </div>
+          <div class="deck-faction" id="deckFaction">FACTION</div>
+        </div>
+      </div>
+      
+      <div class="cards-grid" id="cardsGrid">
+        <!-- Cards will be inserted here -->
+      </div>
+      
+      <div class="actions">
+        <button class="action-btn" onclick="downloadAll()">
+          📥 Download All (ZIP)
+        </button>
+        <button class="action-btn" onclick="resetConfig()">
+          🔄 Generate New
+        </button>
+        <button class="action-btn primary" onclick="saveDeck()">
+          ✓ Save Deck
+        </button>
+      </div>
+    </div>
+    
+    <p class="version">Deck Minter v1.2.0</p>
+  </div>
+
+  <!-- JSZip Library for ZIP download -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  
+  <script>
+    // ============================================
+    // CONFIGURATION
+    // ============================================
+    const HOUSES = {
+      bitcoin: { name: 'Bitcoin', symbol: '₿', primary: '#F7931A', secondary: '#FFD93D' },
+      ethereum: { name: 'Ethereum', symbol: '◊', primary: '#C0C0C0', secondary: '#E8E8E8' },
+      base: { name: 'Base', symbol: '■', primary: '#0052FF', secondary: '#5C9DFF' },
+      tysm: { name: 'Tysm', symbol: '🙏', primary: '#10B981', secondary: '#6EE7B7' }
+    };
+    
+    const CARD_VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11'];
+    const DISPLAY_VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J'];
+    
+    const FACTION_ICONS = ['⚔️', '🛡️', '👑', '🔥', '💎', '🚀', '⭐', '🌙', '🐉', '🦁', '🐺', '🦅', '💀', '🤖', '⚡', '💫', '🔮', '🏆', '🎯', '🌟'];
+    
+    const PLACEHOLDER_COLORS = ['#F7931A', '#C0C0C0', '#0052FF', '#10B981', '#FFD700', '#A855F7', '#EC4899', '#06B6D4'];
+    
+    const DB_KEYS = {
+      DECKS: 'token_decks',
+      STATS: 'token_stats'
+    };
+    
+    // State
+    let selectedHouse = null;
+    let selectedIcon = null;
+    let currentDeck = null;
+    
+    // ============================================
+    // INITIALIZATION
+    // ============================================
+    function init() {
+      populateIcons();
+      loadStats();
+      validateInputs();
+    }
+    
+    function populateIcons() {
+      const container = document.getElementById('iconSelector');
+      container.innerHTML = '';
+      
+      FACTION_ICONS.forEach((icon, i) => {
+        const el = document.createElement('div');
+        el.className = 'icon-option';
+        el.textContent = icon;
+        el.onclick = () => selectIcon(icon, el);
+        container.appendChild(el);
+      });
+    }
+    
+    function loadStats() {
+      const stats = getStats();
+      document.getElementById('statDecks').textContent = stats.decks;
+      document.getElementById('statCards').textContent = stats.cards;
+    }
+    
+    function getStats() {
+      const data = localStorage.getItem(DB_KEYS.STATS);
+      return data ? JSON.parse(data) : { decks: 0, cards: 0 };
+    }
+    
+    function updateStats(decksAdd = 0, cardsAdd = 0) {
+      const stats = getStats();
+      stats.decks += decksAdd;
+      stats.cards += cardsAdd;
+      localStorage.setItem(DB_KEYS.STATS, JSON.stringify(stats));
+      loadStats();
+    }
+    
+    // ============================================
+    // SELECTION HANDLERS
+    // ============================================
+    function selectHouse(house) {
+      selectedHouse = house;
+      
+      document.querySelectorAll('.house-option').forEach(el => {
+        el.classList.toggle('selected', el.dataset.house === house);
+      });
+      
+      validateInputs();
+    }
+    
+    function selectIcon(icon, element) {
+      selectedIcon = icon;
+      
+      document.querySelectorAll('.icon-option').forEach(el => {
+        el.classList.remove('selected');
+      });
+      element.classList.add('selected');
+      
+      validateInputs();
+    }
+    
+    function validateInputs() {
+      const factionName = document.getElementById('factionInput').value.trim();
+      const btn = document.getElementById('generateBtn');
+      
+      const isValid = selectedHouse && selectedIcon && factionName.length > 0;
+      btn.disabled = !isValid;
+    }
+    
+    // ============================================
+    // DECK GENERATION
+    // ============================================
+    async function generateDeck() {
+      if (!selectedHouse || !selectedIcon) return;
+      
+      const factionName = document.getElementById('factionInput').value.trim().toUpperCase();
+      if (!factionName) return;
+      
+      const btn = document.getElementById('generateBtn');
+      const progressSection = document.getElementById('progressSection');
+      const deckSection = document.getElementById('deckSection');
+      
+      btn.disabled = true;
+      btn.classList.add('generating');
+      btn.textContent = 'GENERATING...';
+      
+      progressSection.classList.add('visible');
+      deckSection.classList.remove('visible');
+      
+      const houseData = HOUSES[selectedHouse];
+      
+      const deck = {
+        id: Date.now(),
+        house: selectedHouse,
+        houseName: houseData.name,
+        houseSymbol: houseData.symbol,
+        faction: factionName,
+        factionIcon: selectedIcon,
+        cards: [],
+        created: Date.now()
+      };
+      
+      // Generate 10 cards
+      for (let i = 0; i < 10; i++) {
+        const value = CARD_VALUES[i];
+        const displayValue = DISPLAY_VALUES[i];
+        const cardName = displayValue;
+        
+        document.getElementById('progressText').textContent = `Generating card ${i + 1} of 10...`;
+        document.getElementById('progressFill').style.width = `${(i + 1) * 10}%`;
+        
+        const imageData = await generateCardImage(selectedHouse, value, displayValue, cardName, factionName, selectedIcon);
+        
+        deck.cards.push({
+          value: value,
+          displayValue: displayValue,
+          cardName: cardName,
+          image: imageData
+        });
+        
+        await new Promise(r => setTimeout(r, 100));
+      }
+      
+      currentDeck = deck;
+      displayDeck(deck);
+      
+      btn.disabled = false;
+      btn.classList.remove('generating');
+      btn.textContent = 'GENERATE DECK';
+      progressSection.classList.remove('visible');
+      deckSection.classList.add('visible');
+    }
+    
+    function displayDeck(deck) {
+      document.getElementById('deckHouseSymbol').textContent = deck.houseSymbol;
+      document.getElementById('deckHouseSymbol').className = `deck-house-symbol house-${deck.house}`;
+      document.getElementById('deckHouseName').textContent = deck.houseName;
+      document.getElementById('deckFaction').textContent = `${deck.factionIcon} ${deck.faction}`;
+      
+      const grid = document.getElementById('cardsGrid');
+      grid.innerHTML = '';
+      
+      deck.cards.forEach((card, index) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'card-wrapper';
+        
+        wrapper.innerHTML = `
+          <div class="card-preview" onclick="downloadSingle(${index})">
+            <img src="${card.image}" alt="Card ${card.displayValue}">
+          </div>
+          <div class="card-value-label">${card.displayValue}</div>
+        `;
+        
+        grid.appendChild(wrapper);
+      });
+    }
+    
+    // ============================================
+    // CARD IMAGE GENERATION
+    // ============================================
+    async function generateCardImage(house, value, displayValue, cardName, factionName, factionIcon) {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      const scale = 3;
+      const width = 180 * scale;
+      const height = 270 * scale;
+      
+      canvas.width = width;
+      canvas.height = height;
+      
+      const colors = HOUSES[house];
+      
+      const borderWidth = Math.round(width * 0.012);
+      const borderRadius = Math.round(width * 0.067);
+      const headerHeight = Math.round(height * 0.15);
+      const centerHeight = Math.round(height * 0.55);
+      const footerHeight = Math.round(height * 0.30);
+      
+      // Background
+      const bgGradient = ctx.createLinearGradient(0, 0, 0, height);
+      bgGradient.addColorStop(0, '#1a1a2e');
+      bgGradient.addColorStop(1, '#0f0f1a');
+      
+      const borderGradient = ctx.createLinearGradient(0, 0, width, height);
+      borderGradient.addColorStop(0, colors.primary);
+      borderGradient.addColorStop(1, colors.secondary);
+      
+      // Draw border
+      ctx.fillStyle = borderGradient;
+      roundRect(ctx, 0, 0, width, height, borderRadius);
+      ctx.fill();
+      
+      // Draw inner
+      ctx.fillStyle = bgGradient;
+      roundRect(ctx, borderWidth, borderWidth, width - borderWidth * 2, height - borderWidth * 2, borderRadius - 2);
+      ctx.fill();
+      
+      // Header
+      const headerTop = borderWidth;
+      ctx.fillStyle = 'rgba(0,0,0,0.2)';
+      ctx.fillRect(borderWidth, headerTop, width - borderWidth * 2, headerHeight);
+      
+      ctx.strokeStyle = colors.primary + '44';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(borderWidth, headerTop + headerHeight);
+      ctx.lineTo(width - borderWidth, headerTop + headerHeight);
+      ctx.stroke();
+      
+      // House symbol
+      const symbolFontSize = Math.round(height * 0.08);
+      ctx.fillStyle = colors.primary;
+      ctx.font = `bold ${symbolFontSize}px Arial, sans-serif`;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(colors.symbol, borderWidth + Math.round(width * 0.08), headerTop + headerHeight / 2);
+      
+      // Value
+      const valueFontSize = Math.round(height * 0.11);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = `bold ${valueFontSize}px Arial, sans-serif`;
+      ctx.textAlign = 'right';
+      ctx.fillText(displayValue, width - borderWidth - Math.round(width * 0.08), headerTop + headerHeight / 2 + Math.round(height * 0.01));
+      
+      // Center - Image area
+      const centerTop = headerTop + headerHeight;
+      const imagePadding = Math.round(width * 0.075);
+      const imageAreaSize = Math.min(width - imagePadding * 2, centerHeight - imagePadding * 2);
+      const imageAreaLeft = (width - imageAreaSize) / 2;
+      const imageAreaTop = centerTop + (centerHeight - imageAreaSize) / 2;
+      
+      const imageGradient = ctx.createLinearGradient(imageAreaLeft, imageAreaTop, imageAreaLeft + imageAreaSize, imageAreaTop + imageAreaSize);
+      imageGradient.addColorStop(0, '#1f1f35');
+      imageGradient.addColorStop(1, '#12121f');
+      
+      ctx.fillStyle = imageGradient;
+      roundRect(ctx, imageAreaLeft, imageAreaTop, imageAreaSize, imageAreaSize, Math.round(width * 0.055));
+      ctx.fill();
+      
+      ctx.strokeStyle = colors.primary + '66';
+      ctx.lineWidth = 2;
+      roundRect(ctx, imageAreaLeft, imageAreaTop, imageAreaSize, imageAreaSize, Math.round(width * 0.055));
+      ctx.stroke();
+      
+      // Value placeholder
+      const randomColor = PLACEHOLDER_COLORS[Math.floor(Math.random() * PLACEHOLDER_COLORS.length)];
+      ctx.fillStyle = randomColor;
+      ctx.globalAlpha = 0.6;
+      ctx.font = `bold ${Math.round(imageAreaSize * 0.5)}px Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(displayValue, width / 2, imageAreaTop + imageAreaSize / 2);
+      ctx.globalAlpha = 1;
+      
+      // Footer
+      const footerTop = centerTop + centerHeight;
+      const footerPadding = Math.round(width * 0.067);
+      
+      ctx.fillStyle = 'rgba(0,0,0,0.4)';
+      roundRect(ctx, borderWidth, footerTop, width - borderWidth * 2, footerHeight - borderWidth, 0);
+      ctx.fill();
+      
+      // Card name
+      const nameFontSize = Math.round(height * 0.055);
+      const nameTop = footerTop + Math.round(footerHeight * 0.18);
+      ctx.fillStyle = colors.primary;
+      ctx.font = `bold ${nameFontSize}px Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(cardName, width / 2, nameTop);
+      
+      // Faction frame
+      const factionFrameTop = footerTop + Math.round(footerHeight * 0.35);
+      const factionFrameHeight = Math.round(footerHeight * 0.28);
+      
+      ctx.fillStyle = borderGradient;
+      roundRect(ctx, footerPadding, factionFrameTop, width - footerPadding * 2, factionFrameHeight, 6);
+      ctx.fill();
+      
+      const factionInnerGradient = ctx.createLinearGradient(0, factionFrameTop, 0, factionFrameTop + factionFrameHeight);
+      factionInnerGradient.addColorStop(0, '#1a1a2e');
+      factionInnerGradient.addColorStop(1, '#0f0f1a');
+      
+      ctx.fillStyle = factionInnerGradient;
+      roundRect(ctx, footerPadding + 2, factionFrameTop + 2, width - footerPadding * 2 - 4, factionFrameHeight - 4, 4);
+      ctx.fill();
+      
+      // Faction icon
+      const iconSize = Math.round(factionFrameHeight * 0.6);
+      const iconX = footerPadding + Math.round(width * 0.05);
+      
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = `${Math.round(iconSize * 0.8)}px Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(factionIcon, iconX + iconSize / 2, factionFrameTop + factionFrameHeight / 2);
+      
+      // Faction name
+      const factionFontSize = Math.round(height * 0.033);
+      ctx.fillStyle = colors.primary;
+      ctx.font = `bold ${factionFontSize}px Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(factionName, width / 2, factionFrameTop + factionFrameHeight / 2);
+      
+      // XP Bar
+      const xpBarTop = factionFrameTop + factionFrameHeight + Math.round(footerHeight * 0.08);
+      const xpBarHeight = Math.round(footerHeight * 0.20);
+      
+      ctx.fillStyle = '#1a1a24';
+      roundRect(ctx, footerPadding, xpBarTop, width - footerPadding * 2, xpBarHeight, Math.round(xpBarHeight / 2));
+      ctx.fill();
+      
+      ctx.strokeStyle = '#3f3f46';
+      ctx.lineWidth = 1;
+      roundRect(ctx, footerPadding, xpBarTop, width - footerPadding * 2, xpBarHeight, Math.round(xpBarHeight / 2));
+      ctx.stroke();
+      
+      const xpFontSize = Math.round(height * 0.028);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = `bold ${xpFontSize}px monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('0 XP • LV1', width / 2, xpBarTop + xpBarHeight / 2);
+      
+      return canvas.toDataURL('image/png');
+    }
+    
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+    }
+    
+    // ============================================
+    // DOWNLOAD & SAVE
+    // ============================================
+    async function downloadAll() {
+      if (!currentDeck) return;
+      
+      const zip = new JSZip();
+      const folderName = `token_deck_${currentDeck.house}_${currentDeck.faction.replace(/\s+/g, '_')}`;
+      const folder = zip.folder(folderName);
+      
+      currentDeck.cards.forEach((card, index) => {
+        const data = card.image.split(',')[1];
+        folder.file(`${String(index + 1).padStart(2, '0')}_${card.displayValue}.png`, data, {base64: true});
+      });
+      
+      const content = await zip.generateAsync({type: 'blob'});
+      
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(content);
+      link.download = `${folderName}.zip`;
+      link.click();
+    }
+    
+    function downloadSingle(index) {
+      if (!currentDeck) return;
+      
+      const card = currentDeck.cards[index];
+      const link = document.createElement('a');
+      link.href = card.image;
+      link.download = `token_${currentDeck.house}_${card.displayValue}_${currentDeck.faction.replace(/\s+/g, '_')}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+    
+    function saveDeck() {
+      if (!currentDeck) return;
+      
+      const deckToSave = {
+        ...currentDeck,
+        cards: currentDeck.cards.map(c => ({
+          value: c.value,
+          displayValue: c.displayValue,
+          cardName: c.cardName
+        }))
+      };
+      
+      const decks = JSON.parse(localStorage.getItem(DB_KEYS.DECKS) || '[]');
+      decks.push(deckToSave);
+      localStorage.setItem(DB_KEYS.DECKS, JSON.stringify(decks));
+      
+      updateStats(1, 10);
+      alert('Deck saved successfully!');
+    }
+    
+    function resetConfig() {
+      selectedHouse = null;
+      selectedIcon = null;
+      currentDeck = null;
+      
+      document.querySelectorAll('.house-option').forEach(el => el.classList.remove('selected'));
+      document.querySelectorAll('.icon-option').forEach(el => el.classList.remove('selected'));
+      document.getElementById('factionInput').value = '';
+      document.getElementById('deckSection').classList.remove('visible');
+      
+      validateInputs();
+    }
+    
+    // ============================================
+    // INIT
+    // ============================================
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

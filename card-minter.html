@@ -1,0 +1,1986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TOKEN - Card Minter v1.7.0</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    .back-btn {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      padding: 8px 16px;
+      background: #27272A;
+      border: 1px solid #3f3f46;
+      border-radius: 8px;
+      color: #FFFFFF;
+      text-decoration: none;
+      font-size: 13px;
+      z-index: 100;
+      transition: all 0.2s;
+    }
+    .back-btn:hover {
+      background: #3f3f46;
+      border-color: #F7931A;
+    }
+    
+    body {
+      min-height: 100vh;
+      background: linear-gradient(180deg, #0a0a0f 0%, #12121f 50%, #0a0a0f 100%);
+      padding: 20px;
+      font-family: 'Inter', system-ui, sans-serif;
+      color: #FFFFFF;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      font-size: 24px;
+      font-family: 'Bebas Neue', sans-serif;
+      color: #FFFFFF;
+      letter-spacing: 4px;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    
+    .subtitle {
+      text-align: center;
+      color: #71717A;
+      font-size: 12px;
+      margin-bottom: 24px;
+    }
+    
+    .wallet-info {
+      text-align: center;
+      background: #141419;
+      border: 1px solid #27272A;
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-bottom: 20px;
+      font-size: 11px;
+      color: #A1A1AA;
+    }
+    
+    .wallet-info strong {
+      color: #F7931A;
+    }
+    
+    .minter-layout {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    /* Form Section */
+    .form-section {
+      flex: 1;
+      min-width: 280px;
+      max-width: 350px;
+    }
+    
+    .form-group {
+      margin-bottom: 16px;
+    }
+    
+    .form-label {
+      display: block;
+      font-size: 11px;
+      color: #A1A1AA;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    
+    .form-input, .form-select {
+      width: 100%;
+      padding: 12px 14px;
+      background: #141419;
+      border: 1px solid #27272A;
+      border-radius: 8px;
+      color: #FFFFFF;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      transition: border-color 0.2s;
+      text-transform: uppercase;
+    }
+    
+    .form-input:focus, .form-select:focus {
+      outline: none;
+      border-color: #F7931A;
+    }
+    
+    .form-input::placeholder {
+      color: #52525B;
+      text-transform: none;
+    }
+    
+    .form-input.error {
+      border-color: #EF4444;
+    }
+    
+    .form-input.success {
+      border-color: #22C55E;
+    }
+    
+    .form-select {
+      cursor: pointer;
+      text-transform: none;
+    }
+    
+    .form-select option {
+      background: #141419;
+      color: #FFFFFF;
+    }
+    
+    .error-message {
+      font-size: 11px;
+      color: #EF4444;
+      margin-top: 4px;
+      display: none;
+    }
+    
+    .error-message.visible {
+      display: block;
+    }
+    
+    .success-message {
+      font-size: 11px;
+      color: #22C55E;
+      margin-top: 4px;
+      display: none;
+    }
+    
+    .success-message.visible {
+      display: block;
+    }
+    
+    /* Faction Input Group */
+    .faction-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .faction-tabs {
+      display: flex;
+      gap: 4px;
+    }
+    
+    .faction-tab {
+      flex: 1;
+      padding: 8px;
+      background: #141419;
+      border: 1px solid #27272A;
+      border-radius: 6px;
+      color: #71717A;
+      font-size: 11px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    
+    .faction-tab:hover {
+      border-color: #52525B;
+    }
+    
+    .faction-tab.active {
+      background: #F7931A22;
+      border-color: #F7931A;
+      color: #F7931A;
+    }
+    
+    .faction-dropdown-wrapper {
+      display: none;
+    }
+    
+    .faction-dropdown-wrapper.visible {
+      display: block;
+    }
+    
+    .faction-input-wrapper {
+      display: none;
+    }
+    
+    .faction-input-wrapper.visible {
+      display: block;
+    }
+    
+    .no-factions {
+      text-align: center;
+      padding: 12px;
+      color: #52525B;
+      font-size: 12px;
+      background: #0a0a0f;
+      border-radius: 8px;
+    }
+    
+    /* Faction Icon Selection */
+    .faction-icon-section {
+      margin-top: 8px;
+    }
+    
+    .icon-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+    
+    .icon-tab {
+      flex: 1;
+      padding: 6px;
+      background: #141419;
+      border: 1px solid #27272A;
+      border-radius: 4px;
+      color: #71717A;
+      font-size: 10px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    
+    .icon-tab:hover {
+      border-color: #52525B;
+    }
+    
+    .icon-tab.active {
+      background: #F7931A22;
+      border-color: #F7931A;
+      color: #F7931A;
+    }
+    
+    .icon-picker-wrapper {
+      display: none;
+    }
+    
+    .icon-picker-wrapper.visible {
+      display: block;
+    }
+    
+    .icon-upload-wrapper {
+      display: none;
+    }
+    
+    .icon-upload-wrapper.visible {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    .emoji-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 4px;
+      background: #141419;
+      border: 1px solid #27272A;
+      border-radius: 8px;
+      padding: 8px;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+    
+    .emoji-option {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.15s;
+    }
+    
+    .emoji-option:hover {
+      background: #27272A;
+      transform: scale(1.1);
+    }
+    
+    .emoji-option.selected {
+      background: #F7931A33;
+      box-shadow: 0 0 0 2px #F7931A;
+    }
+    
+    .selected-emoji {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #A1A1AA;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .selected-emoji span {
+      font-size: 20px;
+    }
+    
+    .icon-upload {
+      width: 60px;
+      height: 60px;
+      border: 2px dashed #27272A;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .icon-upload:hover {
+      border-color: #F7931A;
+      background: #F7931A11;
+    }
+    
+    .icon-upload.has-icon {
+      border-style: solid;
+      border-color: #22C55E;
+    }
+    
+    .icon-upload input {
+      display: none;
+    }
+    
+    .icon-upload-preview {
+      font-size: 24px;
+    }
+    
+    .icon-upload.has-icon .icon-upload-preview {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      position: absolute;
+      inset: 0;
+    }
+    
+    .icon-upload-text {
+      font-size: 8px;
+      color: #71717A;
+    }
+    
+    .icon-upload.has-icon .icon-upload-text {
+      display: none;
+    }
+    
+    .clear-icon-btn {
+      padding: 6px 12px;
+      background: #EF444433;
+      border: 1px solid #EF4444;
+      border-radius: 4px;
+      color: #EF4444;
+      font-size: 10px;
+      cursor: pointer;
+    }
+    
+    .clear-icon-btn:hover {
+      background: #EF444455;
+    }
+    
+    /* Image Upload */
+    .image-upload {
+      width: 100%;
+      height: 120px;
+      border: 2px dashed #27272A;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .image-upload:hover {
+      border-color: #F7931A;
+      background: #F7931A11;
+    }
+    
+    .image-upload.has-image {
+      border-style: solid;
+      border-color: #22C55E;
+    }
+    
+    .image-upload input {
+      display: none;
+    }
+    
+    .image-upload-icon {
+      font-size: 24px;
+      margin-bottom: 4px;
+    }
+    
+    .image-upload-text {
+      font-size: 12px;
+      color: #71717A;
+    }
+    
+    .image-upload-preview {
+      position: absolute;
+      inset: 0;
+      object-fit: cover;
+      display: none;
+    }
+    
+    .image-upload.has-image .image-upload-preview {
+      display: block;
+    }
+    
+    .image-upload.has-image .image-upload-icon,
+    .image-upload.has-image .image-upload-text {
+      display: none;
+    }
+    
+    .clear-image {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 24px;
+      height: 24px;
+      background: #EF4444;
+      border: none;
+      border-radius: 50%;
+      color: white;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+    
+    .image-upload.has-image .clear-image {
+      display: flex;
+    }
+    
+    /* House Options */
+    .house-options {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    
+    .house-option {
+      padding: 12px 8px;
+      background: #141419;
+      border: 2px solid #27272A;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    
+    .house-option:hover {
+      border-color: #52525B;
+    }
+    
+    .house-option.selected {
+      border-color: var(--house-color);
+      background: var(--house-bg);
+    }
+    
+    .house-option[data-house="bitcoin"] {
+      --house-color: #F7931A;
+      --house-bg: #F7931A15;
+    }
+    
+    .house-option[data-house="ethereum"] {
+      --house-color: #C0C0C0;
+      --house-bg: #C0C0C015;
+    }
+    
+    .house-option[data-house="base"] {
+      --house-color: #0052FF;
+      --house-bg: #0052FF15;
+    }
+    
+    .house-option[data-house="tysm"] {
+      --house-color: #10B981;
+      --house-bg: #10B98115;
+    }
+    
+    .house-symbol {
+      font-size: 20px;
+      display: block;
+      margin-bottom: 4px;
+    }
+    
+    .house-name {
+      font-size: 9px;
+      color: #71717A;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .house-option.selected .house-name {
+      color: var(--house-color);
+    }
+    
+    /* Mint Button */
+    .mint-button {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #F7931A 0%, #FFD93D 100%);
+      border: none;
+      border-radius: 10px;
+      color: #000000;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 8px;
+    }
+    
+    .mint-button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px #F7931A44;
+    }
+    
+    .mint-button:disabled {
+      background: #27272A;
+      color: #52525B;
+      cursor: not-allowed;
+    }
+    
+    /* Preview Section */
+    .preview-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .preview-label {
+      font-size: 11px;
+      color: #71717A;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+    
+    /* Card Styles */
+    .card {
+      width: 180px;
+      height: 270px;
+      border-radius: 12px;
+      position: relative;
+      transition: all 0.3s ease-out;
+    }
+    
+    .card-border {
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      padding: 2px;
+      background: linear-gradient(135deg, #F7931A 0%, #FFD93D 100%);
+      transition: all 0.3s;
+    }
+    
+    .card[data-house="ethereum"] .card-border,
+    .card[data-house="ethereum"] .faction-frame {
+      background: linear-gradient(135deg, #C0C0C0 0%, #E8E8E8 50%, #A8A8A8 100%);
+    }
+    
+    .card[data-house="base"] .card-border,
+    .card[data-house="base"] .faction-frame {
+      background: linear-gradient(135deg, #0052FF 0%, #5C9DFF 100%);
+    }
+    
+    .card[data-house="tysm"] .card-border,
+    .card[data-house="tysm"] .faction-frame {
+      background: linear-gradient(135deg, #10B981 0%, #6EE7B7 100%);
+    }
+    
+    .card-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 10px;
+      background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .card-house-symbol {
+      font-size: 22px;
+      font-weight: bold;
+      transition: color 0.3s;
+    }
+    
+    .card[data-house="bitcoin"] .card-house-symbol { color: #F7931A; text-shadow: 0 0 8px #F7931A66; }
+    .card[data-house="ethereum"] .card-house-symbol { color: #C0C0C0; text-shadow: 0 0 8px #C0C0C066; }
+    .card[data-house="base"] .card-house-symbol { color: #0052FF; text-shadow: 0 0 8px #0052FF66; }
+    .card[data-house="tysm"] .card-house-symbol { color: #10B981; text-shadow: 0 0 8px #10B98166; }
+    
+    .card-value {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 32px;
+      font-weight: bold;
+      color: #FFFFFF;
+      line-height: 1;
+    }
+    
+    .card-center {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+    }
+    
+    .image-area {
+      width: 85%;
+      aspect-ratio: 1;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #1f1f35 0%, #12121f 100%);
+      border: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      transition: border-color 0.3s;
+    }
+    
+    .card[data-house="bitcoin"] .image-area { border-color: #F7931A44; }
+    .card[data-house="ethereum"] .image-area { border-color: #C0C0C044; }
+    .card[data-house="base"] .image-area { border-color: #0052FF44; }
+    .card[data-house="tysm"] .image-area { border-color: #10B98144; }
+    
+    .image-area-content {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #12121f;
+    }
+    
+    .image-area-content img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    
+    .value-placeholder {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 72px;
+      font-weight: bold;
+      opacity: 0.6;
+      transition: color 0.3s;
+    }
+    
+    .card-footer {
+      padding: 10px 12px 12px;
+      background: rgba(0,0,0,0.4);
+    }
+    
+    .card-name {
+      font-size: 16px;
+      font-family: 'Bebas Neue', sans-serif;
+      text-align: center;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      min-height: 19px;
+      transition: color 0.3s;
+    }
+    
+    .card[data-house="bitcoin"] .card-name { color: #F7931A; }
+    .card[data-house="ethereum"] .card-name { color: #C0C0C0; }
+    .card[data-house="base"] .card-name { color: #0052FF; }
+    .card[data-house="tysm"] .card-name { color: #10B981; }
+    
+    .faction-frame {
+      padding: 1px;
+      border-radius: 4px;
+      margin-bottom: 6px;
+      background: linear-gradient(135deg, #F7931A 0%, #FFD93D 100%);
+    }
+    
+    .faction-inner {
+      background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
+      border-radius: 3px;
+      padding: 4px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    
+    .faction-symbol-placeholder {
+      width: 16px;
+      height: 16px;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: rgba(255,255,255,0.8);
+      overflow: hidden;
+    }
+    
+    .faction-symbol-placeholder img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .faction-name {
+      font-size: 10px;
+      text-align: center;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      min-height: 12px;
+      transition: color 0.3s;
+    }
+    
+    .card[data-house="bitcoin"] .faction-name { color: #F7931A; }
+    .card[data-house="ethereum"] .faction-name { color: #C0C0C0; }
+    .card[data-house="base"] .faction-name { color: #0052FF; }
+    .card[data-house="tysm"] .faction-name { color: #10B981; }
+    
+    .xp-bar-container {
+      height: 16px;
+      background: #1a1a24;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid #3f3f46;
+    }
+    
+    .xp-fill {
+      height: 100%;
+      border-radius: 7px;
+      position: absolute;
+      left: 0;
+      top: 0;
+      background: linear-gradient(90deg, #71717A 0%, #8f8f9a 100%);
+      width: 0%;
+    }
+    
+    .xp-text {
+      position: relative;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      color: #FFFFFF;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+      line-height: 16px;
+    }
+    
+    /* Random colors for value placeholder */
+    .color-orange { color: #F7931A; }
+    .color-silver { color: #C0C0C0; }
+    .color-blue { color: #0052FF; }
+    .color-green { color: #10B981; }
+    .color-gold { color: #FFD700; }
+    .color-purple { color: #A855F7; }
+    .color-pink { color: #EC4899; }
+    .color-cyan { color: #06B6D4; }
+    
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 20px;
+    }
+    
+    .modal-overlay.visible {
+      display: flex;
+    }
+    
+    .modal {
+      background: #141419;
+      border: 1px solid #27272A;
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      max-width: 320px;
+      width: 100%;
+    }
+    
+    .modal-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+    
+    .modal-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 24px;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+    
+    .modal-text {
+      font-size: 13px;
+      color: #A1A1AA;
+      margin-bottom: 16px;
+    }
+    
+    .modal-card-preview {
+      margin: 16px auto;
+      max-width: 200px;
+    }
+    
+    .modal-card-preview img {
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+    
+    .modal-buttons {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .modal-button {
+      flex: 1;
+      padding: 12px 16px;
+      background: #27272A;
+      border: none;
+      border-radius: 8px;
+      color: #FFFFFF;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .modal-button:hover {
+      background: #3f3f46;
+    }
+    
+    .modal-button.primary {
+      background: linear-gradient(135deg, #F7931A 0%, #FFD93D 100%);
+      color: #000000;
+      font-weight: 600;
+    }
+    
+    .modal-button.primary:hover {
+      opacity: 0.9;
+    }
+    
+    /* Stats Bar */
+    .stats-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .stat-item {
+      background: #141419;
+      border: 1px solid #27272A;
+      border-radius: 8px;
+      padding: 8px 16px;
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      color: #F7931A;
+    }
+    
+    .stat-label {
+      font-size: 9px;
+      color: #71717A;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .version {
+      text-align: center;
+      color: #3f3f46;
+      font-size: 9px;
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-btn">← Home</a>
+  <div class="container">
+    <h1>CARD MINTER</h1>
+    <p class="subtitle">Create your unique Crypto Scopa card</p>
+    
+    <!-- Simulated Wallet Info -->
+    <div class="wallet-info">
+      Wallet: <strong id="walletAddress">0x1234...5678</strong> (simulated)
+    </div>
+    
+    <!-- Stats -->
+    <div class="stats-bar">
+      <div class="stat-item">
+        <div class="stat-value" id="statCards">0</div>
+        <div class="stat-label">Cards Minted</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="statFactions">0</div>
+        <div class="stat-label">Factions</div>
+      </div>
+    </div>
+    
+    <div class="minter-layout">
+      <!-- Form -->
+      <div class="form-section">
+        <!-- House Selection -->
+        <div class="form-group">
+          <label class="form-label">House</label>
+          <div class="house-options">
+            <div class="house-option selected" data-house="bitcoin" onclick="selectHouse('bitcoin')">
+              <span class="house-symbol">₿</span>
+              <span class="house-name">Bitcoin</span>
+            </div>
+            <div class="house-option" data-house="ethereum" onclick="selectHouse('ethereum')">
+              <span class="house-symbol">◊</span>
+              <span class="house-name">Ethereum</span>
+            </div>
+            <div class="house-option" data-house="base" onclick="selectHouse('base')">
+              <span class="house-symbol">■</span>
+              <span class="house-name">Base</span>
+            </div>
+            <div class="house-option" data-house="tysm" onclick="selectHouse('tysm')">
+              <span class="house-symbol">🙏</span>
+              <span class="house-name">Tysm</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Value Selection -->
+        <div class="form-group">
+          <label class="form-label">Value</label>
+          <select class="form-select" id="valueSelect" onchange="updatePreview()">
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7" selected>7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+            <option value="11">J (11)</option>
+          </select>
+        </div>
+        
+        <!-- Card Name -->
+        <div class="form-group">
+          <label class="form-label">Card Name</label>
+          <input 
+            type="text" 
+            class="form-input" 
+            id="cardName" 
+            placeholder="Enter card name..."
+            maxlength="16"
+            oninput="validateAndUpdate()"
+          >
+          <p class="error-message" id="cardNameError">Name contains inappropriate content</p>
+        </div>
+        
+        <!-- Faction -->
+        <div class="form-group">
+          <label class="form-label">Faction</label>
+          <div class="faction-input-group">
+            <div class="faction-tabs">
+              <div class="faction-tab active" id="tabNew" onclick="switchFactionTab('new')">+ New Faction</div>
+              <div class="faction-tab" id="tabExisting" onclick="switchFactionTab('existing')">My Factions</div>
+            </div>
+            
+            <!-- New Faction Input -->
+            <div class="faction-input-wrapper visible" id="newFactionWrapper">
+              <input 
+                type="text" 
+                class="form-input" 
+                id="factionName" 
+                placeholder="Enter new faction name..."
+                maxlength="16"
+                oninput="validateAndUpdate()"
+              >
+              <p class="error-message" id="factionNameError">Contains inappropriate content</p>
+              <p class="error-message" id="factionExistsError">Faction already exists and is not yours</p>
+              <p class="success-message" id="factionAvailable">Faction name available!</p>
+              
+              <!-- Faction Icon Selection -->
+              <div class="faction-icon-section" id="factionIconSection">
+                <label class="form-label" style="margin-top: 12px;">Faction Icon</label>
+                <div class="icon-tabs">
+                  <div class="icon-tab active" id="iconTabEmoji" onclick="switchIconTab('emoji')">Emoji</div>
+                  <div class="icon-tab" id="iconTabUpload" onclick="switchIconTab('upload')">Upload</div>
+                </div>
+                
+                <!-- Emoji Picker -->
+                <div class="icon-picker-wrapper visible" id="emojiPickerWrapper">
+                  <div class="emoji-grid" id="emojiGrid"></div>
+                  <div class="selected-emoji">
+                    Selected: <span id="selectedEmojiDisplay">❓</span>
+                  </div>
+                </div>
+                
+                <!-- Icon Upload -->
+                <div class="icon-upload-wrapper" id="iconUploadWrapper">
+                  <div class="icon-upload" id="iconUpload" onclick="document.getElementById('iconInput').click()">
+                    <input type="file" id="iconInput" accept="image/*" onchange="handleIconUpload(event)">
+                    <span class="icon-upload-preview" id="iconPreviewImg">📷</span>
+                    <span class="icon-upload-text" id="iconUploadText">Click to upload</span>
+                  </div>
+                  <button class="clear-icon-btn" id="clearIconBtn" onclick="clearFactionIcon()" style="display:none;">Clear</button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Existing Factions Dropdown -->
+            <div class="faction-dropdown-wrapper" id="existingFactionWrapper">
+              <select class="form-select" id="existingFactionSelect" onchange="selectExistingFaction()">
+              </select>
+              <div class="no-factions" id="noFactions">No factions yet. Create your first one!</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Image Upload -->
+        <div class="form-group">
+          <label class="form-label">Card Image (Optional)</label>
+          <div class="image-upload" id="imageUpload" onclick="document.getElementById('imageInput').click()">
+            <input type="file" id="imageInput" accept="image/*" onchange="handleImageUpload(event)">
+            <span class="image-upload-icon">📷</span>
+            <span class="image-upload-text">Click to upload image</span>
+            <img class="image-upload-preview" id="imagePreview">
+            <button class="clear-image" onclick="clearImage(event)">✕</button>
+          </div>
+        </div>
+        
+        <!-- Mint Button -->
+        <button class="mint-button" id="mintButton" onclick="mintCard()" disabled>
+          FILL ALL FIELDS
+        </button>
+      </div>
+      
+      <!-- Preview -->
+      <div class="preview-section">
+        <span class="preview-label">Live Preview</span>
+        
+        <div class="card" id="cardPreview" data-house="bitcoin">
+          <div class="card-border">
+            <div class="card-inner">
+              <div class="card-header">
+                <span class="card-house-symbol" id="previewHouseSymbol">₿</span>
+                <span class="card-value" id="previewValue">7</span>
+              </div>
+              <div class="card-center">
+                <div class="image-area">
+                  <div class="image-area-content" id="imageAreaContent">
+                    <span class="value-placeholder color-orange" id="valuePlaceholder">7</span>
+                  </div>
+                </div>
+              </div>
+              <div class="card-footer">
+                <div class="card-name" id="previewCardName"></div>
+                <div class="faction-frame">
+                  <div class="faction-inner">
+                    <div class="faction-symbol-placeholder" id="previewFactionIcon">❓</div>
+                    <div class="faction-name" id="previewFactionName"></div>
+                  </div>
+                </div>
+                <div class="xp-bar-container">
+                  <div class="xp-fill"></div>
+                  <div class="xp-text">0 XP • LV1</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <p class="version">Card Minter v1.7.2 - Card Name Color + 16 Char Limit</p>
+  </div>
+  
+  <!-- Success Modal -->
+  <div class="modal-overlay" id="successModal">
+    <div class="modal">
+      <div class="modal-icon">🎉</div>
+      <h2 class="modal-title">CARD MINTED!</h2>
+      <p class="modal-text">Your card has been created and saved locally.</p>
+      <div class="modal-card-preview">
+        <img id="modalCardImage" src="" alt="Minted card">
+      </div>
+      <div class="modal-buttons">
+        <button class="modal-button" onclick="closeModal()">CLOSE</button>
+        <button class="modal-button primary" onclick="downloadCard()">DOWNLOAD</button>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // ============================================
+    // PERSPECTIVE API CONFIGURATION
+    // ============================================
+    const PERSPECTIVE_CONFIG = {
+      API_KEY: 'YOUR_API_KEY_HERE',
+      ENABLED: false,
+      THRESHOLD: 0.7,
+      ENDPOINT: 'https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze'
+    };
+    
+    // ============================================
+    // IMAGE COMPRESSION (for LocalStorage limits)
+    // ============================================
+    function compressImage(dataUrl, maxWidth = 200, quality = 0.7) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          // Calculate new dimensions
+          let width = img.width;
+          let height = img.height;
+          
+          if (width > maxWidth) {
+            height = (height * maxWidth) / width;
+            width = maxWidth;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = function() {
+          resolve(dataUrl); // Return original if error
+        };
+        img.src = dataUrl;
+      });
+    }
+
+    // ============================================
+    // LOCAL DATABASE (LocalStorage)
+    // ============================================
+    const DB_KEYS = {
+      WALLET: 'cryptoscopa_wallet',
+      FACTIONS: 'cryptoscopa_factions',
+      CARDS: 'cryptoscopa_cards'
+    };
+    
+    // Initialize or get wallet
+    function getWallet() {
+      let wallet = localStorage.getItem(DB_KEYS.WALLET);
+      if (!wallet) {
+        // Generate fake wallet address
+        wallet = '0x' + Array.from({length: 40}, () => 
+          '0123456789abcdef'[Math.floor(Math.random() * 16)]
+        ).join('');
+        localStorage.setItem(DB_KEYS.WALLET, wallet);
+      }
+      return wallet;
+    }
+    
+    // Get all factions
+    function getAllFactions() {
+      const data = localStorage.getItem(DB_KEYS.FACTIONS);
+      return data ? JSON.parse(data) : [];
+    }
+    
+    // Get user's factions
+    function getMyFactions() {
+      const wallet = getWallet();
+      return getAllFactions().filter(f => f.owner === wallet);
+    }
+    
+    // Check if faction exists
+    function factionExists(name) {
+      const normalized = name.toUpperCase().trim();
+      return getAllFactions().find(f => f.name === normalized);
+    }
+    
+    // Create faction (with image compression)
+    async function createFaction(name, icon, iconType) {
+      const normalized = name.toUpperCase().trim();
+      const factions = getAllFactions();
+      
+      // Compress icon if it's an image
+      let savedIcon = icon || '❓';
+      if (iconType === 'image' && icon && icon.startsWith('data:')) {
+        savedIcon = await compressImage(icon, 50, 0.6);
+      }
+      
+      const newFaction = {
+        name: normalized,
+        owner: getWallet(),
+        icon: savedIcon,
+        iconType: iconType || 'emoji',
+        created: Date.now(),
+        cardCount: 0
+      };
+      
+      factions.push(newFaction);
+      
+      try {
+        localStorage.setItem(DB_KEYS.FACTIONS, JSON.stringify(factions));
+      } catch (e) {
+        console.error('Storage error:', e);
+      }
+      
+      return newFaction;
+    }
+    
+    // Increment faction card count
+    function incrementFactionCount(name) {
+      const factions = getAllFactions();
+      const faction = factions.find(f => f.name === name.toUpperCase().trim());
+      if (faction) {
+        faction.cardCount++;
+        localStorage.setItem(DB_KEYS.FACTIONS, JSON.stringify(factions));
+      }
+    }
+    
+    // Get all cards
+    function getAllCards() {
+      const data = localStorage.getItem(DB_KEYS.CARDS);
+      return data ? JSON.parse(data) : [];
+    }
+    
+    // Save card (with image compression)
+    async function saveCard(card) {
+      const cards = getAllCards();
+      
+      // Compress images before saving to avoid quota issues
+      const cardToSave = { ...card };
+      
+      // Don't save full card image in DB, just metadata
+      // The image can be regenerated from the data
+      cardToSave.image = card.image ? '[IMAGE_STORED_SEPARATELY]' : null;
+      
+      // Compress faction icon if it's an image
+      if (card.factionIconType === 'image' && card.factionIcon && card.factionIcon.startsWith('data:')) {
+        cardToSave.factionIcon = await compressImage(card.factionIcon, 50, 0.6);
+      }
+      
+      cards.push(cardToSave);
+      
+      try {
+        localStorage.setItem(DB_KEYS.CARDS, JSON.stringify(cards));
+      } catch (e) {
+        console.error('Storage error:', e);
+        // If still too big, try removing old cards
+        if (cards.length > 50) {
+          cards.splice(0, 10); // Remove oldest 10
+          localStorage.setItem(DB_KEYS.CARDS, JSON.stringify(cards));
+        }
+      }
+    }
+    
+    // ============================================
+    // STATE
+    // ============================================
+    let state = {
+      house: 'bitcoin',
+      value: '7',
+      cardName: '',
+      factionName: '',
+      factionMode: 'new', // 'new' or 'existing'
+      factionIcon: '❓', // emoji or image data URL
+      factionIconType: 'emoji', // 'emoji' or 'image'
+      image: null,
+      errors: {
+        cardName: false,
+        factionName: false,
+        factionExists: false
+      },
+      validating: false,
+      lastGeneratedImage: null
+    };
+    
+    // Available emojis for faction icons
+    const factionEmojis = [
+      '⚔️', '🛡️', '👑', '🔥', '💎', '🚀', '⭐', '🌙',
+      '🐉', '🦁', '🐺', '🦅', '🐍', '🦊', '🐻', '🦈',
+      '💀', '👻', '🤖', '👽', '🎭', '🎪', '🎯', '🎲',
+      '⚡', '💫', '🌟', '✨', '🔮', '💠', '🏆', '🎖️',
+      '🗡️', '🏹', '🔱', '⚓', '🧲', '💣', '🎸', '🎺'
+    ];
+    
+    const houseSymbols = {
+      bitcoin: '₿',
+      ethereum: '◊',
+      base: '■',
+      tysm: '🙏'
+    };
+    
+    const placeholderColors = [
+      'color-orange', 'color-silver', 'color-blue', 'color-green',
+      'color-gold', 'color-purple', 'color-pink', 'color-cyan'
+    ];
+    
+    // ============================================
+    // CONTENT MODERATION
+    // ============================================
+    const localBadWords = [
+      'fuck', 'shit', 'bitch', 'cunt', 'dick', 'pussy', 'cock', 'bastard', 'slut', 'whore', 'nigger', 'faggot', 'retard',
+      'cazzo', 'merda', 'stronzo', 'puttana', 'vaffanculo', 'minchia', 'coglione', 'troia', 'figa',
+      'mierda', 'puta', 'joder', 'cabron', 'pendejo', 'verga', 'chingar',
+      'merde', 'putain', 'connard', 'salope', 'bordel', 'enculer', 'nique',
+      'scheisse', 'arschloch', 'hurensohn', 'fotze', 'wichser',
+      'caralho', 'foda', 'buceta', 'viado'
+    ];
+    
+    function localContentCheck(text) {
+      const lower = text.toLowerCase();
+      return localBadWords.some(word => lower.includes(word));
+    }
+    
+    async function validateContent(text) {
+      if (!text.trim()) return { toxic: false };
+      
+      if (PERSPECTIVE_CONFIG.ENABLED) {
+        // Perspective API call would go here
+        return { toxic: false };
+      }
+      
+      return { toxic: localContentCheck(text), score: 0 };
+    }
+    
+    // ============================================
+    // UI FUNCTIONS
+    // ============================================
+    function initUI() {
+      // Set wallet display
+      const wallet = getWallet();
+      document.getElementById('walletAddress').textContent = 
+        wallet.substring(0, 6) + '...' + wallet.substring(wallet.length - 4);
+      
+      // Update stats
+      updateStats();
+      
+      // Populate existing factions dropdown
+      updateFactionDropdown();
+      
+      // Populate emoji grid
+      populateEmojiGrid();
+    }
+    
+    function populateEmojiGrid() {
+      const grid = document.getElementById('emojiGrid');
+      grid.innerHTML = '';
+      
+      factionEmojis.forEach((emoji, index) => {
+        const div = document.createElement('div');
+        div.className = 'emoji-option' + (index === 0 ? ' selected' : '');
+        div.textContent = emoji;
+        div.onclick = () => selectEmoji(emoji, div);
+        grid.appendChild(div);
+      });
+      
+      // Set default
+      state.factionIcon = factionEmojis[0];
+      document.getElementById('selectedEmojiDisplay').textContent = factionEmojis[0];
+      updatePreview();
+    }
+    
+    function selectEmoji(emoji, element) {
+      // Remove previous selection
+      document.querySelectorAll('.emoji-option').forEach(el => el.classList.remove('selected'));
+      element.classList.add('selected');
+      
+      state.factionIcon = emoji;
+      state.factionIconType = 'emoji';
+      document.getElementById('selectedEmojiDisplay').textContent = emoji;
+      updatePreview();
+    }
+    
+    function switchIconTab(tab) {
+      document.getElementById('iconTabEmoji').classList.toggle('active', tab === 'emoji');
+      document.getElementById('iconTabUpload').classList.toggle('active', tab === 'upload');
+      document.getElementById('emojiPickerWrapper').classList.toggle('visible', tab === 'emoji');
+      document.getElementById('iconUploadWrapper').classList.toggle('visible', tab === 'upload');
+      
+      if (tab === 'emoji' && state.factionIconType === 'image') {
+        // Switch back to emoji
+        state.factionIconType = 'emoji';
+        state.factionIcon = document.getElementById('selectedEmojiDisplay').textContent;
+        updatePreview();
+      }
+    }
+    
+    function handleIconUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          state.factionIcon = e.target.result;
+          state.factionIconType = 'image';
+          
+          const preview = document.getElementById('iconPreviewImg');
+          preview.innerHTML = '';
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          img.style.cssText = 'width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:6px;';
+          preview.appendChild(img);
+          
+          document.getElementById('iconUpload').classList.add('has-icon');
+          document.getElementById('clearIconBtn').style.display = 'block';
+          updatePreview();
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+    
+    function clearFactionIcon() {
+      state.factionIcon = document.getElementById('selectedEmojiDisplay').textContent;
+      state.factionIconType = 'emoji';
+      
+      document.getElementById('iconInput').value = '';
+      document.getElementById('iconPreviewImg').innerHTML = '📷';
+      document.getElementById('iconUpload').classList.remove('has-icon');
+      document.getElementById('clearIconBtn').style.display = 'none';
+      updatePreview();
+    }
+    
+    function updateStats() {
+      const cards = getAllCards();
+      const factions = getMyFactions();
+      
+      document.getElementById('statCards').textContent = cards.length;
+      document.getElementById('statFactions').textContent = factions.length;
+    }
+    
+    function updateFactionDropdown() {
+      const myFactions = getMyFactions();
+      const select = document.getElementById('existingFactionSelect');
+      const noFactions = document.getElementById('noFactions');
+      
+      select.innerHTML = '';
+      
+      if (myFactions.length === 0) {
+        select.style.display = 'none';
+        noFactions.style.display = 'block';
+      } else {
+        select.style.display = 'block';
+        noFactions.style.display = 'none';
+        
+        myFactions.forEach(faction => {
+          const option = document.createElement('option');
+          option.value = faction.name;
+          option.textContent = `${faction.name} (${faction.cardCount} cards)`;
+          select.appendChild(option);
+        });
+      }
+    }
+    
+    function switchFactionTab(mode) {
+      state.factionMode = mode;
+      
+      document.getElementById('tabNew').classList.toggle('active', mode === 'new');
+      document.getElementById('tabExisting').classList.toggle('active', mode === 'existing');
+      
+      document.getElementById('newFactionWrapper').classList.toggle('visible', mode === 'new');
+      document.getElementById('existingFactionWrapper').classList.toggle('visible', mode === 'existing');
+      
+      if (mode === 'existing') {
+        selectExistingFaction();
+      } else {
+        validateAndUpdate();
+      }
+    }
+    
+    function selectExistingFaction() {
+      const select = document.getElementById('existingFactionSelect');
+      if (select.value) {
+        const faction = factionExists(select.value);
+        state.factionName = select.value;
+        state.factionIcon = faction.icon || '❓';
+        state.factionIconType = faction.iconType || 'emoji';
+        state.errors.factionName = false;
+        state.errors.factionExists = false;
+        updatePreview();
+        updateMintButton();
+      }
+    }
+    
+    function selectHouse(house) {
+      state.house = house;
+      
+      document.querySelectorAll('.house-option').forEach(el => {
+        el.classList.toggle('selected', el.dataset.house === house);
+      });
+      
+      updatePreview();
+    }
+    
+    let validateTimeout = null;
+    
+    function validateAndUpdate() {
+      const cardName = document.getElementById('cardName').value.toUpperCase();
+      const factionInput = document.getElementById('factionName').value.toUpperCase();
+      
+      state.cardName = cardName;
+      
+      // Clear previous timeout
+      clearTimeout(validateTimeout);
+      
+      // Immediate UI update
+      updatePreview();
+      
+      // Debounced validation
+      validateTimeout = setTimeout(async () => {
+        // Validate card name
+        const cardNameResult = await validateContent(cardName);
+        state.errors.cardName = cardNameResult.toxic;
+        document.getElementById('cardName').classList.toggle('error', state.errors.cardName);
+        document.getElementById('cardNameError').classList.toggle('visible', state.errors.cardName);
+        
+        // Validate faction name (only in new mode)
+        if (state.factionMode === 'new') {
+          const factionResult = await validateContent(factionInput);
+          state.errors.factionName = factionResult.toxic;
+          
+          // Check if faction exists
+          const existingFaction = factionExists(factionInput);
+          const wallet = getWallet();
+          
+          if (existingFaction && existingFaction.owner !== wallet) {
+            state.errors.factionExists = true;
+            state.factionName = '';
+          } else {
+            state.errors.factionExists = false;
+            state.factionName = factionInput;
+          }
+          
+          // Update UI
+          const factionInputEl = document.getElementById('factionName');
+          factionInputEl.classList.toggle('error', state.errors.factionName || state.errors.factionExists);
+          factionInputEl.classList.toggle('success', 
+            !state.errors.factionName && !state.errors.factionExists && factionInput.trim() !== '' && !existingFaction
+          );
+          
+          document.getElementById('factionNameError').classList.toggle('visible', state.errors.factionName);
+          document.getElementById('factionExistsError').classList.toggle('visible', state.errors.factionExists);
+          document.getElementById('factionAvailable').classList.toggle('visible', 
+            !state.errors.factionName && !state.errors.factionExists && factionInput.trim() !== '' && !existingFaction
+          );
+        }
+        
+        updateMintButton();
+      }, 300);
+    }
+    
+    function updateMintButton() {
+      const hasErrors = state.errors.cardName || state.errors.factionName || state.errors.factionExists;
+      const hasCardName = state.cardName.trim() !== '';
+      const hasFaction = state.factionName.trim() !== '';
+      
+      const mintButton = document.getElementById('mintButton');
+      mintButton.disabled = hasErrors || !hasCardName || !hasFaction;
+      
+      if (hasErrors) {
+        mintButton.textContent = 'FIX ERRORS TO MINT';
+      } else if (!hasCardName || !hasFaction) {
+        mintButton.textContent = 'FILL ALL FIELDS';
+      } else {
+        mintButton.textContent = 'MINT CARD';
+      }
+    }
+    
+    function updatePreview() {
+      const card = document.getElementById('cardPreview');
+      const value = document.getElementById('valueSelect').value;
+      const displayValue = value === '11' ? 'J' : value;
+      
+      state.value = value;
+      
+      card.dataset.house = state.house;
+      document.getElementById('previewHouseSymbol').textContent = houseSymbols[state.house];
+      document.getElementById('previewValue').textContent = displayValue;
+      
+      const imageAreaContent = document.getElementById('imageAreaContent');
+      if (state.image) {
+        imageAreaContent.innerHTML = `<img src="${state.image}" alt="Card image">`;
+      } else {
+        const randomColor = placeholderColors[Math.floor(Math.random() * placeholderColors.length)];
+        imageAreaContent.innerHTML = `<span class="value-placeholder ${randomColor}">${displayValue}</span>`;
+      }
+      
+      document.getElementById('previewCardName').textContent = state.cardName;
+      document.getElementById('previewFactionName').textContent = state.factionName;
+      
+      // Update faction icon
+      const factionIconEl = document.getElementById('previewFactionIcon');
+      if (state.factionIconType === 'image' && state.factionIcon.startsWith('data:')) {
+        factionIconEl.innerHTML = `<img src="${state.factionIcon}" alt="Faction icon">`;
+      } else {
+        factionIconEl.innerHTML = state.factionIcon || '❓';
+      }
+    }
+    
+    function handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          state.image = e.target.result;
+          document.getElementById('imagePreview').src = e.target.result;
+          document.getElementById('imageUpload').classList.add('has-image');
+          updatePreview();
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+    
+    function clearImage(event) {
+      event.stopPropagation();
+      state.image = null;
+      document.getElementById('imageInput').value = '';
+      document.getElementById('imageUpload').classList.remove('has-image');
+      updatePreview();
+    }
+    
+    // ============================================
+    // MINT FUNCTION
+    // ============================================
+    async function mintCard() {
+      const displayValue = state.value === '11' ? 'J' : state.value;
+      
+      // Check if new faction needs to be created
+      const existingFaction = factionExists(state.factionName);
+      if (!existingFaction) {
+        await createFaction(state.factionName, state.factionIcon, state.factionIconType);
+      }
+      
+      // Increment faction card count
+      incrementFactionCount(state.factionName);
+      
+      // Generate card image
+      const imageDataUrl = await generateCardImage();
+      state.lastGeneratedImage = imageDataUrl;
+      
+      // Save card to local DB (without full image to save space)
+      const card = {
+        id: Date.now(),
+        house: state.house,
+        value: state.value,
+        displayValue: displayValue,
+        cardName: state.cardName,
+        factionName: state.factionName,
+        factionIcon: state.factionIcon,
+        factionIconType: state.factionIconType,
+        image: state.image,
+        xp: 0,
+        level: 1,
+        owner: getWallet(),
+        created: Date.now()
+      };
+      
+      await saveCard(card);
+      
+      // Update stats
+      updateStats();
+      updateFactionDropdown();
+      
+      // Show modal with image
+      document.getElementById('modalCardImage').src = imageDataUrl;
+      document.getElementById('successModal').classList.add('visible');
+    }
+    
+    async function generateCardImage() {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      // Fixed card dimensions (2:3 ratio)
+      const scale = 3; // Higher quality
+      const width = 180 * scale;   // 540px
+      const height = 270 * scale;  // 810px
+      
+      canvas.width = width;
+      canvas.height = height;
+      
+      const houseColors = {
+        bitcoin: { primary: '#F7931A', secondary: '#FFD93D' },
+        ethereum: { primary: '#C0C0C0', secondary: '#E8E8E8' },
+        base: { primary: '#0052FF', secondary: '#5C9DFF' },
+        tysm: { primary: '#10B981', secondary: '#6EE7B7' }
+      };
+      
+      const colors = houseColors[state.house];
+      const displayValue = state.value === '11' ? 'J' : state.value;
+      
+      // === LAYOUT PROPORTIONS (percentages of card height) ===
+      const borderWidth = Math.round(width * 0.012);      // ~2% of width
+      const borderRadius = Math.round(width * 0.067);     // ~12px at 180w
+      
+      const headerHeight = Math.round(height * 0.15);     // 15% header
+      const centerHeight = Math.round(height * 0.55);     // 55% center (image area)
+      const footerHeight = Math.round(height * 0.30);     // 30% footer
+      
+      // === BACKGROUND ===
+      const bgGradient = ctx.createLinearGradient(0, 0, 0, height);
+      bgGradient.addColorStop(0, '#1a1a2e');
+      bgGradient.addColorStop(1, '#0f0f1a');
+      
+      // Border gradient
+      const borderGradient = ctx.createLinearGradient(0, 0, width, height);
+      borderGradient.addColorStop(0, colors.primary);
+      borderGradient.addColorStop(1, colors.secondary);
+      
+      // Draw border
+      ctx.fillStyle = borderGradient;
+      roundRect(ctx, 0, 0, width, height, borderRadius);
+      ctx.fill();
+      
+      // Draw inner background
+      ctx.fillStyle = bgGradient;
+      roundRect(ctx, borderWidth, borderWidth, width - borderWidth * 2, height - borderWidth * 2, borderRadius - 2);
+      ctx.fill();
+      
+      // === HEADER (15%) ===
+      const headerTop = borderWidth;
+      ctx.fillStyle = 'rgba(0,0,0,0.2)';
+      ctx.fillRect(borderWidth, headerTop, width - borderWidth * 2, headerHeight);
+      
+      // Header bottom line
+      ctx.strokeStyle = colors.primary + '44';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(borderWidth, headerTop + headerHeight);
+      ctx.lineTo(width - borderWidth, headerTop + headerHeight);
+      ctx.stroke();
+      
+      // House symbol (left)
+      const symbolFontSize = Math.round(height * 0.08);
+      ctx.fillStyle = colors.primary;
+      ctx.font = `bold ${symbolFontSize}px Arial, sans-serif`;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(houseSymbols[state.house], borderWidth + Math.round(width * 0.08), headerTop + headerHeight / 2);
+      
+      // Value (right)
+      const valueFontSize = Math.round(height * 0.11);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = `bold ${valueFontSize}px Arial, sans-serif`;
+      ctx.textAlign = 'right';
+      ctx.fillText(displayValue, width - borderWidth - Math.round(width * 0.08), headerTop + headerHeight / 2 + Math.round(height * 0.01));
+      
+      // === CENTER - IMAGE AREA (55%) ===
+      const centerTop = headerTop + headerHeight;
+      const imagePadding = Math.round(width * 0.075);
+      const imageAreaSize = Math.min(width - imagePadding * 2, centerHeight - imagePadding * 2);
+      const imageAreaLeft = (width - imageAreaSize) / 2;
+      const imageAreaTop = centerTop + (centerHeight - imageAreaSize) / 2;
+      
+      // Image area background
+      const imageGradient = ctx.createLinearGradient(imageAreaLeft, imageAreaTop, imageAreaLeft + imageAreaSize, imageAreaTop + imageAreaSize);
+      imageGradient.addColorStop(0, '#1f1f35');
+      imageGradient.addColorStop(1, '#12121f');
+      
+      ctx.fillStyle = imageGradient;
+      roundRect(ctx, imageAreaLeft, imageAreaTop, imageAreaSize, imageAreaSize, Math.round(width * 0.055));
+      ctx.fill();
+      
+      // Image area border
+      ctx.strokeStyle = colors.primary + '66';
+      ctx.lineWidth = 2;
+      roundRect(ctx, imageAreaLeft, imageAreaTop, imageAreaSize, imageAreaSize, Math.round(width * 0.055));
+      ctx.stroke();
+      
+      // Draw image or placeholder
+      if (state.image) {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        await new Promise((resolve) => {
+          img.onload = resolve;
+          img.onerror = resolve;
+          img.src = state.image;
+        });
+        
+        // Calculate dimensions to fit image entirely (contain)
+        const imgRatio = img.width / img.height;
+        const padding = Math.round(imageAreaSize * 0.03);
+        const areaSize = imageAreaSize - padding * 2;
+        let drawWidth, drawHeight, drawX, drawY;
+        
+        if (imgRatio > 1) {
+          drawWidth = areaSize;
+          drawHeight = areaSize / imgRatio;
+        } else {
+          drawHeight = areaSize;
+          drawWidth = areaSize * imgRatio;
+        }
+        
+        drawX = imageAreaLeft + (imageAreaSize - drawWidth) / 2;
+        drawY = imageAreaTop + (imageAreaSize - drawHeight) / 2;
+        
+        ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+      } else {
+        // Value placeholder
+        const placeholderColorValues = ['#F7931A', '#C0C0C0', '#0052FF', '#10B981', '#FFD700', '#A855F7', '#EC4899', '#06B6D4'];
+        const randomColor = placeholderColorValues[Math.floor(Math.random() * placeholderColorValues.length)];
+        
+        ctx.fillStyle = randomColor;
+        ctx.globalAlpha = 0.6;
+        ctx.font = `bold ${Math.round(imageAreaSize * 0.5)}px Arial, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(displayValue, width / 2, imageAreaTop + imageAreaSize / 2);
+        ctx.globalAlpha = 1;
+      }
+      
+      // === FOOTER (30%) ===
+      const footerTop = centerTop + centerHeight;
+      const footerPadding = Math.round(width * 0.067);
+      
+      // Footer background
+      ctx.fillStyle = 'rgba(0,0,0,0.4)';
+      roundRect(ctx, borderWidth, footerTop, width - borderWidth * 2, footerHeight - borderWidth, 0);
+      ctx.fill();
+      
+      // Card name (top of footer) - same color as border
+      const nameFontSize = Math.round(height * 0.055);
+      const nameTop = footerTop + Math.round(footerHeight * 0.18);
+      ctx.fillStyle = colors.primary;
+      ctx.font = `bold ${nameFontSize}px Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(state.cardName, width / 2, nameTop);
+      
+      // Faction frame (middle of footer)
+      const factionFrameTop = footerTop + Math.round(footerHeight * 0.35);
+      const factionFrameHeight = Math.round(footerHeight * 0.28);
+      
+      // Faction border
+      ctx.fillStyle = borderGradient;
+      roundRect(ctx, footerPadding, factionFrameTop, width - footerPadding * 2, factionFrameHeight, 6);
+      ctx.fill();
+      
+      // Faction inner
+      const factionInnerGradient = ctx.createLinearGradient(0, factionFrameTop, 0, factionFrameTop + factionFrameHeight);
+      factionInnerGradient.addColorStop(0, '#1a1a2e');
+      factionInnerGradient.addColorStop(1, '#0f0f1a');
+      
+      ctx.fillStyle = factionInnerGradient;
+      roundRect(ctx, footerPadding + 2, factionFrameTop + 2, width - footerPadding * 2 - 4, factionFrameHeight - 4, 4);
+      ctx.fill();
+      
+      // Faction icon
+      const iconSize = Math.round(factionFrameHeight * 0.6);
+      const iconX = footerPadding + Math.round(width * 0.05);
+      const iconY = factionFrameTop + (factionFrameHeight - iconSize) / 2;
+      
+      if (state.factionIconType === 'image' && state.factionIcon && state.factionIcon.startsWith('data:')) {
+        const iconImg = new Image();
+        await new Promise((resolve) => {
+          iconImg.onload = resolve;
+          iconImg.onerror = resolve;
+          iconImg.src = state.factionIcon;
+        });
+        
+        ctx.save();
+        roundRect(ctx, iconX, iconY, iconSize, iconSize, 4);
+        ctx.clip();
+        ctx.drawImage(iconImg, iconX, iconY, iconSize, iconSize);
+        ctx.restore();
+      } else {
+        // Draw emoji
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = `${Math.round(iconSize * 0.8)}px Arial, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(state.factionIcon || '❓', iconX + iconSize / 2, factionFrameTop + factionFrameHeight / 2);
+      }
+      
+      // Faction name (centered, ignoring icon)
+      const factionFontSize = Math.round(height * 0.033);
+      ctx.fillStyle = colors.primary;
+      ctx.font = `bold ${factionFontSize}px Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(state.factionName, width / 2, factionFrameTop + factionFrameHeight / 2);
+      
+      // XP Bar (bottom of footer)
+      const xpBarTop = factionFrameTop + factionFrameHeight + Math.round(footerHeight * 0.08);
+      const xpBarHeight = Math.round(footerHeight * 0.20);
+      
+      // XP background
+      ctx.fillStyle = '#1a1a24';
+      roundRect(ctx, footerPadding, xpBarTop, width - footerPadding * 2, xpBarHeight, Math.round(xpBarHeight / 2));
+      ctx.fill();
+      
+      // XP border
+      ctx.strokeStyle = '#3f3f46';
+      ctx.lineWidth = 1;
+      roundRect(ctx, footerPadding, xpBarTop, width - footerPadding * 2, xpBarHeight, Math.round(xpBarHeight / 2));
+      ctx.stroke();
+      
+      // XP text
+      const xpFontSize = Math.round(height * 0.028);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = `bold ${xpFontSize}px monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('0 XP • LV1', width / 2, xpBarTop + xpBarHeight / 2);
+      
+      return canvas.toDataURL('image/png');
+    }
+    
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+    }
+    
+    function downloadCard() {
+      if (state.lastGeneratedImage) {
+        const displayValue = state.value === '11' ? 'J' : state.value;
+        const filename = `token_${state.house}_${displayValue}_${state.cardName.toLowerCase().replace(/\s+/g, '_')}.png`;
+        
+        const link = document.createElement('a');
+        link.href = state.lastGeneratedImage;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    }
+    
+    function closeModal() {
+      document.getElementById('successModal').classList.remove('visible');
+    }
+    
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', initUI);
+  </script>
+</body>
+</html>
