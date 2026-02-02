@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="540" height="810" viewBox="0 0 540 810">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10B981"/>
+      <stop offset="48%" style="stop-color:#065F46"/>
+      <stop offset="52%" style="stop-color:#7F1D1D"/>
+      <stop offset="100%" style="stop-color:#EF4444"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="532" height="802" rx="20" fill="url(#bg)" stroke="#000" stroke-width="8"/>
+  <line x1="0" y1="0" x2="540" y2="810" stroke="#000" stroke-width="6"/>
+  <text x="270" y="405" font-family="Arial Black" font-size="60" fill="#000" text-anchor="middle" dominant-baseline="middle" transform="rotate(56.3 270 405)">TOKEN</text>
+  <text x="40" y="60" font-size="48">🐂</text>
+  <text x="480" y="780" font-size="48">🐻</text>
+</svg>
