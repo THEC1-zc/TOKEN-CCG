@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>TOKEN - Game v1.6.1</title>
-  <!-- Version: V1.6.1 -->
+  <title>TOKEN - Game v1.6.3</title>
+  <!-- Version: V1.6.3 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -18,7 +18,6 @@
 .setup-screen { min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(180deg, #0a0a0f 0%, #12121f 50%, #0a0a0f 100%); }
 .setup-content { width: 100%; max-width: 380px; background: #141419; border-radius: 16px; padding: 24px; text-align: center; }
 .setup-title { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 4px; margin-bottom: 8px; }
-.setup-title .token-brand { font-size: 32px; }
 .setup-subtitle { color: #71717A; font-size: 13px; margin-bottom: 24px; }
 .setup-label { font-size: 11px; color: #A1A1AA; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: block; text-align: left; }
 .setup-select { width: 100%; padding: 14px; background: #0a0a0f; border: 1px solid #27272A; border-radius: 8px; color: #FFF; font-size: 14px; margin-bottom: 16px; }
@@ -90,7 +89,7 @@
 .side-pile { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 50px; }
 .side-pile-label { font-size: 8px; color: #fff8; text-transform: uppercase; }
 .side-pile-stack { position: relative; width: 40px; height: 60px; }
-.side-pile-card { position: absolute; width: 40px; height: 60px; background: url('/cardback.png') center/cover, linear-gradient(135deg, #10B981, #EF4444); border: 1px solid #000; border-radius: 4px; }
+.side-pile-card { position: absolute; width: 40px; height: 60px; background: url('cardback.png') center/cover, linear-gradient(135deg, #10B981, #EF4444); border: 1px solid #000; border-radius: 4px; }
 .side-pile-card:nth-child(1) { top: 0; left: 0; }
 .side-pile-card:nth-child(2) { top: 2px; left: 1px; }
 .side-pile-card:nth-child(3) { top: 4px; left: 2px; }
@@ -104,12 +103,12 @@
 .ai-hand { display: flex; gap: 3px; }
 .player-hand { display: flex; gap: 5px; }
 
-.card-back { width: 40px; height: 60px; background: url('/cardback.png') center/cover, linear-gradient(135deg, #10B981 0%, #10B981 48%, #000 50%, #EF4444 52%, #EF4444 100%); border: 1px solid #000; border-radius: 5px; }
+.card-back { width: 40px; height: 60px; background: url('cardback.png') center/cover, linear-gradient(135deg, #10B981 0%, #10B981 48%, #000 50%, #EF4444 52%, #EF4444 100%); border: 1px solid #000; border-radius: 5px; }
 
 .table-area { flex: 1; display: flex; align-items: center; justify-content: center; gap: 10px; }
 .draw-pile { display: flex; flex-direction: column; align-items: center; gap: 3px; }
 .pile-stack { position: relative; width: 44px; height: 66px; }
-.pile-card { position: absolute; width: 44px; height: 66px; background: url('/cardback.png') center/cover, linear-gradient(135deg, #10B981 0%, #10B981 48%, #000 50%, #EF4444 52%, #EF4444 100%); border: 2px solid #000; border-radius: 5px; }
+.pile-card { position: absolute; width: 44px; height: 66px; background: url('cardback.png') center/cover, linear-gradient(135deg, #10B981 0%, #10B981 48%, #000 50%, #EF4444 52%, #EF4444 100%); border: 2px solid #000; border-radius: 5px; }
 .pile-card:nth-child(2) { top: 2px; left: 2px; }
 .pile-count { font-size: 9px; color: #fff; background: #0008; padding: 2px 6px; border-radius: 4px; }
 .table-cards { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; padding: 10px; background: #0004; border-radius: 8px; min-width: 160px; min-height: 80px; }
@@ -125,6 +124,24 @@
 .game-card.base { border: 2px solid #0052FF; }
 .game-card.tysm { border: 2px solid #10B981; }
 .game-card-symbol { font-size: 9px; }
+.house-bitcoin { color: #F7931A; }
+.house-ethereum { color: #C0C0C0; }
+.house-base { color: #0052FF; }
+.house-tysm {
+  background: linear-gradient(90deg, #FACC15, #3B82F6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important;
+}
+.game-card-symbol.house-bitcoin { color: #F7931A; }
+.game-card-symbol.house-ethereum { color: #C0C0C0; }
+.game-card-symbol.house-base { color: #0052FF; }
+.game-card-symbol.house-tysm {
+  background: linear-gradient(90deg, #FACC15, #3B82F6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important;
+}
 .game-card.tysm .game-card-symbol {
   background: linear-gradient(90deg, #FACC15, #3B82F6);
   -webkit-background-clip: text;
@@ -203,7 +220,7 @@
     <div class="header-left">
       <a class="header-brand" href="index.html">
         <img src="assets/main%20icon.png" alt="TOKEN">
-        <span class="header-title token-brand">TOKEN</span>
+        <img class="token-wordmark" src="assets/token_icon.png" alt="TOKEN">
       </a>
       <span class="header-sep">/</span>
       <span class="header-page">Game</span>
@@ -220,7 +237,7 @@
   </header>
   <div class="setup-screen" id="setupScreen">
     <div class="setup-content">
-      <div class="setup-title">🎮 <span class="token-brand">TOKEN</span></div>
+      <div class="setup-title">🎮 <img class="token-wordmark-inline" src="assets/token_icon.png" alt="TOKEN"></div>
       <p class="setup-subtitle">Play vs AI</p>
       <div id="noDecksMsg" class="no-decks-msg" style="display:none;">No battle decks.<br><a href="deck-builder.html">Create one →</a></div>
       <label class="setup-label">Battle Deck</label>
@@ -320,7 +337,7 @@
     <div class="captured-cards" id="capturedCards"></div>
   </div>
 
-  <div class="toast" id="toast"><div class="toast-icon" id="toastIcon">🎯</div><div class="toast-title token-brand" id="toastTitle">TOKEN!</div></div>
+  <div class="toast" id="toast"><div class="toast-icon" id="toastIcon">🎯</div><div class="toast-title" id="toastTitle"><img class="token-wordmark-inline" src="assets/token_icon.png" alt="TOKEN"></div></div>
 
   <div class="gameover-overlay" id="gameoverOverlay">
     <div class="gameover-content">
@@ -350,7 +367,7 @@
   </div>
 
 <script>
-const HOUSES = { bitcoin: { symbol: '₿', primary: '#F7931A' }, ethereum: { symbol: '◊', primary: '#C0C0C0' }, base: { symbol: '■', primary: '#0052FF' }, tysm: { symbol: '🙏', primary: '#10B981' } };
+const HOUSES = { bitcoin: { symbol: '₿', primary: '#F7931A' }, ethereum: { symbol: '◊', primary: '#C0C0C0' }, base: { symbol: '■', primary: '#0052FF' }, tysm: { symbol: '🙏', primary: '#3B82F6' } };
 const TURN_TIME = 15;
 let timer = null, timeLeft = TURN_TIME, logOpen = false;
 let gs = { phase: 'setup', turn: 'player', deck: [], table: [], playerHand: [], aiHand: [], playerCaptures: [], aiCaptures: [], playerJD: [], aiJD: [], playerTokens: 0, aiTokens: 0, selected: null, useJD: false, lastCap: null, hand: 1, lastHand: false, turnNum: 0, log: [] };
@@ -389,7 +406,7 @@ function renderJD() {
   const cont = document.getElementById('jdCards'); cont.innerHTML = '';
   all.forEach(c => {
     const el = document.createElement('div'); el.className = 'jd-card'; el.style.borderColor = HOUSES[c.house].primary + '66';
-    el.innerHTML = '<span style="color:' + HOUSES[c.house].primary + ';font-size:11px">' + HOUSES[c.house].symbol + '</span><span class="jd-card-value">' + c.displayValue + '</span>';
+    el.innerHTML = '<span class="house-' + c.house + '" style="font-size:11px">' + HOUSES[c.house].symbol + '</span><span class="jd-card-value">' + c.displayValue + '</span>';
     el.dataset.deck = c.dn; el.dataset.index = c.idx;
     el.onclick = () => selJD(c.dn, c.idx, el);
     cont.appendChild(el);
@@ -522,7 +539,7 @@ function autoSelectJD() {
   confirmJD();
 }
 
-function createCard(card) { const el = document.createElement('div'); el.className = 'game-card ' + card.house; el.innerHTML = '<span class="game-card-symbol" style="color:' + HOUSES[card.house].primary + '">' + HOUSES[card.house].symbol + '</span><span class="game-card-value">' + card.displayValue + '</span>'; return el; }
+function createCard(card) { const el = document.createElement('div'); el.className = 'game-card ' + card.house; el.innerHTML = '<span class="game-card-symbol house-' + card.house + '">' + HOUSES[card.house].symbol + '</span><span class="game-card-value">' + card.displayValue + '</span>'; return el; }
 
 function selCard(i) { if (gs.turn !== 'player') return; gs.selected = gs.selected === i ? null : i; renderPlayer(); }
 function playIdx(i) { if (gs.turn !== 'player') return; gs.selected = i; playSelected(); }
@@ -586,9 +603,9 @@ function toggleLog() { logOpen = !logOpen; document.getElementById('logExpanded'
 function showAnim(player, card, captured, isToken, cb) {
   const o = document.getElementById('playAnimation');
   document.getElementById('playInfo').textContent = player === 'player' ? 'YOU' : 'AI'; document.getElementById('playInfo').className = 'play-info ' + player;
-  const pc = document.getElementById('playedCard'); pc.className = 'played-card game-card ' + card.house; pc.innerHTML = '<span style="color:' + HOUSES[card.house].primary + '">' + HOUSES[card.house].symbol + '</span><span class="game-card-value" style="font-size:28px">' + card.displayValue + '</span>';
+  const pc = document.getElementById('playedCard'); pc.className = 'played-card game-card ' + card.house; pc.innerHTML = '<span class="house-' + card.house + '">' + HOUSES[card.house].symbol + '</span><span class="game-card-value" style="font-size:28px">' + card.displayValue + '</span>';
   document.getElementById('captureInfo').textContent = captured.length ? (isToken ? '🎯 TOKEN!' : 'Takes:') : '';
-  const cc = document.getElementById('capturedCards'); cc.innerHTML = ''; captured.forEach(c => { const m = document.createElement('div'); m.className = 'mini-card game-card ' + c.house; m.innerHTML = '<span style="color:' + HOUSES[c.house].primary + '">' + HOUSES[c.house].symbol + '</span><span style="font-size:12px">' + c.displayValue + '</span>'; cc.appendChild(m); });
+  const cc = document.getElementById('capturedCards'); cc.innerHTML = ''; captured.forEach(c => { const m = document.createElement('div'); m.className = 'mini-card game-card ' + c.house; m.innerHTML = '<span class="house-' + c.house + '">' + HOUSES[c.house].symbol + '</span><span style="font-size:12px">' + c.displayValue + '</span>'; cc.appendChild(m); });
   o.classList.add('visible'); setTimeout(() => { o.classList.remove('visible'); if (isToken) { showToast('🎯', 'TOKEN!'); setTimeout(cb, 500); } else cb(); }, captured.length ? 900 : 500);
 }
 function showToast(icon, title) { const t = document.getElementById('toast'); document.getElementById('toastIcon').textContent = icon; document.getElementById('toastTitle').textContent = title; t.classList.add('visible'); setTimeout(() => t.classList.remove('visible'), 1000); }

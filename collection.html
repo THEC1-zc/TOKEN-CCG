@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Collection Viewer v1.3.1</title>
-  <!-- Version: V1.3.1 -->
+  <title>TOKEN - Collection Viewer v1.3.3</title>
+  <!-- Version: V1.3.3 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -486,7 +486,7 @@
     <div class="header-left">
       <a class="header-brand" href="index.html">
         <img src="assets/main%20icon.png" alt="TOKEN">
-        <span class="header-title token-brand">TOKEN</span>
+        <img class="token-wordmark" src="assets/token_icon.png" alt="TOKEN">
       </a>
       <span class="header-sep">/</span>
       <span class="header-page">Collection</span>
@@ -649,7 +649,7 @@
       bitcoin: { name: 'Bitcoin', symbol: '₿', primary: '#F7931A' },
       ethereum: { name: 'Ethereum', symbol: '◊', primary: '#C0C0C0' },
       base: { name: 'Base', symbol: '■', primary: '#0052FF' },
-      tysm: { name: 'Tysm', symbol: '🙏', primary: '#10B981' }
+      tysm: { name: 'Tysm', symbol: '🙏', primary: '#3B82F6' }
     };
     
     const DB_KEYS = {
@@ -820,7 +820,7 @@
         item.innerHTML = `
           <div class="card-placeholder ${card.house}">
             <span class="card-source">${card.source === 'deck' ? 'DECK' : 'MINT'}</span>
-            <span class="card-placeholder-symbol" style="color: ${house.primary}">${house.symbol}</span>
+            <span class="card-placeholder-symbol house-${card.house}">${house.symbol}</span>
             <span class="card-placeholder-value">${card.displayValue}</span>
             <span class="card-placeholder-name">${card.cardName}</span>
           </div>
@@ -846,7 +846,7 @@
       const imageContainer = document.getElementById('modalCardImage');
       imageContainer.innerHTML = `
         <div class="card-placeholder ${card.house}" style="width: 100%; height: 100%;">
-          <span class="card-placeholder-symbol" style="color: ${house.primary}; font-size: 36px;">${house.symbol}</span>
+          <span class="card-placeholder-symbol house-${card.house}" style="font-size: 36px;">${house.symbol}</span>
           <span class="card-placeholder-value" style="font-size: 48px;">${card.displayValue}</span>
           <span class="card-placeholder-name" style="font-size: 14px;">${card.cardName}</span>
         </div>
@@ -930,7 +930,7 @@
         bitcoin: { primary: '#F7931A', secondary: '#FFD93D' },
         ethereum: { primary: '#C0C0C0', secondary: '#E8E8E8' },
         base: { primary: '#0052FF', secondary: '#5C9DFF' },
-        tysm: { primary: '#10B981', secondary: '#6EE7B7' }
+        tysm: { primary: '#FACC15', secondary: '#3B82F6' }
       };
       
       const colors = houseColors[card.house];
@@ -975,7 +975,19 @@
       ctx.stroke();
       
       // House symbol
-      ctx.fillStyle = colors.primary;
+      if (card.house === 'tysm') {
+        const symGrad = ctx.createLinearGradient(
+          borderWidth + Math.round(width * 0.08),
+          headerTop,
+          borderWidth + Math.round(width * 0.28),
+          headerTop + headerHeight
+        );
+        symGrad.addColorStop(0, '#FACC15');
+        symGrad.addColorStop(1, '#3B82F6');
+        ctx.fillStyle = symGrad;
+      } else {
+        ctx.fillStyle = colors.primary;
+      }
       ctx.font = `bold ${Math.round(height * 0.08)}px Arial`;
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';

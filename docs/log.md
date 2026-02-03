@@ -1,6 +1,6 @@
 # Project Log
 
-Version: V0.2.1
+Version: V0.2.3
 Last updated: 2026-02-03
 
 ## 2026-02-03
@@ -19,3 +19,5 @@ Last updated: 2026-02-03
 - Switched main icon to centered overlay image while keeping original background colors. (index.html V1.2.1, card-minter.html V1.9.1, deck-minter.html V1.4.1, collection.html V1.2.1, deck-builder.html V1.3.1, generate-cardback.html V1.0.2)
 - Added global header (logo, breadcrumb, quick actions, status, wallet) to all pages and shared header styles. (assets/header.css V1.0.0, assets/wallet-ui.css V1.1.0, assets/wallet-ui.js V1.1.0, index.html V1.3.0, card-minter.html V2.0.0, deck-minter.html V1.5.0, collection.html V1.3.0, deck-builder.html V1.4.0, game.html V1.6.0, generate-cardback.html V1.1.0)
 - Upgraded TOKEN branding to green-red gradient and applied house color rules (Bitcoin orange, Ethereum silver, Base blue, Tysm yellow-blue gradient). (assets/header.css V1.1.0, index.html V1.3.1, card-minter.html V2.0.1, deck-minter.html V1.5.1, collection.html V1.3.1, deck-builder.html V1.4.1, game.html V1.6.1, generate-cardback.html V1.1.1)
+- Fixed game cardback path and applied house color gradients consistently, plus added faction quick-load in deck builder. (game.html V1.6.2, deck-builder.html V1.5.0, deck-minter.html V1.5.2, collection.html V1.3.2, index.html V1.3.2)
+- Switched TOKEN wordmark to `assets/token_icon.png` and removed Tysm icon background. (assets/header.css V1.2.0, index.html V1.3.3, card-minter.html V2.0.2, deck-minter.html V1.5.3, collection.html V1.3.3, deck-builder.html V1.5.1, game.html V1.6.3, generate-cardback.html V1.1.2)

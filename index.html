@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Crypto Card Game v1.3.1</title>
-  <!-- Version: V1.3.1 -->
+  <title>TOKEN - Crypto Card Game v1.3.3</title>
+  <!-- Version: V1.3.3 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -84,7 +84,8 @@
     .house-icon.bitcoin { background: #F7931A22; border: 2px solid #F7931A; color: #F7931A; }
     .house-icon.ethereum { background: #C0C0C022; border: 2px solid #C0C0C0; color: #C0C0C0; }
     .house-icon.base { background: #0052FF22; border: 2px solid #0052FF; color: #0052FF; }
-    .house-icon.tysm { background: linear-gradient(135deg, #FACC15, #3B82F6); border: 2px solid #3B82F6; color: #0B1220; }
+    .house-icon.tysm { background: transparent; border: 2px solid #3B82F6; }
+    .house-icon.tysm { color: transparent; background-image: linear-gradient(90deg, #FACC15, #3B82F6); -webkit-background-clip: text; background-clip: text; }
     
     /* Stats Bar */
     .stats-bar {
@@ -299,7 +300,7 @@
     <div class="header-left">
       <a class="header-brand" href="index.html">
         <img src="assets/main%20icon.png" alt="TOKEN">
-        <span class="header-title token-brand">TOKEN</span>
+        <img class="token-wordmark" src="assets/token_icon.png" alt="TOKEN">
       </a>
       <span class="header-sep">/</span>
       <span class="header-page">Home</span>
@@ -317,7 +318,7 @@
   <div class="container">
     <!-- Hero -->
     <div class="hero">
-      <div class="logo token-brand">TOKEN</div>
+      <div class="logo"><img class="token-wordmark-inline" src="assets/token_icon.png" alt="TOKEN"></div>
       <p class="tagline">Crypto Trading Card Game</p>
       
       <div class="houses-display">
@@ -433,7 +434,7 @@
           <div class="info-item-text">Play a card. If table has same value → capture it. Or capture cards that sum to your value.</div>
         </div>
         <div class="info-item">
-        <div class="info-item-title token-brand">TOKEN</div>
+        <div class="info-item-title"><img class="token-wordmark-inline" src="assets/token_icon.png" alt="TOKEN"></div>
           <div class="info-item-text">Clear all cards from table = TOKEN! Worth 1 point + XP bonus to the capturing card.</div>
         </div>
         <div class="info-item">

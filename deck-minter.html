@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Deck Minter v1.5.1</title>
-  <!-- Version: V1.5.1 -->
+  <title>TOKEN - Deck Minter v1.5.3</title>
+  <!-- Version: V1.5.3 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -169,6 +169,12 @@
     .house-option.ethereum.selected { border-color: #C0C0C0; box-shadow: 0 0 20px #C0C0C044; }
     .house-option.base.selected { border-color: #0052FF; box-shadow: 0 0 20px #0052FF44; }
     .house-option.tysm.selected { border-color: #3B82F6; box-shadow: 0 0 20px #3B82F644; }
+    .house-option.tysm {
+      background: linear-gradient(90deg, #FACC15, #3B82F6);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
     
     /* Faction Input */
     .faction-input {
@@ -473,7 +479,7 @@
     <div class="header-left">
       <a class="header-brand" href="index.html">
         <img src="assets/main%20icon.png" alt="TOKEN">
-        <span class="header-title token-brand">TOKEN</span>
+        <img class="token-wordmark" src="assets/token_icon.png" alt="TOKEN">
       </a>
       <span class="header-sep">/</span>
       <span class="header-page">Deck Minter</span>
