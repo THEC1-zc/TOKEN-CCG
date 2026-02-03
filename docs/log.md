@@ -1,6 +1,6 @@
 # Project Log
 
-Version: V0.2.3
+Version: V0.2.7
 Last updated: 2026-02-03
 
 ## 2026-02-03
@@ -21,3 +21,7 @@ Last updated: 2026-02-03
 - Upgraded TOKEN branding to green-red gradient and applied house color rules (Bitcoin orange, Ethereum silver, Base blue, Tysm yellow-blue gradient). (assets/header.css V1.1.0, index.html V1.3.1, card-minter.html V2.0.1, deck-minter.html V1.5.1, collection.html V1.3.1, deck-builder.html V1.4.1, game.html V1.6.1, generate-cardback.html V1.1.1)
 - Fixed game cardback path and applied house color gradients consistently, plus added faction quick-load in deck builder. (game.html V1.6.2, deck-builder.html V1.5.0, deck-minter.html V1.5.2, collection.html V1.3.2, index.html V1.3.2)
 - Switched TOKEN wordmark to `assets/token_icon.png` and removed Tysm icon background. (assets/header.css V1.2.0, index.html V1.3.3, card-minter.html V2.0.2, deck-minter.html V1.5.3, collection.html V1.3.3, deck-builder.html V1.5.1, game.html V1.6.3, generate-cardback.html V1.1.2)
+- Increased TOKEN wordmark sizes for header and hero usage. (assets/header.css V1.3.0)
+- Greatly increased TOKEN wordmark size across pages and added responsive sizes for mobile. (assets/header.css V1.4.0)
+- Quadrupled hero wordmark size and doubled header wordmark size with responsive scaling. (assets/header.css V1.5.0)
+- Centered oversized wordmark without affecting alignment and removed joystick icons. (assets/header.css V1.6.0, index.html V1.3.5, game.html V1.6.4, docs/roadmap.md, docs/ROADMAP_v0.2.0.md, docs/ARCHITECTURE_v1.0.0.md)

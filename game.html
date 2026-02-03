@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>TOKEN - Game v1.6.3</title>
-  <!-- Version: V1.6.3 -->
+  <title>TOKEN - Game v1.6.4</title>
+  <!-- Version: V1.6.4 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -237,7 +237,7 @@
   </header>
   <div class="setup-screen" id="setupScreen">
     <div class="setup-content">
-      <div class="setup-title">🎮 <img class="token-wordmark-inline" src="assets/token_icon.png" alt="TOKEN"></div>
+      <div class="setup-title"><img class="token-wordmark-inline" src="assets/token_icon.png" alt="TOKEN"></div>
       <p class="setup-subtitle">Play vs AI</p>
       <div id="noDecksMsg" class="no-decks-msg" style="display:none;">No battle decks.<br><a href="deck-builder.html">Create one →</a></div>
       <label class="setup-label">Battle Deck</label>
@@ -443,7 +443,7 @@ function startGame() {
   gs.playerHand = gs.deck.splice(0, 3); gs.aiHand = gs.deck.splice(0, 3); gs.table = gs.deck.splice(0, 4);
   gs.playerCaptures = []; gs.aiCaptures = []; gs.playerTokens = 0; gs.aiTokens = 0;
   gs.selected = null; gs.phase = 'playing'; gs.hand = 1; gs.turnNum = 0; gs.lastHand = false; gs.log = [];
-  sysLog('🎮 Start'); sysLog('📋 Hand #1');
+  sysLog('Start'); sysLog('📋 Hand #1');
   document.getElementById('gameWrapper').classList.add('visible');
   render();
   if (gs.turn === 'ai') setTimeout(aiTurn, 1000); else startTimer();

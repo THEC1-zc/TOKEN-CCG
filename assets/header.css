@@ -1,4 +1,4 @@
-/* Version: V1.2.0 */
+/* Version: V1.6.0 */
 
 .app-header {
   position: fixed;
@@ -46,16 +46,36 @@
 }
 
 .token-wordmark {
-  height: 20px;
+  height: 128px;
   width: auto;
   display: block;
 }
 
 .token-wordmark-inline {
-  height: 28px;
+  height: 360px;
   width: auto;
   display: inline-block;
   vertical-align: middle;
+}
+
+.token-hero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 380px;
+  margin: 0 0 8px 0;
+}
+
+@media (max-width: 768px) {
+  .token-wordmark { height: 88px; }
+  .token-wordmark-inline { height: 240px; }
+  .token-hero { min-height: 260px; }
+}
+
+@media (max-width: 480px) {
+  .token-wordmark { height: 72px; }
+  .token-wordmark-inline { height: 192px; }
+  .token-hero { min-height: 210px; }
 }
 
 .header-sep {

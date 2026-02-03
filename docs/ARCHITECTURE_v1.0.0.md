@@ -14,7 +14,7 @@ TOKEN - Testing Suite (Offchain)
 ├── 📦 deck-minter_vX.Y.Z.html (Genera mazzo 10 carte)
 ├── 🖼️ collection_vX.Y.Z.html (Vedi tutte le carte)
 ├── 🔧 deck-builder_vX.Y.Z.html (Componi 2 mazzi da 20)
-└── 🎮 game_vX.Y.Z.html (Gioca vs AI)
+└── game_vX.Y.Z.html (Gioca vs AI)
 ```
 
 ---
@@ -222,7 +222,7 @@ TOKEN - Testing Suite (Offchain)
 
 ---
 
-## 🎮 Game vs AI
+## Game vs AI
 
 ### Specifiche
 
@@ -273,7 +273,7 @@ TOKEN - Testing Suite (Offchain)
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  🎮 TOKEN GAME                    SCORE: You 3 - AI 2  │
+│  TOKEN GAME                    SCORE: You 3 - AI 2  │
 ├─────────────────────────────────────────────────────────┤
 │                                                         │
 │                    ┌──────────────┐                     │

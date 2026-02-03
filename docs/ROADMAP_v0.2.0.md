@@ -242,7 +242,7 @@ Formato: `FILENAME_vX.Y.Z.ext`
 
 ---
 
-## 🎮 QUICK START GUIDE
+## QUICK START GUIDE
 
 ```
 1. Apri index.html nel browser
