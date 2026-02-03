@@ -1,14 +1,36 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Generate Cardback v1.0.2</title>
-  <!-- Version: V1.0.2 -->
+  <link rel="stylesheet" href="assets/wallet-ui.css">
+  <link rel="stylesheet" href="assets/header.css">
+  <title>Generate Cardback v1.1.0</title>
+  <!-- Version: V1.1.0 -->
 </head>
 <body style="background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;">
   <div style="position:fixed;inset:0;background:url(&quot;assets/main%20icon.png&quot;) center/360px auto no-repeat;opacity:0.25;pointer-events:none;z-index:0;" aria-hidden="true"></div>
-<canvas id="c" width="540" height="810"></canvas>
+  <header class="app-header">
+    <div class="header-left">
+      <a class="header-brand" href="index.html">
+        <img src="assets/main%20icon.png" alt="TOKEN">
+        <span class="header-title">TOKEN</span>
+      </a>
+      <span class="header-sep">/</span>
+      <span class="header-page">Cardback</span>
+    </div>
+    <nav class="header-nav">
+      <a href="index.html">Home</a>
+      <a href="index.html#how-to-play">How to Play</a>
+      <a href="docs/rules.md">Rules</a>
+    </nav>
+    <div class="header-right">
+      <span class="status-pill">Test Mode</span>
+      <div id="walletHeaderMount"></div>
+    </div>
+  </header>
+<canvas id="c" width="540" height="810" style="z-index:1;"></canvas>
 <br>
 <a id="dl" download="cardback.png" style="color:#fff;padding:12px 24px;background:#F7931A;border-radius:8px;text-decoration:none;margin-top:20px;">Download cardback.png</a>
+<script type="module" src="assets/wallet-ui.js"></script>
 <script>
 const c = document.getElementById('c'), ctx = c.getContext('2d');
 const w = 540, h = 810;

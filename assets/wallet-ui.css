@@ -1,10 +1,8 @@
-/* Version: V1.0.0 */
+/* Version: V1.1.0 */
 
 .wallet-header {
-  position: fixed;
-  top: 16px;
-  right: 16px;
-  z-index: 200;
+  position: static;
+  z-index: 1;
   font-family: 'Inter', system-ui, sans-serif;
 }
 

@@ -4,10 +4,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>TOKEN - Game v1.5.0</title>
-  <!-- Version: V1.5.0 -->
+  <title>TOKEN - Game v1.6.0</title>
+  <!-- Version: V1.6.0 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
+  <link rel="stylesheet" href="assets/header.css">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { height: 100%; overflow: hidden; background: #000; font-family: 'Inter', sans-serif; color: #FFF; -webkit-tap-highlight-color: transparent; }
@@ -191,6 +192,25 @@
   </style>
 </head>
 <body>
+  <header class="app-header">
+    <div class="header-left">
+      <a class="header-brand" href="index.html">
+        <img src="assets/main%20icon.png" alt="TOKEN">
+        <span class="header-title">TOKEN</span>
+      </a>
+      <span class="header-sep">/</span>
+      <span class="header-page">Game</span>
+    </div>
+    <nav class="header-nav">
+      <a href="index.html">Home</a>
+      <a href="index.html#how-to-play">How to Play</a>
+      <a href="docs/rules.md">Rules</a>
+    </nav>
+    <div class="header-right">
+      <span class="status-pill">Test Mode</span>
+      <div id="walletHeaderMount"></div>
+    </div>
+  </header>
   <div class="setup-screen" id="setupScreen">
     <div class="setup-content">
       <div class="setup-title">🎮 TOKEN</div>

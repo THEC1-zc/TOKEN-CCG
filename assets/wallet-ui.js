@@ -1,4 +1,4 @@
-// Version: V1.0.1
+// Version: V1.1.0
 
 const state = {
   sdk: null,
@@ -175,7 +175,9 @@ function buildHeader() {
 
   header.appendChild(button);
   header.appendChild(menu);
-  document.body.appendChild(header);
+  const mount = document.getElementById('walletHeaderMount');
+  if (mount) mount.appendChild(header);
+  else document.body.appendChild(header);
 
   header._els = { avatar, label, menu, fcBtn, connectBtn, disconnectBtn };
 }

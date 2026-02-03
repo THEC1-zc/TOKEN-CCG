@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Card Minter v1.9.1</title>
-  <!-- Version: V1.9.1 -->
+  <title>TOKEN - Card Minter v2.0.0</title>
+  <!-- Version: V2.0.0 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
+  <link rel="stylesheet" href="assets/header.css">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
@@ -936,6 +937,25 @@
 </head>
 <body>
   <div class="bg-icon" aria-hidden="true"></div>
+  <header class="app-header">
+    <div class="header-left">
+      <a class="header-brand" href="index.html">
+        <img src="assets/main%20icon.png" alt="TOKEN">
+        <span class="header-title">TOKEN</span>
+      </a>
+      <span class="header-sep">/</span>
+      <span class="header-page">Card Minter</span>
+    </div>
+    <nav class="header-nav">
+      <a href="index.html">Home</a>
+      <a href="index.html#how-to-play">How to Play</a>
+      <a href="docs/rules.md">Rules</a>
+    </nav>
+    <div class="header-right">
+      <span class="status-pill">Test Mode</span>
+      <div id="walletHeaderMount"></div>
+    </div>
+  </header>
   <a href="index.html" class="back-btn">← Home</a>
   <div class="container">
     <h1>CARD MINTER</h1>
