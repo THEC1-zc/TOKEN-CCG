@@ -77,26 +77,39 @@
 
 /* Board */
 .game-board { flex: 1; display: flex; flex-direction: column; background: linear-gradient(180deg, #1a5a3a 0%, #0d3d2a 100%); padding: 6px; min-height: 0; }
-.ai-section { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 6px 0; }
-.ai-label { font-size: 9px; color: #fff8; }
+
+/* Player Row Layout: JD | Hand | Captures */
+.player-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 4px; gap: 6px; }
+.player-row.ai { flex-direction: row; }
+.player-row.you { flex-direction: row; }
+
+.side-pile { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 50px; }
+.side-pile-label { font-size: 8px; color: #fff8; text-transform: uppercase; }
+.side-pile-stack { position: relative; width: 40px; height: 60px; }
+.side-pile-card { position: absolute; width: 40px; height: 60px; background: url('cardback.png') center/cover, linear-gradient(135deg, #10B981, #EF4444); border: 1px solid #000; border-radius: 4px; }
+.side-pile-card:nth-child(1) { top: 0; left: 0; }
+.side-pile-card:nth-child(2) { top: 2px; left: 1px; }
+.side-pile-card:nth-child(3) { top: 4px; left: 2px; }
+.side-pile-count { font-size: 9px; color: #fff; background: #0008; padding: 1px 5px; border-radius: 3px; }
+
+.jd-pile { cursor: pointer; }
+.jd-pile.disabled { opacity: 0.4; pointer-events: none; }
+.jd-pile.selected .side-pile-stack { box-shadow: 0 0 8px #F7931A; }
+
+.hand-area { flex: 1; display: flex; justify-content: center; gap: 4px; }
 .ai-hand { display: flex; gap: 3px; }
-.capture-count { font-size: 9px; color: #fff8; }
-.card-back { width: 40px; height: 60px; background: linear-gradient(135deg, #10B981 0%, #10B981 48%, #000 50%, #EF4444 52%, #EF4444 100%); border: 2px solid #000; border-radius: 5px; }
+.player-hand { display: flex; gap: 5px; }
+
+.card-back { width: 40px; height: 60px; background: url('cardback.png') center/cover, linear-gradient(135deg, #10B981 0%, #10B981 48%, #000 50%, #EF4444 52%, #EF4444 100%); border: 1px solid #000; border-radius: 5px; }
 
 .table-area { flex: 1; display: flex; align-items: center; justify-content: center; gap: 10px; }
 .draw-pile { display: flex; flex-direction: column; align-items: center; gap: 3px; }
-.pile-stack { position: relative; width: 40px; height: 60px; }
-.pile-card { position: absolute; width: 40px; height: 60px; background: linear-gradient(135deg, #10B981 0%, #10B981 48%, #000 50%, #EF4444 52%, #EF4444 100%); border: 2px solid #000; border-radius: 5px; }
+.pile-stack { position: relative; width: 44px; height: 66px; }
+.pile-card { position: absolute; width: 44px; height: 66px; background: url('cardback.png') center/cover, linear-gradient(135deg, #10B981 0%, #10B981 48%, #000 50%, #EF4444 52%, #EF4444 100%); border: 2px solid #000; border-radius: 5px; }
 .pile-card:nth-child(2) { top: 2px; left: 2px; }
 .pile-count { font-size: 9px; color: #fff; background: #0008; padding: 2px 6px; border-radius: 4px; }
 .table-cards { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; padding: 10px; background: #0004; border-radius: 8px; min-width: 160px; min-height: 80px; }
 .table-empty { color: #fff4; font-size: 11px; }
-
-.player-section { display: flex; flex-direction: column; gap: 6px; padding: 6px 0; }
-.player-hand { display: flex; justify-content: center; gap: 5px; }
-.jd-control { display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 9px; color: #71717A; }
-.jd-control input { width: 14px; height: 14px; }
-.jd-control.disabled { opacity: 0.4; pointer-events: none; }
 
 /* Cards */
 .game-card { width: 48px; height: 72px; border-radius: 5px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; background: linear-gradient(135deg, #1a1a2e, #0f0f1a); transition: transform 0.1s; }
@@ -191,7 +204,10 @@
   <div class="jd-screen" id="jdScreen">
     <div class="jd-title">🃏 JOLLYDRAW</div>
     <p class="jd-subtitle">Pick 1 from each deck</p>
-    <button class="jd-confirm-btn" id="jdConfirmBtn" onclick="confirmJD()" disabled>CONFIRM</button>
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <button class="jd-confirm-btn" style="flex:1;background:#27272A;color:#fff;" onclick="autoSelectJD()">⚡ AUTO</button>
+      <button class="jd-confirm-btn" id="jdConfirmBtn" style="flex:2;" onclick="confirmJD()" disabled>CONFIRM</button>
+    </div>
     <div class="jd-cards" id="jdCards"></div>
   </div>
 
@@ -213,31 +229,59 @@
       <div><div class="score-label">AI</div><div class="score-value score-ai" id="scoreAI">0</div></div>
     </div>
     <div class="game-board">
-      <div class="ai-section">
-        <span class="ai-label">AI</span>
-        <div class="ai-hand" id="aiHand"></div>
-        <span class="capture-count">📥<span id="aiCaptureCount">0</span></span>
-      </div>
-      <div class="table-area">
-        <div class="draw-pile">
-          <div class="pile-stack"><div class="pile-card"></div><div class="pile-card"></div></div>
-          <div class="pile-count" id="deckCount">0</div>
+      <!-- AI Row: JD | Hand | Captures -->
+      <div class="player-row ai">
+        <div class="side-pile">
+          <div class="side-pile-label">JD</div>
+          <div class="side-pile-stack" id="aiJDStack"></div>
+          <div class="side-pile-count" id="aiJDCount">2</div>
         </div>
-        <div class="table-cards" id="tableCards"><span class="table-empty">-</span></div>
-        <span class="capture-count">📥<span id="playerCaptureCount">0</span></span>
+        <div class="hand-area">
+          <div class="ai-hand" id="aiHand"></div>
+        </div>
+        <div class="side-pile">
+          <div class="side-pile-label">Won</div>
+          <div class="side-pile-stack" id="aiCaptureStack"></div>
+          <div class="side-pile-count" id="aiCaptureCount">0</div>
+        </div>
       </div>
-      <div class="player-section">
-        <div class="player-hand" id="playerHand"></div>
-        <div class="jd-control" id="jdControl"><input type="checkbox" id="useJdCheck" onchange="toggleJD()"><label>JD (2)</label></div>
-      </div>
+
+```
+  <!-- Table -->
+  <div class="table-area">
+    <div class="draw-pile">
+      <div class="pile-stack"><div class="pile-card"></div><div class="pile-card"></div></div>
+      <div class="pile-count" id="deckCount">0</div>
     </div>
-    <div class="game-footer">
-      <div class="log-preview" onclick="toggleLog()">
-        <div class="log-preview-text" id="logPreview">Game started</div>
-        <span class="log-toggle" id="logToggle">▲</span>
-      </div>
-      <div class="log-expanded" id="logExpanded"><div class="log-content" id="logContent"></div></div>
+    <div class="table-cards" id="tableCards"><span class="table-empty">-</span></div>
+  </div>
+  
+  <!-- Player Row: JD | Hand | Captures -->
+  <div class="player-row you">
+    <div class="side-pile jd-pile" id="playerJDPile" onclick="toggleJDPile()" ondblclick="selectJDPile()">
+      <div class="side-pile-label">JD</div>
+      <div class="side-pile-stack" id="playerJDStack"></div>
+      <div class="side-pile-count" id="playerJDCount">2</div>
     </div>
+    <div class="hand-area">
+      <div class="player-hand" id="playerHand"></div>
+    </div>
+    <div class="side-pile">
+      <div class="side-pile-label">Won</div>
+      <div class="side-pile-stack" id="playerCaptureStack"></div>
+      <div class="side-pile-count" id="playerCaptureCount">0</div>
+    </div>
+  </div>
+</div>
+<div class="game-footer">
+  <div class="log-preview" onclick="toggleLog()">
+    <div class="log-preview-text" id="logPreview">Game started</div>
+    <span class="log-toggle" id="logToggle">▲</span>
+  </div>
+  <div class="log-expanded" id="logExpanded"><div class="log-content" id="logContent"></div></div>
+</div>
+```
+
   </div>
 
   <div class="play-animation" id="playAnimation">
@@ -367,26 +411,92 @@ function genAI() {
 }
 function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
-function render() { renderAI(); renderTable(); renderPlayer(); renderCaps(); renderStats(); renderTurn(); updateJDCtrl(); }
-function renderAI() { const c = document.getElementById('aiHand'); c.innerHTML = ''; for (let i = 0; i < gs.aiHand.length; i++) { const el = document.createElement('div'); el.className = 'card-back'; c.appendChild(el); } }
+function render() { renderAI(); renderTable(); renderPlayer(); renderPiles(); renderStats(); renderTurn(); }
+function renderAI() { 
+  const c = document.getElementById('aiHand'); c.innerHTML = ''; 
+  for (let i = 0; i < gs.aiHand.length; i++) { const el = document.createElement('div'); el.className = 'card-back'; c.appendChild(el); } 
+}
 function renderTable() { const c = document.getElementById('tableCards'); if (!gs.table.length) { c.innerHTML = '<span class="table-empty">Empty</span>'; return; } c.innerHTML = ''; gs.table.forEach(card => c.appendChild(createCard(card))); }
 function renderPlayer() { const c = document.getElementById('playerHand'); c.innerHTML = ''; gs.playerHand.forEach((card, i) => { const el = createCard(card); el.onclick = () => selCard(i); el.ondblclick = () => playIdx(i); if (gs.selected === i) el.classList.add('selected'); c.appendChild(el); }); highlightCaps(); }
-function renderCaps() { document.getElementById('playerCaptureCount').textContent = gs.playerCaptures.length; document.getElementById('aiCaptureCount').textContent = gs.aiCaptures.length; document.getElementById('deckCount').textContent = gs.deck.length; }
+function renderPiles() {
+  // Counts
+  document.getElementById('playerCaptureCount').textContent = gs.playerCaptures.length;
+  document.getElementById('aiCaptureCount').textContent = gs.aiCaptures.length;
+  document.getElementById('deckCount').textContent = gs.deck.length;
+  
+  // Player JD pile
+  const pJD = gs.playerJD.filter(c => c).length;
+  document.getElementById('playerJDCount').textContent = pJD;
+  const pJDStack = document.getElementById('playerJDStack');
+  pJDStack.innerHTML = '';
+  for (let i = 0; i < Math.min(pJD, 2); i++) { const card = document.createElement('div'); card.className = 'side-pile-card'; pJDStack.appendChild(card); }
+  
+  // Player JD pile state
+  const jdPile = document.getElementById('playerJDPile');
+  if (gs.hand === 1 || pJD === 0) { jdPile.classList.add('disabled'); jdPile.classList.remove('selected'); }
+  else if (gs.lastHand) { jdPile.classList.add('disabled'); jdPile.classList.add('selected'); gs.useJD = true; }
+  else { jdPile.classList.remove('disabled'); if (gs.useJD) jdPile.classList.add('selected'); else jdPile.classList.remove('selected'); }
+  
+  // AI JD pile
+  const aJD = gs.aiJD.filter(c => c).length;
+  document.getElementById('aiJDCount').textContent = aJD;
+  const aJDStack = document.getElementById('aiJDStack');
+  aJDStack.innerHTML = '';
+  for (let i = 0; i < Math.min(aJD, 2); i++) { const card = document.createElement('div'); card.className = 'side-pile-card'; aJDStack.appendChild(card); }
+  
+  // Player captures pile
+  const pCapStack = document.getElementById('playerCaptureStack');
+  pCapStack.innerHTML = '';
+  for (let i = 0; i < Math.min(gs.playerCaptures.length, 3); i++) { const card = document.createElement('div'); card.className = 'side-pile-card'; pCapStack.appendChild(card); }
+  
+  // AI captures pile
+  const aCapStack = document.getElementById('aiCaptureStack');
+  aCapStack.innerHTML = '';
+  for (let i = 0; i < Math.min(gs.aiCaptures.length, 3); i++) { const card = document.createElement('div'); card.className = 'side-pile-card'; aCapStack.appendChild(card); }
+}
 function renderStats() { document.getElementById('scoreYou').textContent = calcScore('player'); document.getElementById('scoreAI').textContent = calcScore('ai'); }
 function renderTurn() { const b = document.getElementById('turnBadge'); b.textContent = gs.turn === 'player' ? 'Your Turn' : 'AI Turn'; b.className = 'turn-badge ' + (gs.turn === 'player' ? 'your-turn' : 'ai-turn'); }
-function updateJDCtrl() {
-  const rem = gs.playerJD.filter(c => c).length, ctrl = document.getElementById('jdControl');
-  if (gs.hand === 1) { ctrl.innerHTML = '<input type="checkbox" disabled><label style="color:#52525B">JD (1st)</label>'; ctrl.classList.add('disabled'); }
-  else if (!rem) { ctrl.innerHTML = '<input type="checkbox" disabled><label style="color:#52525B">JD (0)</label>'; ctrl.classList.add('disabled'); }
-  else if (gs.lastHand) { ctrl.innerHTML = '<input type="checkbox" checked disabled><label>JD FORCED (' + rem + ')</label>'; ctrl.classList.add('disabled'); gs.useJD = true; }
-  else { ctrl.innerHTML = '<input type="checkbox" id="useJdCheck" onchange="toggleJD()"><label>JD (' + rem + ')</label>'; ctrl.classList.remove('disabled'); }
+
+function toggleJDPile() { 
+  if (gs.hand === 1 || gs.lastHand || !gs.playerJD.filter(c => c).length) return;
+  gs.useJD = !gs.useJD; 
+  renderPiles(); 
 }
+function selectJDPile() { 
+  if (gs.hand === 1 || gs.lastHand || !gs.playerJD.filter(c => c).length) return;
+  gs.useJD = true; 
+  renderPiles(); 
+}
+
+function autoSelectJD() {
+  // Find highest value card from each deck
+  let best1 = 0, best2 = 0;
+  pDeck1.forEach((c, i) => { if (+c.value > +pDeck1[best1].value) best1 = i; });
+  pDeck2.forEach((c, i) => { if (+c.value > +pDeck2[best2].value) best2 = i; });
+  
+  // Clear previous selections
+  document.querySelectorAll('.jd-card.selected').forEach(c => c.classList.remove('selected'));
+  
+  // Select them
+  jdSel.d1 = best1;
+  jdSel.d2 = best2;
+  
+  // Update UI
+  document.querySelectorAll('.jd-card').forEach(el => {
+    const dn = +el.dataset.deck, idx = +el.dataset.index;
+    if ((dn === 1 && idx === best1) || (dn === 2 && idx === best2)) {
+      el.classList.add('selected');
+    }
+  });
+  
+  document.getElementById('jdConfirmBtn').disabled = false;
+}
+
 function createCard(card) { const el = document.createElement('div'); el.className = 'game-card ' + card.house; el.innerHTML = '<span class="game-card-symbol" style="color:' + HOUSES[card.house].primary + '">' + HOUSES[card.house].symbol + '</span><span class="game-card-value">' + card.displayValue + '</span>'; return el; }
 
 function selCard(i) { if (gs.turn !== 'player') return; gs.selected = gs.selected === i ? null : i; renderPlayer(); }
 function playIdx(i) { if (gs.turn !== 'player') return; gs.selected = i; playSelected(); }
 function highlightCaps() { document.querySelectorAll('.game-card.highlight-capture').forEach(el => el.classList.remove('highlight-capture')); if (gs.selected === null || gs.turn !== 'player') return; const card = gs.playerHand[gs.selected]; if (!card) return; const caps = findCaps(+card.value); document.getElementById('tableCards').querySelectorAll('.game-card').forEach((el, i) => { if (caps.includes(i)) el.classList.add('highlight-capture'); }); }
-function toggleJD() { const c = document.getElementById('useJdCheck'); gs.useJD = c ? c.checked : false; }
 function playSelected() { if (gs.turn !== 'player' || gs.selected === null) return; const card = gs.playerHand.splice(gs.selected, 1)[0]; gs.selected = null; playCard(card, 'player'); }
 
 function playCard(card, player) {
