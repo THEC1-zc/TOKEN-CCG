@@ -1,0 +1,87 @@
+# PERSPECTIVE API - Setup Instructions
+
+## Cos'è Perspective API
+Perspective API è un servizio gratuito di Google che analizza il testo per rilevare contenuti tossici, insulti, minacce e parolacce in 17+ lingue.
+
+## Come ottenere la API Key
+
+1. Vai su https://perspectiveapi.com/
+2. Clicca "Get Started"
+3. Compila il form di richiesta accesso
+4. Attendi approvazione (1-2 giorni lavorativi)
+5. Una volta approvato, riceverai la API key via email
+
+## Come attivare nel Card Minter
+
+Apri il file `card-minter.html` e trova questa sezione all'inizio dello script:
+
+```javascript
+const PERSPECTIVE_CONFIG = {
+  API_KEY: 'YOUR_API_KEY_HERE',  // <-- STEP 1: Sostituisci con la tua key
+  ENABLED: false,                 // <-- STEP 2: Cambia in true
+  THRESHOLD: 0.7,                 // Soglia sensibilità (0-1)
+  ENDPOINT: 'https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze'
+};
+```
+
+### Step 1: Inserisci la API Key
+Sostituisci `'YOUR_API_KEY_HERE'` con la tua key, es:
+```javascript
+API_KEY: 'AIzaSyD1234567890abcdefg',
+```
+
+### Step 2: Abilita l'API
+Cambia `ENABLED` da `false` a `true`:
+```javascript
+ENABLED: true,
+```
+
+### Step 3 (opzionale): Regola la sensibilità
+Il `THRESHOLD` determina quanto deve essere "tossico" un testo per essere bloccato:
+- `0.5` = meno sensibile (blocca solo contenuti molto offensivi)
+- `0.7` = bilanciato (default consigliato)
+- `0.9` = molto sensibile (blocca anche contenuti leggermente offensivi)
+
+## Lingue supportate
+L'API è configurata per analizzare automaticamente:
+- Inglese (EN)
+- Italiano (IT)
+- Spagnolo (ES)
+- Francese (FR)
+- Tedesco (DE)
+- Portoghese (PT)
+
+## Cosa rileva
+- **TOXICITY**: Contenuti generalmente tossici
+- **INSULT**: Insulti diretti
+- **PROFANITY**: Parolacce e volgarità
+- **THREAT**: Minacce
+
+## Comportamento fallback
+Se l'API è disabilitata o non disponibile, il sistema usa un filtro locale con una lista di parolacce in 6 lingue. Questo filtro è meno accurato ma funziona offline.
+
+## Limiti gratuiti
+Perspective API offre:
+- 1 query per secondo (QPS)
+- Illimitato per uso non commerciale
+- Per uso commerciale ad alto volume, contattare Google
+
+## Troubleshooting
+
+### Errore 403 (Forbidden)
+- Verifica che la API key sia corretta
+- Assicurati che l'API sia abilitata nel Google Cloud Console
+
+### Errore 429 (Too Many Requests)
+- Stai superando il limite di 1 QPS
+- Il debounce nel codice (300ms) dovrebbe prevenire questo
+
+### L'API non blocca nulla
+- Verifica che `ENABLED` sia `true`
+- Prova ad abbassare il `THRESHOLD` (es: 0.5)
+
+---
+
+File: PERSPECTIVE_API_SETUP.txt
+Versione: 1.0
+Progetto: Crypto Scopa

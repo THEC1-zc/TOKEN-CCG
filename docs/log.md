@@ -1,6 +1,6 @@
 # Project Log
 
-Version: V0.1.6
+Version: V0.1.7
 Last updated: 2026-02-03
 
 ## 2026-02-03
@@ -14,3 +14,4 @@ Last updated: 2026-02-03
 - Updated Base house icon color to blue on home page and added version marker. (index.html V1.0.1)
 - Updated JollyDraw auto button to select + confirm, and bumped game version. (game.html V1.4.1)
 - Updated editing workflow rule for desktop vs mobile output behavior. (`coding rules.md` V1.3.0)
+- Added wallet login dropdown UI (Farcaster/Base/Wallet) to all main pages with shared assets. (index.html V1.1.0, card-minter.html V1.8.0, deck-minter.html V1.3.0, collection.html V1.1.0, deck-builder.html V1.2.0, game.html V1.5.0, assets/wallet-ui.css V1.0.0, assets/wallet-ui.js V1.0.1)
