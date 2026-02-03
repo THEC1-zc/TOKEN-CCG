@@ -76,7 +76,7 @@
 .turn-badge.ai-turn { background: #EF444433; color: #EF4444; }
 
 /* Board */
-.game-board { flex: 1; display: flex; flex-direction: column; background: linear-gradient(180deg, #1a5a3a 0%, #0d3d2a 100%); padding: 6px; min-height: 0; }
+.game-board { flex: 1; display: flex; flex-direction: column; background: url('assets/game-bg.svg') center/cover no-repeat, linear-gradient(180deg, #1a5a3a 0%, #0d3d2a 100%); padding: 6px; min-height: 0; }
 
 /* Player Row Layout: JD | Hand | Captures */
 .player-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 4px; gap: 6px; }
@@ -86,7 +86,7 @@
 .side-pile { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 50px; }
 .side-pile-label { font-size: 8px; color: #fff8; text-transform: uppercase; }
 .side-pile-stack { position: relative; width: 40px; height: 60px; }
-.side-pile-card { position: absolute; width: 40px; height: 60px; background: url('cardback.png') center/cover, linear-gradient(135deg, #10B981, #EF4444); border: 1px solid #000; border-radius: 4px; }
+.side-pile-card { position: absolute; width: 40px; height: 60px; background: url('assets/cardback.png') center/cover, linear-gradient(135deg, #10B981, #EF4444); border: 1px solid #000; border-radius: 4px; }
 .side-pile-card:nth-child(1) { top: 0; left: 0; }
 .side-pile-card:nth-child(2) { top: 2px; left: 1px; }
 .side-pile-card:nth-child(3) { top: 4px; left: 2px; }
@@ -100,12 +100,12 @@
 .ai-hand { display: flex; gap: 3px; }
 .player-hand { display: flex; gap: 5px; }
 
-.card-back { width: 40px; height: 60px; background: url('cardback.png') center/cover, linear-gradient(135deg, #10B981 0%, #10B981 48%, #000 50%, #EF4444 52%, #EF4444 100%); border: 1px solid #000; border-radius: 5px; }
+.card-back { width: 40px; height: 60px; background: url('assets/cardback.png') center/cover, linear-gradient(135deg, #10B981 0%, #10B981 48%, #000 50%, #EF4444 52%, #EF4444 100%); border: 1px solid #000; border-radius: 5px; }
 
 .table-area { flex: 1; display: flex; align-items: center; justify-content: center; gap: 10px; }
 .draw-pile { display: flex; flex-direction: column; align-items: center; gap: 3px; }
 .pile-stack { position: relative; width: 44px; height: 66px; }
-.pile-card { position: absolute; width: 44px; height: 66px; background: url('cardback.png') center/cover, linear-gradient(135deg, #10B981 0%, #10B981 48%, #000 50%, #EF4444 52%, #EF4444 100%); border: 2px solid #000; border-radius: 5px; }
+.pile-card { position: absolute; width: 44px; height: 66px; background: url('assets/cardback.png') center/cover, linear-gradient(135deg, #10B981 0%, #10B981 48%, #000 50%, #EF4444 52%, #EF4444 100%); border: 2px solid #000; border-radius: 5px; }
 .pile-card:nth-child(2) { top: 2px; left: 2px; }
 .pile-count { font-size: 9px; color: #fff; background: #0008; padding: 2px 6px; border-radius: 4px; }
 .table-cards { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; padding: 10px; background: #0004; border-radius: 8px; min-width: 160px; min-height: 80px; }
