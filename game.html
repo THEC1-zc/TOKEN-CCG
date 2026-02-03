@@ -3,1101 +3,457 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Game v1.3.0</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TOKEN - Game v1.4.0</title>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    .back-btn { position: fixed; top: 16px; left: 16px; padding: 8px 16px; background: #27272A; border: 1px solid #3f3f46; border-radius: 8px; color: #FFFFFF; text-decoration: none; font-size: 13px; z-index: 100; }
-    .back-btn:hover { background: #3f3f46; border-color: #F7931A; }
-    body { min-height: 100vh; background: linear-gradient(180deg, #0a0a0f 0%, #12121f 50%, #0a0a0f 100%); font-family: 'Inter', sans-serif; color: #FFFFFF; }
-    .setup-screen { max-width: 500px; margin: 60px auto; padding: 32px; background: #141419; border-radius: 16px; text-align: center; }
-    .setup-title { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 4px; margin-bottom: 8px; }
-    .setup-subtitle { color: #71717A; font-size: 13px; margin-bottom: 24px; }
-    .setup-section { margin-bottom: 24px; text-align: left; }
-    .setup-label { font-size: 11px; color: #A1A1AA; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-    .setup-select { width: 100%; padding: 14px 16px; background: #0a0a0f; border: 1px solid #27272A; border-radius: 8px; color: #FFFFFF; font-size: 14px; }
-    .setup-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #F7931A, #FFD93D); border: none; border-radius: 10px; color: #000; font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 3px; cursor: pointer; }
-    .setup-btn:disabled { background: #27272A; color: #52525B; cursor: not-allowed; }
-    .no-decks-msg { padding: 20px; background: #0a0a0f; border-radius: 8px; color: #71717A; font-size: 13px; }
-    .no-decks-msg a { color: #F7931A; }
+    html, body { height: 100%; overflow: hidden; background: #000; font-family: 'Inter', sans-serif; color: #FFF; -webkit-tap-highlight-color: transparent; }
 
 ```
+/* Setup */
+.setup-screen { min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(180deg, #0a0a0f 0%, #12121f 50%, #0a0a0f 100%); }
+.setup-content { width: 100%; max-width: 380px; background: #141419; border-radius: 16px; padding: 24px; text-align: center; }
+.setup-title { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 4px; margin-bottom: 8px; }
+.setup-subtitle { color: #71717A; font-size: 13px; margin-bottom: 24px; }
+.setup-label { font-size: 11px; color: #A1A1AA; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: block; text-align: left; }
+.setup-select { width: 100%; padding: 14px; background: #0a0a0f; border: 1px solid #27272A; border-radius: 8px; color: #FFF; font-size: 14px; margin-bottom: 16px; }
+.setup-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #F7931A, #FFD93D); border: none; border-radius: 10px; color: #000; font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; cursor: pointer; }
+.setup-btn:disabled { background: #27272A; color: #52525B; }
+.back-link { color: #71717A; font-size: 13px; margin-top: 16px; display: inline-block; text-decoration: none; }
+.no-decks-msg { padding: 16px; background: #0a0a0f; border-radius: 8px; color: #71717A; font-size: 13px; margin-bottom: 16px; }
+.no-decks-msg a { color: #F7931A; }
+
+/* JollyDraw */
+.jd-screen { min-height: 100vh; padding: 16px; background: linear-gradient(180deg, #0a0a0f 0%, #12121f 50%, #0a0a0f 100%); display: none; flex-direction: column; }
+.jd-screen.visible { display: flex; }
+.jd-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; text-align: center; margin-bottom: 4px; }
+.jd-subtitle { color: #71717A; font-size: 11px; text-align: center; margin-bottom: 12px; }
+.jd-confirm-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, #10B981, #6EE7B7); border: none; border-radius: 8px; color: #000; font-family: 'Bebas Neue', sans-serif; font-size: 16px; cursor: pointer; margin-bottom: 12px; }
+.jd-confirm-btn:disabled { background: #27272A; color: #52525B; }
+.jd-cards { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.jd-card { width: 50px; height: 75px; border-radius: 6px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid #27272A; background: linear-gradient(135deg, #1a1a2e, #0f0f1a); }
+.jd-card.selected { border-color: #F7931A; box-shadow: 0 4px 12px #F7931A44; }
+.jd-card-value { font-family: 'Bebas Neue', sans-serif; font-size: 18px; }
+
 /* Coin Toss */
-.cointoss-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 200; flex-direction: column; }
+.cointoss-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 200; flex-direction: column; }
 .cointoss-overlay.visible { display: flex; }
-.coin { width: 150px; height: 150px; border-radius: 50%; background: linear-gradient(135deg, #F7931A, #FFD93D); display: flex; align-items: center; justify-content: center; font-size: 80px; margin-bottom: 24px; animation: coinFlip 1.5s ease-out; }
-@keyframes coinFlip { 0% { transform: rotateY(0deg) scale(0.5); opacity: 0; } 50% { transform: rotateY(1080deg) scale(1.2); } 100% { transform: rotateY(1800deg) scale(1); opacity: 1; } }
-.cointoss-result { font-family: 'Bebas Neue', sans-serif; font-size: 48px; letter-spacing: 4px; margin-bottom: 8px; }
+.coin { width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #F7931A, #FFD93D); display: flex; align-items: center; justify-content: center; font-size: 56px; margin-bottom: 16px; animation: coinFlip 1.5s ease-out; }
+@keyframes coinFlip { 0% { transform: rotateY(0) scale(0.5); opacity: 0; } 50% { transform: rotateY(1080deg) scale(1.2); } 100% { transform: rotateY(1800deg) scale(1); opacity: 1; } }
+.cointoss-result { font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 4px; }
 .cointoss-result.bull { color: #10B981; }
 .cointoss-result.bear { color: #EF4444; }
-.cointoss-text { color: #A1A1AA; font-size: 16px; }
+.cointoss-text { color: #A1A1AA; font-size: 14px; }
 
-/* JollyDraw Selection */
-.jd-screen { max-width: 600px; margin: 40px auto; padding: 32px; background: #141419; border-radius: 16px; text-align: center; display: none; }
-.jd-screen.visible { display: block; }
-.jd-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 3px; margin-bottom: 8px; }
-.jd-subtitle { color: #71717A; font-size: 13px; margin-bottom: 24px; }
-.jd-deck-section { margin-bottom: 24px; }
-.jd-deck-label { font-size: 12px; color: #A1A1AA; margin-bottom: 12px; }
-.jd-cards { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; max-width: 550px; margin: 0 auto; }
-.jd-card { width: 70px; height: 105px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 3px solid #27272A; background: linear-gradient(135deg, #1a1a2e, #0f0f1a); }
-.jd-card:hover { transform: translateY(-4px); }
-.jd-card.selected { border-color: #F7931A; transform: translateY(-8px); box-shadow: 0 8px 20px #F7931A44; }
-.jd-card-value { font-family: 'Bebas Neue', sans-serif; font-size: 24px; color: #FFFFFF; }
-.jd-confirm-btn { padding: 14px 32px; background: linear-gradient(135deg, #10B981, #6EE7B7); border: none; border-radius: 10px; color: #000; font-family: 'Bebas Neue', sans-serif; font-size: 18px; cursor: pointer; }
-.jd-confirm-btn:disabled { background: #27272A; color: #52525B; cursor: not-allowed; }
+/* Game Wrapper */
+.game-wrapper { display: none; flex-direction: column; height: 100vh; height: 100dvh; background: #000; max-width: 500px; margin: 0 auto; }
+.game-wrapper.visible { display: flex; }
 
-/* Game Screen */
-.game-container { max-width: 1000px; margin: 0 auto; padding: 16px; min-height: 100vh; display: none; flex-direction: column; }
-.game-container.visible { display: flex; }
-.game-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #141419; border-radius: 12px; margin-bottom: 12px; }
-.game-title { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 3px; }
-.game-score { display: flex; gap: 20px; align-items: center; }
-.score-item { text-align: center; }
+/* Header */
+.game-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #0a0a0f; flex-shrink: 0; }
+.surrender-btn { padding: 6px 10px; background: transparent; border: 1px solid #EF4444; border-radius: 6px; color: #EF4444; font-size: 10px; cursor: pointer; }
+.wallet-placeholder { display: flex; align-items: center; gap: 6px; padding: 4px 10px; background: #141419; border-radius: 20px; font-size: 10px; color: #71717A; }
+.wallet-dot { width: 6px; height: 6px; background: #F7931A; border-radius: 50%; }
+.header-timer { display: flex; align-items: center; gap: 6px; }
+.timer-bar { width: 40px; height: 5px; background: #27272A; border-radius: 3px; overflow: hidden; }
+.timer-fill { height: 100%; background: #10B981; transition: width 0.1s linear; }
+.timer-fill.warning { background: #F7931A; }
+.timer-fill.danger { background: #EF4444; }
+.timer-text { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: bold; }
+.timer-text.warning { color: #F7931A; }
+.timer-text.danger { color: #EF4444; animation: blink 0.5s infinite; }
+@keyframes blink { 50% { opacity: 0.5; } }
+
+/* Score Bar */
+.score-bar { display: flex; align-items: center; justify-content: space-between; padding: 6px 12px; background: #141419; flex-shrink: 0; }
 .score-label { font-size: 9px; color: #71717A; text-transform: uppercase; }
-.score-value { font-family: 'Bebas Neue', sans-serif; font-size: 28px; }
+.score-value { font-family: 'Bebas Neue', sans-serif; font-size: 24px; }
 .score-you { color: #10B981; }
 .score-ai { color: #EF4444; }
-.turn-indicator { padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; }
-.turn-indicator.your-turn { background: #10B98133; color: #10B981; }
-.turn-indicator.ai-turn { background: #EF444433; color: #EF4444; }
+.turn-badge { padding: 5px 10px; border-radius: 6px; font-size: 10px; font-weight: 600; }
+.turn-badge.your-turn { background: #10B98133; color: #10B981; }
+.turn-badge.ai-turn { background: #EF444433; color: #EF4444; }
 
-/* Game Board */
-.game-board { flex: 1; background: linear-gradient(135deg, #1a5a3a 0%, #0d3d2a 100%); border: 4px solid #27272A; border-radius: 16px; padding: 16px; display: grid; grid-template-rows: auto 1fr auto; gap: 12px; }
-.ai-area, .player-area { display: flex; justify-content: center; align-items: center; gap: 16px; padding: 8px; }
-.ai-hand, .player-hand { display: flex; gap: 8px; }
-.card-back { width: 60px; height: 90px; background: url('assets/cardback.svg') center/cover no-repeat, linear-gradient(135deg, #10B981 0%, #EF4444 100%); border: 2px solid #000; border-radius: 8px; }
-.table-area { display: flex; align-items: center; justify-content: center; gap: 24px; }
-.draw-pile { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.pile-stack { position: relative; width: 60px; height: 90px; }
-.pile-card { position: absolute; width: 60px; height: 90px; background: url('assets/cardback.svg') center/cover no-repeat, linear-gradient(135deg, #10B981 0%, #EF4444 100%); border: 2px solid #000; border-radius: 8px; }
-.pile-card:nth-child(1) { top: 0; left: 0; }
+/* Board */
+.game-board { flex: 1; display: flex; flex-direction: column; background: linear-gradient(180deg, #1a5a3a 0%, #0d3d2a 100%); padding: 6px; min-height: 0; }
+.ai-section { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 6px 0; }
+.ai-label { font-size: 9px; color: #fff8; }
+.ai-hand { display: flex; gap: 3px; }
+.capture-count { font-size: 9px; color: #fff8; }
+.card-back { width: 40px; height: 60px; background: linear-gradient(135deg, #10B981 0%, #10B981 48%, #000 50%, #EF4444 52%, #EF4444 100%); border: 2px solid #000; border-radius: 5px; }
+
+.table-area { flex: 1; display: flex; align-items: center; justify-content: center; gap: 10px; }
+.draw-pile { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.pile-stack { position: relative; width: 40px; height: 60px; }
+.pile-card { position: absolute; width: 40px; height: 60px; background: linear-gradient(135deg, #10B981 0%, #10B981 48%, #000 50%, #EF4444 52%, #EF4444 100%); border: 2px solid #000; border-radius: 5px; }
 .pile-card:nth-child(2) { top: 2px; left: 2px; }
-.pile-card:nth-child(3) { top: 4px; left: 4px; }
-.pile-count { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #FFFFFF; background: #000000AA; padding: 2px 8px; border-radius: 4px; }
-.table-cards { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; min-height: 120px; padding: 16px; background: rgba(0,0,0,0.2); border-radius: 12px; min-width: 300px; }
-.table-empty { color: #FFFFFF66; font-size: 14px; }
-.capture-pile { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.capture-stack { position: relative; width: 70px; height: 120px; }
-.capture-card { position: absolute; width: 60px; height: 90px; background: linear-gradient(135deg, #10B981 0%, #EF4444 100%); border: 2px solid #000; border-radius: 8px; }
-.capture-card.token-card { transform: rotate(90deg); border-color: #F7931A; border-width: 3px; box-shadow: 0 0 10px #F7931A88; }
-.capture-info { font-size: 10px; color: #FFFFFF; text-align: center; }
+.pile-count { font-size: 9px; color: #fff; background: #0008; padding: 2px 6px; border-radius: 4px; }
+.table-cards { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; padding: 10px; background: #0004; border-radius: 8px; min-width: 160px; min-height: 80px; }
+.table-empty { color: #fff4; font-size: 11px; }
 
-/* Game Card */
-.game-card { width: 65px; height: 98px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; background: linear-gradient(135deg, #1a1a2e, #0f0f1a); }
-.game-card:hover { transform: translateY(-4px); }
-.game-card.selected { transform: translateY(-10px); box-shadow: 0 10px 30px rgba(247, 147, 26, 0.5); }
-.game-card.highlight-capture { box-shadow: 0 0 20px #10B981, 0 0 40px #10B98166; animation: pulse-capture 1s infinite; }
-@keyframes pulse-capture { 0%, 100% { box-shadow: 0 0 20px #10B981, 0 0 40px #10B98166; } 50% { box-shadow: 0 0 30px #10B981, 0 0 60px #10B98188; } }
+.player-section { display: flex; flex-direction: column; gap: 6px; padding: 6px 0; }
+.player-hand { display: flex; justify-content: center; gap: 5px; }
+.jd-control { display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 9px; color: #71717A; }
+.jd-control input { width: 14px; height: 14px; }
+.jd-control.disabled { opacity: 0.4; pointer-events: none; }
+
+/* Cards */
+.game-card { width: 48px; height: 72px; border-radius: 5px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; background: linear-gradient(135deg, #1a1a2e, #0f0f1a); transition: transform 0.1s; }
+.game-card:active { transform: scale(0.95); }
+.game-card.selected { transform: translateY(-6px); box-shadow: 0 6px 16px #F7931A66; }
+.game-card.highlight-capture { box-shadow: 0 0 10px #10B981; }
 .game-card.bitcoin { border: 2px solid #F7931A; }
 .game-card.ethereum { border: 2px solid #C0C0C0; }
 .game-card.base { border: 2px solid #0052FF; }
 .game-card.tysm { border: 2px solid #10B981; }
-.game-card-symbol { font-size: 12px; }
-.game-card-value { font-family: 'Bebas Neue', sans-serif; font-size: 26px; color: #FFFFFF; }
+.game-card-symbol { font-size: 9px; }
+.game-card-value { font-family: 'Bebas Neue', sans-serif; font-size: 20px; }
 
-/* JollyDraw Control */
-.jollydraw-control { display: flex; align-items: center; gap: 8px; background: #27272A; padding: 8px 12px; border-radius: 8px; }
-.jollydraw-control input { width: 18px; height: 18px; cursor: pointer; }
-.jollydraw-control label { font-size: 11px; color: #A1A1AA; cursor: pointer; }
-.jollydraw-control.disabled { opacity: 0.4; pointer-events: none; }
+/* Footer */
+.game-footer { background: #0a0a0f; flex-shrink: 0; }
+.log-preview { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; cursor: pointer; }
+.log-preview-text { font-size: 10px; color: #A1A1AA; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.log-preview-text .p { color: #10B981; }
+.log-preview-text .a { color: #EF4444; }
+.log-toggle { font-size: 12px; color: #71717A; transition: transform 0.2s; }
+.log-toggle.open { transform: rotate(180deg); }
+.log-expanded { max-height: 0; overflow: hidden; transition: max-height 0.3s; }
+.log-expanded.visible { max-height: 180px; overflow-y: auto; }
+.log-content { padding: 0 12px 10px; }
+.log-entry { padding: 5px 8px; margin-bottom: 3px; border-radius: 4px; font-size: 9px; }
+.log-entry.player { background: #10B98122; border-left: 2px solid #10B981; }
+.log-entry.ai { background: #EF444422; border-left: 2px solid #EF4444; }
+.log-entry.system { background: #F7931A22; border-left: 2px solid #F7931A; }
 
-/* Stats Panel */
-.stats-panel { display: flex; justify-content: space-around; padding: 12px; background: #141419; border-radius: 10px; margin-top: 12px; }
-.stat-box { text-align: center; }
-.stat-box-value { font-family: 'Bebas Neue', sans-serif; font-size: 24px; }
-.stat-box-label { font-size: 9px; color: #71717A; text-transform: uppercase; }
-
-/* Action Bar */
-.action-bar { display: flex; justify-content: center; gap: 12px; padding: 12px; }
-.action-btn { padding: 12px 24px; border: none; border-radius: 8px; font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 2px; cursor: pointer; }
-.action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.action-btn.primary { background: linear-gradient(135deg, #10B981, #6EE7B7); color: #000; }
-.action-btn.secondary { background: #27272A; color: #FFFFFF; }
-
-/* Toast */
-.toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: #141419; border: 3px solid #F7931A; border-radius: 16px; padding: 24px 48px; text-align: center; z-index: 150; transition: transform 0.3s; }
-.toast.visible { transform: translate(-50%, -50%) scale(1); }
-.toast-icon { font-size: 48px; margin-bottom: 8px; }
-.toast-title { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 3px; }
-
-/* Game Over */
-.gameover-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 200; }
-.gameover-overlay.visible { display: flex; }
-.gameover-content { background: #141419; border: 2px solid #F7931A; border-radius: 20px; padding: 40px 60px; text-align: center; max-width: 500px; }
-.gameover-icon { font-size: 64px; margin-bottom: 16px; }
-.gameover-title { font-family: 'Bebas Neue', sans-serif; font-size: 48px; letter-spacing: 4px; margin-bottom: 16px; }
-.gameover-title.win { color: #10B981; }
-.gameover-title.lose { color: #EF4444; }
-.gameover-score { display: flex; justify-content: center; gap: 40px; margin-bottom: 24px; }
-.gameover-score-item { text-align: center; }
-.gameover-score-value { font-family: 'Bebas Neue', sans-serif; font-size: 48px; }
-.gameover-score-label { font-size: 12px; color: #71717A; text-transform: uppercase; }
-.gameover-details { margin-bottom: 24px; font-size: 13px; color: #A1A1AA; text-align: left; }
-.gameover-detail { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #27272A; }
-.gameover-actions { display: flex; gap: 12px; justify-content: center; }
-.version { text-align: center; color: #3f3f46; font-size: 9px; padding: 12px; }
-.hidden { display: none !important; }
-
-/* Play Animation Overlay */
-.play-animation { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 180; flex-direction: column; gap: 16px; }
+/* Overlays */
+.play-animation { position: fixed; inset: 0; background: #000c; display: none; align-items: center; justify-content: center; z-index: 180; flex-direction: column; gap: 10px; }
 .play-animation.visible { display: flex; }
-.play-animation .played-card { width: 100px; height: 150px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; animation: cardPlay 0.5s ease-out; }
-@keyframes cardPlay { 0% { transform: scale(0.3) translateY(100px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
-.play-animation .play-info { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 2px; }
+.play-animation .played-card { width: 70px; height: 105px; animation: cardPlay 0.4s ease-out; }
+@keyframes cardPlay { 0% { transform: scale(0.3) translateY(60px); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+.play-animation .play-info { font-family: 'Bebas Neue', sans-serif; font-size: 18px; }
 .play-animation .play-info.player { color: #10B981; }
 .play-animation .play-info.ai { color: #EF4444; }
-.play-animation .capture-info { color: #F7931A; font-size: 18px; margin-top: 8px; }
-.play-animation .captured-cards { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; justify-content: center; }
-.play-animation .captured-cards .mini-card { width: 50px; height: 75px; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; animation: cardCapture 0.3s ease-out; animation-fill-mode: both; }
-@keyframes cardCapture { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+.play-animation .capture-info { color: #F7931A; font-size: 12px; }
+.play-animation .captured-cards { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; }
+.play-animation .mini-card { width: 36px; height: 54px; font-size: 9px; }
 
-/* Game Log - Collapsible */
-.game-log { position: fixed; right: 16px; top: 80px; width: 220px; background: #141419; border: 1px solid #27272A; border-radius: 10px; overflow: hidden; z-index: 50; transition: all 0.3s; }
-.game-log.collapsed { width: 44px; height: 44px; border-radius: 50%; }
-.game-log-header { padding: 10px 12px; background: #0a0a0f; font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 2px; color: #71717A; border-bottom: 1px solid #27272A; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-.game-log.collapsed .game-log-header { padding: 12px; justify-content: center; border: none; }
-.game-log-toggle { font-size: 16px; }
-.game-log.collapsed .log-title { display: none; }
-.game-log-content { max-height: 280px; overflow-y: auto; padding: 8px; }
-.game-log.collapsed .game-log-content { display: none; }
-.log-entry { padding: 6px 8px; margin-bottom: 4px; border-radius: 6px; font-size: 11px; line-height: 1.4; }
-.log-entry.player { background: #10B98122; border-left: 3px solid #10B981; }
-.log-entry.ai { background: #EF444422; border-left: 3px solid #EF4444; }
-.log-entry.system { background: #F7931A22; border-left: 3px solid #F7931A; }
-.log-entry .log-turn { color: #71717A; font-size: 9px; }
-.log-entry .log-action { color: #FFFFFF; }
-.log-entry .log-capture { color: #10B981; font-size: 10px; }
+.toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: #141419; border: 2px solid #F7931A; border-radius: 12px; padding: 14px 28px; text-align: center; z-index: 190; transition: transform 0.2s; }
+.toast.visible { transform: translate(-50%, -50%) scale(1); }
+.toast-icon { font-size: 32px; }
+.toast-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; }
 
-/* Turn Timer */
-.turn-timer { display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: #0a0a0f; border-radius: 8px; }
-.timer-bar { width: 80px; height: 8px; background: #27272A; border-radius: 4px; overflow: hidden; }
-.timer-fill { height: 100%; background: #10B981; transition: width 0.1s linear; }
-.timer-fill.warning { background: #F7931A; }
-.timer-fill.danger { background: #EF4444; }
-.timer-text { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: bold; min-width: 28px; }
-.timer-text.warning { color: #F7931A; }
-.timer-text.danger { color: #EF4444; animation: blink 0.5s infinite; }
-@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+.gameover-overlay { position: fixed; inset: 0; background: #000e; display: none; align-items: center; justify-content: center; z-index: 200; padding: 16px; }
+.gameover-overlay.visible { display: flex; }
+.gameover-content { background: #141419; border: 2px solid #F7931A; border-radius: 14px; padding: 20px; text-align: center; width: 100%; max-width: 320px; }
+.gameover-icon { font-size: 42px; margin-bottom: 10px; }
+.gameover-title { font-family: 'Bebas Neue', sans-serif; font-size: 32px; margin-bottom: 12px; }
+.gameover-title.win { color: #10B981; }
+.gameover-title.lose { color: #EF4444; }
+.gameover-score { display: flex; justify-content: center; gap: 28px; margin-bottom: 16px; }
+.gameover-score-value { font-family: 'Bebas Neue', sans-serif; font-size: 36px; }
+.gameover-score-label { font-size: 10px; color: #71717A; text-transform: uppercase; }
+.gameover-details { margin-bottom: 16px; font-size: 11px; color: #A1A1AA; }
+.gameover-detail { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #27272A; }
+.gameover-actions { display: flex; gap: 10px; }
+.gameover-actions button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-family: 'Bebas Neue', sans-serif; font-size: 14px; cursor: pointer; }
+.btn-secondary { background: #27272A; color: #fff; }
+.btn-primary { background: linear-gradient(135deg, #10B981, #6EE7B7); color: #000; }
 
-@media (max-width: 768px) {
-  .game-log { right: 12px; top: auto; bottom: 180px; width: 180px; }
-  .game-log.collapsed { width: 40px; height: 40px; }
-  .game-log-content { max-height: 200px; }
-}
+.surrender-overlay { position: fixed; inset: 0; background: #000e; display: none; align-items: center; justify-content: center; z-index: 210; padding: 16px; }
+.surrender-overlay.visible { display: flex; }
+.surrender-content { background: #141419; border: 2px solid #EF4444; border-radius: 14px; padding: 20px; text-align: center; max-width: 280px; }
+.surrender-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: #EF4444; margin-bottom: 10px; }
+.surrender-text { font-size: 12px; color: #A1A1AA; margin-bottom: 16px; }
+.surrender-actions { display: flex; gap: 10px; }
+.surrender-actions button { flex: 1; padding: 10px; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; }
+.btn-cancel { background: #27272A; color: #fff; }
+.btn-surrender { background: #EF4444; color: #fff; }
+
+.hidden { display: none !important; }
 ```
 
   </style>
 </head>
 <body>
-  <a href="index.html" class="back-btn">← Home</a>
-
   <div class="setup-screen" id="setupScreen">
-    <div class="setup-title">🎮 TOKEN GAME</div>
-    <p class="setup-subtitle">Play vs AI opponent</p>
-    <div class="setup-section">
-      <div class="setup-label">Select Battle Deck</div>
-      <select class="setup-select" id="deckSelect" onchange="onDeckSelect()">
-        <option value="">-- Choose a saved battle deck --</option>
-      </select>
+    <div class="setup-content">
+      <div class="setup-title">🎮 TOKEN</div>
+      <p class="setup-subtitle">Play vs AI</p>
+      <div id="noDecksMsg" class="no-decks-msg" style="display:none;">No battle decks.<br><a href="deck-builder.html">Create one →</a></div>
+      <label class="setup-label">Battle Deck</label>
+      <select class="setup-select" id="deckSelect" onchange="onDeckSelect()"><option value="">-- Select --</option></select>
+      <button class="setup-btn" id="startBtn" onclick="startJD()" disabled>START</button>
+      <a href="index.html" class="back-link">← Home</a>
     </div>
-    <div class="no-decks-msg" id="noDecksMsg" style="display: none;">
-      No battle decks found. <a href="deck-builder.html">Create one first</a>.
-    </div>
-    <button class="setup-btn" id="startBtn" onclick="startJollydrawSelection()" disabled>SELECT JOLLYDRAW</button>
   </div>
 
   <div class="jd-screen" id="jdScreen">
-    <div class="jd-title">🃏 SELECT JOLLYDRAW</div>
-    <p class="jd-subtitle">Choose 1 card from each deck (2 total)</p>
-    <button class="jd-confirm-btn" id="jdConfirmBtn" onclick="confirmJollydraw()" disabled>CONFIRM & COIN TOSS</button>
-    <div class="jd-deck-section" style="margin-top: 20px;">
-      <div class="jd-deck-label" id="jdDeck1Label">Deck 1</div>
-      <div class="jd-cards" id="jdDeck1Cards"></div>
-    </div>
-    <div class="jd-deck-section">
-      <div class="jd-deck-label" id="jdDeck2Label">Deck 2</div>
-      <div class="jd-cards" id="jdDeck2Cards"></div>
-    </div>
+    <div class="jd-title">🃏 JOLLYDRAW</div>
+    <p class="jd-subtitle">Pick 1 from each deck</p>
+    <button class="jd-confirm-btn" id="jdConfirmBtn" onclick="confirmJD()" disabled>CONFIRM</button>
+    <div class="jd-cards" id="jdCards"></div>
   </div>
 
   <div class="cointoss-overlay" id="cointossOverlay">
     <div class="coin" id="coin">🪙</div>
     <div class="cointoss-result" id="cointossResult">BULL</div>
-    <div class="cointoss-text" id="cointossText">You go first!</div>
+    <div class="cointoss-text" id="cointossText">You first!</div>
   </div>
 
-  <div class="game-container" id="gameScreen">
+  <div class="game-wrapper" id="gameWrapper">
     <div class="game-header">
-      <div class="game-title">TOKEN</div>
-      <div class="turn-timer" id="turnTimer">
-        <div class="timer-bar"><div class="timer-fill" id="timerFill" style="width: 100%"></div></div>
-        <div class="timer-text" id="timerText">15</div>
+      <button class="surrender-btn" onclick="showSurrender()">🏳️</button>
+      <div class="wallet-placeholder"><div class="wallet-dot"></div><span>Guest</span></div>
+      <div class="header-timer"><div class="timer-bar"><div class="timer-fill" id="timerFill"></div></div><div class="timer-text" id="timerText">15</div></div>
+    </div>
+    <div class="score-bar">
+      <div><div class="score-label">You</div><div class="score-value score-you" id="scoreYou">0</div></div>
+      <div class="turn-badge your-turn" id="turnBadge">Your Turn</div>
+      <div><div class="score-label">AI</div><div class="score-value score-ai" id="scoreAI">0</div></div>
+    </div>
+    <div class="game-board">
+      <div class="ai-section">
+        <span class="ai-label">AI</span>
+        <div class="ai-hand" id="aiHand"></div>
+        <span class="capture-count">📥<span id="aiCaptureCount">0</span></span>
       </div>
-      <div class="game-score">
-        <div class="score-item"><div class="score-label">You</div><div class="score-value score-you" id="scoreYou">0</div></div>
-        <div class="score-item"><div class="score-label">AI</div><div class="score-value score-ai" id="scoreAI">0</div></div>
+      <div class="table-area">
+        <div class="draw-pile">
+          <div class="pile-stack"><div class="pile-card"></div><div class="pile-card"></div></div>
+          <div class="pile-count" id="deckCount">0</div>
+        </div>
+        <div class="table-cards" id="tableCards"><span class="table-empty">-</span></div>
+        <span class="capture-count">📥<span id="playerCaptureCount">0</span></span>
       </div>
-      <div class="turn-indicator your-turn" id="turnIndicator">Your Turn</div>
+      <div class="player-section">
+        <div class="player-hand" id="playerHand"></div>
+        <div class="jd-control" id="jdControl"><input type="checkbox" id="useJdCheck" onchange="toggleJD()"><label>JD (2)</label></div>
+      </div>
     </div>
-
-```
-<div class="game-board">
-  <div class="ai-area">
-    <div style="font-size:11px;color:#A1A1AA;">AI</div>
-    <div class="ai-hand" id="aiHand"></div>
-    <div class="capture-pile">
-      <div class="capture-stack" id="aiCaptureStack"></div>
-      <div class="capture-info">AI: <span id="aiCaptureCount">0</span></div>
-    </div>
-  </div>
-  
-  <div class="table-area">
-    <div class="draw-pile">
-      <div class="pile-stack" id="drawPile"><div class="pile-card"></div><div class="pile-card"></div><div class="pile-card"></div></div>
-      <div class="pile-count"><span id="deckCount">0</span></div>
-    </div>
-    <div class="table-cards" id="tableCards"><div class="table-empty">Empty</div></div>
-    <div class="capture-pile">
-      <div class="capture-stack" id="playerCaptureStack"></div>
-      <div class="capture-info">You: <span id="playerCaptureCount">0</span></div>
+    <div class="game-footer">
+      <div class="log-preview" onclick="toggleLog()">
+        <div class="log-preview-text" id="logPreview">Game started</div>
+        <span class="log-toggle" id="logToggle">▲</span>
+      </div>
+      <div class="log-expanded" id="logExpanded"><div class="log-content" id="logContent"></div></div>
     </div>
   </div>
-  
-  <div class="player-area">
-    <div class="jollydraw-control" id="jdControl">
-      <input type="checkbox" id="useJdCheck" onchange="toggleJD()">
-      <label for="useJdCheck">Draw 1 from JollyDraw (<span id="jdRemaining">2</span> left)</label>
-    </div>
-    <div class="player-hand" id="playerHand"></div>
-    <div style="font-size:11px;color:#A1A1AA;">YOU</div>
-  </div>
-</div>
-
-<div class="stats-panel">
-  <div class="stat-box"><div class="stat-box-value" id="statHand">1</div><div class="stat-box-label">Hand</div></div>
-  <div class="stat-box"><div class="stat-box-value score-you" id="statPoints">0</div><div class="stat-box-label">Points</div></div>
-  <div class="stat-box"><div class="stat-box-value" id="statCards">0</div><div class="stat-box-label">Cards</div></div>
-  <div class="stat-box"><div class="stat-box-value" id="statTokens">0</div><div class="stat-box-label">TOKENs</div></div>
-  <div class="stat-box"><div class="stat-box-value" id="statAces">0</div><div class="stat-box-label">Aces</div></div>
-</div>
-
-<div class="action-bar">
-  <button class="action-btn primary" id="playCardBtn" onclick="playSelectedCard()" disabled>PLAY CARD</button>
-</div>
-<p class="version">Game v1.3.0</p>
-```
-
-  </div>
-
-  <div class="toast" id="toast"><div class="toast-icon" id="toastIcon">🎯</div><div class="toast-title" id="toastTitle">TOKEN!</div></div>
-
-  <!-- Play Animation -->
 
   <div class="play-animation" id="playAnimation">
-    <div class="play-info" id="playInfo">YOU PLAY</div>
+    <div class="play-info" id="playInfo">YOU</div>
     <div class="played-card game-card" id="playedCard"></div>
     <div class="capture-info" id="captureInfo"></div>
     <div class="captured-cards" id="capturedCards"></div>
   </div>
 
-  <!-- Game Log - Collapsible -->
-
-  <div class="game-log collapsed" id="gameLog">
-    <div class="game-log-header" onclick="toggleLog()">
-      <span class="log-title">📜 LOG</span>
-      <span class="game-log-toggle" id="logToggle">📜</span>
-    </div>
-    <div class="game-log-content" id="logContent"></div>
-  </div>
+  <div class="toast" id="toast"><div class="toast-icon" id="toastIcon">🎯</div><div class="toast-title" id="toastTitle">TOKEN!</div></div>
 
   <div class="gameover-overlay" id="gameoverOverlay">
     <div class="gameover-content">
       <div class="gameover-icon" id="gameoverIcon">🏆</div>
       <div class="gameover-title" id="gameoverTitle">YOU WIN!</div>
       <div class="gameover-score">
-        <div class="gameover-score-item"><div class="gameover-score-value score-you" id="finalScoreYou">0</div><div class="gameover-score-label">You</div></div>
-        <div class="gameover-score-item"><div class="gameover-score-value score-ai" id="finalScoreAI">0</div><div class="gameover-score-label">AI</div></div>
+        <div><div class="gameover-score-value score-you" id="finalScoreYou">0</div><div class="gameover-score-label">You</div></div>
+        <div><div class="gameover-score-value score-ai" id="finalScoreAI">0</div><div class="gameover-score-label">AI</div></div>
       </div>
       <div class="gameover-details" id="gameoverDetails"></div>
       <div class="gameover-actions">
-        <button class="action-btn secondary" onclick="location.reload()">Play Again</button>
-        <button class="action-btn primary" onclick="location.href='index.html'">Home</button>
+        <button class="btn-secondary" onclick="location.reload()">Again</button>
+        <button class="btn-primary" onclick="location.href='index.html'">Home</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="surrender-overlay" id="surrenderOverlay">
+    <div class="surrender-content">
+      <div class="surrender-title">🏳️ SURRENDER?</div>
+      <p class="surrender-text">You lose 0-3. No XP.</p>
+      <div class="surrender-actions">
+        <button class="btn-cancel" onclick="hideSurrender()">Cancel</button>
+        <button class="btn-surrender" onclick="confirmSurrender()">Quit</button>
       </div>
     </div>
   </div>
 
 <script>
-const HOUSES = {
-  bitcoin: { name: 'Bitcoin', symbol: '₿', primary: '#F7931A' },
-  ethereum: { name: 'Ethereum', symbol: '◊', primary: '#C0C0C0' },
-  base: { name: 'Base', symbol: '■', primary: '#0052FF' },
-  tysm: { name: 'Tysm', symbol: '🙏', primary: '#10B981' }
-};
-
-let gameState = {
-  phase: 'setup', turn: 'player', deck: [], table: [],
-  playerHand: [], aiHand: [], playerCaptures: [], aiCaptures: [],
-  playerJD: [], aiJD: [], playerTokens: 0, aiTokens: 0,
-  selectedCard: null, useJD: false, lastCapture: null,
-  handNumber: 0, isLastHand: false, turnNumber: 0, gameLog: []
-};
-
-// Timer
+const HOUSES = { bitcoin: { symbol: '₿', primary: '#F7931A' }, ethereum: { symbol: '◊', primary: '#C0C0C0' }, base: { symbol: '■', primary: '#0052FF' }, tysm: { symbol: '🙏', primary: '#10B981' } };
 const TURN_TIME = 15;
-let timerInterval = null;
-let timeLeft = TURN_TIME;
-let logCollapsed = true;
+let timer = null, timeLeft = TURN_TIME, logOpen = false;
+let gs = { phase: 'setup', turn: 'player', deck: [], table: [], playerHand: [], aiHand: [], playerCaptures: [], aiCaptures: [], playerJD: [], aiJD: [], playerTokens: 0, aiTokens: 0, selected: null, useJD: false, lastCap: null, hand: 1, lastHand: false, turnNum: 0, log: [] };
+let battleDeck = null, allCards = [], jdSel = { d1: null, d2: null }, pDeck1 = [], pDeck2 = [];
 
-let battleDeck = null, allCards = [], jdSel = { d1: null, d2: null };
-let pDeck1 = [], pDeck2 = [];
-
-function loadBattleDecks() {
+function loadDecks() {
   const saved = JSON.parse(localStorage.getItem('token_battle_decks') || '[]');
+  if (!saved.length) { document.getElementById('noDecksMsg').style.display = 'block'; return; }
   const sel = document.getElementById('deckSelect');
-  if (saved.length === 0) { document.getElementById('noDecksMsg').style.display = 'block'; sel.style.display = 'none'; return; }
-  saved.forEach((bd, i) => {
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = bd.name + ' (' + HOUSES[bd.deck1House].symbol + ' vs ' + HOUSES[bd.deck2House].symbol + ')';
-    sel.appendChild(opt);
-  });
+  saved.forEach((d, i) => { const o = document.createElement('option'); o.value = i; o.textContent = d.name; sel.appendChild(o); });
 }
-
-function loadAllCards() {
+function loadCards() {
   allCards = [];
-  const singles = JSON.parse(localStorage.getItem('token_cards') || '[]');
-  singles.forEach(c => allCards.push({ ...c, uid: 'card-' + c.id }));
-  const decks = JSON.parse(localStorage.getItem('token_decks') || '[]');
-  decks.forEach(d => d.cards.forEach(c => allCards.push({ uid: 'deck-' + d.id + '-' + c.value, house: d.house, value: c.value, displayValue: c.displayValue, cardName: c.cardName })));
+  JSON.parse(localStorage.getItem('token_cards') || '[]').forEach(c => allCards.push({ ...c, uid: 'c-' + c.id }));
+  JSON.parse(localStorage.getItem('token_decks') || '[]').forEach(d => d.cards.forEach(c => allCards.push({ uid: 'd-' + d.id + '-' + c.value, house: d.house, value: c.value, displayValue: c.displayValue })));
 }
-
 function onDeckSelect() { document.getElementById('startBtn').disabled = !document.getElementById('deckSelect').value; }
 
-function startJollydrawSelection() {
+function startJD() {
   const saved = JSON.parse(localStorage.getItem('token_battle_decks') || '[]');
-  battleDeck = saved[parseInt(document.getElementById('deckSelect').value)];
-  if (!battleDeck) return;
-  loadAllCards();
+  battleDeck = saved[+document.getElementById('deckSelect').value];
+  loadCards();
   pDeck1 = []; pDeck2 = [];
   battleDeck.deck1Cards.forEach(uid => { const c = allCards.find(x => x.uid === uid); if (c) pDeck1.push({ ...c }); });
   battleDeck.deck2Cards.forEach(uid => { const c = allCards.find(x => x.uid === uid); if (c) pDeck2.push({ ...c }); });
   document.getElementById('setupScreen').classList.add('hidden');
   document.getElementById('jdScreen').classList.add('visible');
-  renderJDSelection();
+  renderJD();
 }
-
-function renderJDSelection() {
-  // Combine both decks and sort by value descending
-  const allCards = [
-    ...pDeck1.map((c, i) => ({ ...c, deckNum: 1, origIndex: i })),
-    ...pDeck2.map((c, i) => ({ ...c, deckNum: 2, origIndex: i }))
-  ];
-  
-  // Sort by value descending (J=11 first, then 10, 9, 8...)
-  allCards.sort((a, b) => parseInt(b.value) - parseInt(a.value));
-  
-  // Clear old labels
-  document.getElementById('jdDeck1Label').innerHTML = 'Select 2 cards (1 from each deck)';
-  document.getElementById('jdDeck2Label').style.display = 'none';
-  document.getElementById('jdDeck2Cards').style.display = 'none';
-  
-  const container = document.getElementById('jdDeck1Cards');
-  container.innerHTML = '';
-  
-  allCards.forEach(card => {
-    const el = document.createElement('div');
-    el.className = 'jd-card ' + card.house;
-    el.style.borderColor = HOUSES[card.house].primary + '66';
-    el.innerHTML = '<span style="color:' + HOUSES[card.house].primary + ';font-size:14px;">' + HOUSES[card.house].symbol + '</span><span class="jd-card-value">' + card.displayValue + '</span>';
-    el.dataset.deck = card.deckNum;
-    el.dataset.index = card.origIndex;
-    el.onclick = () => selectJDCard(card.deckNum, card.origIndex, el);
-    container.appendChild(el);
+function renderJD() {
+  const all = [...pDeck1.map((c, i) => ({ ...c, dn: 1, idx: i })), ...pDeck2.map((c, i) => ({ ...c, dn: 2, idx: i }))].sort((a, b) => +b.value - +a.value);
+  const cont = document.getElementById('jdCards'); cont.innerHTML = '';
+  all.forEach(c => {
+    const el = document.createElement('div'); el.className = 'jd-card'; el.style.borderColor = HOUSES[c.house].primary + '66';
+    el.innerHTML = '<span style="color:' + HOUSES[c.house].primary + ';font-size:11px">' + HOUSES[c.house].symbol + '</span><span class="jd-card-value">' + c.displayValue + '</span>';
+    el.dataset.deck = c.dn; el.dataset.index = c.idx;
+    el.onclick = () => selJD(c.dn, c.idx, el);
+    cont.appendChild(el);
   });
 }
-
-function createJDCard(card, dn, idx) {
-  const el = document.createElement('div');
-  el.className = 'jd-card';
-  el.innerHTML = '<span style="color:' + HOUSES[card.house].primary + '">' + HOUSES[card.house].symbol + '</span><span class="jd-card-value">' + card.displayValue + '</span>';
-  el.onclick = () => selectJDCard(dn, idx, el);
-  return el;
-}
-
-function selectJDCard(deckNum, idx, el) {
-  // Check if already selected a card from this deck
-  const currentSel = deckNum === 1 ? jdSel.d1 : jdSel.d2;
-  
-  // If clicking same card, deselect
-  if (currentSel === idx) {
-    el.classList.remove('selected');
-    if (deckNum === 1) jdSel.d1 = null;
-    else jdSel.d2 = null;
-  } else {
-    // Deselect previous card from same deck
-    document.querySelectorAll('.jd-card.selected').forEach(card => {
-      if (parseInt(card.dataset.deck) === deckNum) {
-        card.classList.remove('selected');
-      }
-    });
-    
-    // Select this card
-    el.classList.add('selected');
-    if (deckNum === 1) jdSel.d1 = idx;
-    else jdSel.d2 = idx;
-  }
-  
+function selJD(dn, idx, el) {
+  const cur = dn === 1 ? jdSel.d1 : jdSel.d2;
+  if (cur === idx) { el.classList.remove('selected'); if (dn === 1) jdSel.d1 = null; else jdSel.d2 = null; }
+  else { document.querySelectorAll('.jd-card.selected').forEach(c => { if (+c.dataset.deck === dn) c.classList.remove('selected'); }); el.classList.add('selected'); if (dn === 1) jdSel.d1 = idx; else jdSel.d2 = idx; }
   document.getElementById('jdConfirmBtn').disabled = !(jdSel.d1 !== null && jdSel.d2 !== null);
 }
-
-function confirmJollydraw() {
-  if (jdSel.d1 === null || jdSel.d2 === null) return;
-  gameState.playerJD = [pDeck1.splice(jdSel.d1, 1)[0], pDeck2.splice(jdSel.d2, 1)[0]];
+function confirmJD() {
+  gs.playerJD = [pDeck1.splice(jdSel.d1, 1)[0], pDeck2.splice(jdSel.d2, 1)[0]];
   document.getElementById('jdScreen').classList.remove('visible');
-  startCoinToss();
+  coinToss();
 }
 
-function startCoinToss() {
+function coinToss() {
   document.getElementById('cointossOverlay').classList.add('visible');
-  const isBull = Math.random() < 0.5;
-  gameState.turn = isBull ? 'player' : 'ai';
+  const bull = Math.random() < 0.5; gs.turn = bull ? 'player' : 'ai';
   setTimeout(() => {
-    document.getElementById('coin').textContent = isBull ? '🐂' : '🐻';
-    document.getElementById('cointossResult').textContent = isBull ? 'BULL!' : 'BEAR!';
-    document.getElementById('cointossResult').className = 'cointoss-result ' + (isBull ? 'bull' : 'bear');
-    document.getElementById('cointossText').textContent = isBull ? 'You go first!' : 'AI goes first!';
-    setTimeout(() => { document.getElementById('cointossOverlay').classList.remove('visible'); startGame(); }, 2000);
+    document.getElementById('coin').textContent = bull ? '🐂' : '🐻';
+    document.getElementById('cointossResult').textContent = bull ? 'BULL!' : 'BEAR!';
+    document.getElementById('cointossResult').className = 'cointoss-result ' + (bull ? 'bull' : 'bear');
+    document.getElementById('cointossText').textContent = bull ? 'You first!' : 'AI first!';
+    setTimeout(() => { document.getElementById('cointossOverlay').classList.remove('visible'); startGame(); }, 1500);
   }, 1500);
 }
 
 function startGame() {
-  const aiCards = generateAICards();
-  gameState.aiJD = [aiCards.splice(Math.floor(Math.random() * 10), 1)[0], aiCards.splice(9 + Math.floor(Math.random() * 9), 1)[0]];
-  const allGame = [...pDeck1, ...pDeck2, ...aiCards];
-  gameState.deck = shuffle(allGame);
-  gameState.playerHand = gameState.deck.splice(0, 3);
-  gameState.aiHand = gameState.deck.splice(0, 3);
-  gameState.table = gameState.deck.splice(0, 4);
-  gameState.playerCaptures = []; gameState.aiCaptures = [];
-  gameState.playerTokens = 0; gameState.aiTokens = 0;
-  gameState.selectedCard = null; gameState.phase = 'playing';
-  gameState.handNumber = 1;
-  gameState.turnNumber = 0;
-  gameState.isLastHand = false;
-  gameState.gameLog = [];
-  
-  // Initial log
-  addSystemLog('🎮 Game started! ' + (gameState.turn === 'player' ? 'You go first' : 'AI goes first'));
-  addSystemLog('📋 Hand #1 dealt');
-  
-  document.getElementById('gameScreen').classList.add('visible');
-  document.getElementById('gameLog').style.display = 'block';
-  renderGame();
-  
-  if (gameState.turn === 'ai') {
-    setTimeout(() => aiTurn(), 1000);
-  } else {
-    startTimer(); // Player goes first, start timer
-  }
+  const aiCards = genAI();
+  gs.aiJD = [aiCards.splice(Math.floor(Math.random() * 10), 1)[0], aiCards.splice(9 + Math.floor(Math.random() * 9), 1)[0]];
+  gs.deck = shuffle([...pDeck1, ...pDeck2, ...aiCards]);
+  gs.playerHand = gs.deck.splice(0, 3); gs.aiHand = gs.deck.splice(0, 3); gs.table = gs.deck.splice(0, 4);
+  gs.playerCaptures = []; gs.aiCaptures = []; gs.playerTokens = 0; gs.aiTokens = 0;
+  gs.selected = null; gs.phase = 'playing'; gs.hand = 1; gs.turnNum = 0; gs.lastHand = false; gs.log = [];
+  sysLog('🎮 Start'); sysLog('📋 Hand #1');
+  document.getElementById('gameWrapper').classList.add('visible');
+  render();
+  if (gs.turn === 'ai') setTimeout(aiTurn, 1000); else startTimer();
 }
-
-function addSystemLog(message) {
-  const container = document.getElementById('logContent');
-  const div = document.createElement('div');
-  div.className = 'log-entry system';
-  div.innerHTML = '<div class="log-action">' + message + '</div>';
-  container.insertBefore(div, container.firstChild);
-}
-
-function generateAICards() {
-  const cards = [], hs = ['bitcoin', 'ethereum', 'base', 'tysm'];
-  const h1 = hs[Math.floor(Math.random() * 4)];
+function genAI() {
+  const hs = ['bitcoin', 'ethereum', 'base', 'tysm'], h1 = hs[Math.floor(Math.random() * 4)];
   let h2 = hs[Math.floor(Math.random() * 4)]; while (h2 === h1) h2 = hs[Math.floor(Math.random() * 4)];
-  const vals = ['2','3','4','5','6','7','8','9','10','11'], dvs = ['2','3','4','5','6','7','8','9','10','J'];
-  vals.forEach((v, i) => {
-    cards.push({ uid: 'ai-1-' + v, house: h1, value: v, displayValue: dvs[i], cardName: dvs[i], owner: 'ai' });
-    cards.push({ uid: 'ai-2-' + v, house: h2, value: v, displayValue: dvs[i], cardName: dvs[i], owner: 'ai' });
-  });
+  const cards = [], vals = ['2','3','4','5','6','7','8','9','10','11'], dvs = ['2','3','4','5','6','7','8','9','10','J'];
+  vals.forEach((v, i) => { cards.push({ uid: 'ai1-' + v, house: h1, value: v, displayValue: dvs[i] }); cards.push({ uid: 'ai2-' + v, house: h2, value: v, displayValue: dvs[i] }); });
   return cards;
 }
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
-function shuffle(arr) { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
-
-function renderGame() {
-  renderAIHand(); renderTable(); renderPlayerHand(); renderCaptures(); renderStats(); renderTurn(); updateJDControl();
+function render() { renderAI(); renderTable(); renderPlayer(); renderCaps(); renderStats(); renderTurn(); updateJDCtrl(); }
+function renderAI() { const c = document.getElementById('aiHand'); c.innerHTML = ''; for (let i = 0; i < gs.aiHand.length; i++) { const el = document.createElement('div'); el.className = 'card-back'; c.appendChild(el); } }
+function renderTable() { const c = document.getElementById('tableCards'); if (!gs.table.length) { c.innerHTML = '<span class="table-empty">Empty</span>'; return; } c.innerHTML = ''; gs.table.forEach(card => c.appendChild(createCard(card))); }
+function renderPlayer() { const c = document.getElementById('playerHand'); c.innerHTML = ''; gs.playerHand.forEach((card, i) => { const el = createCard(card); el.onclick = () => selCard(i); el.ondblclick = () => playIdx(i); if (gs.selected === i) el.classList.add('selected'); c.appendChild(el); }); highlightCaps(); }
+function renderCaps() { document.getElementById('playerCaptureCount').textContent = gs.playerCaptures.length; document.getElementById('aiCaptureCount').textContent = gs.aiCaptures.length; document.getElementById('deckCount').textContent = gs.deck.length; }
+function renderStats() { document.getElementById('scoreYou').textContent = calcScore('player'); document.getElementById('scoreAI').textContent = calcScore('ai'); }
+function renderTurn() { const b = document.getElementById('turnBadge'); b.textContent = gs.turn === 'player' ? 'Your Turn' : 'AI Turn'; b.className = 'turn-badge ' + (gs.turn === 'player' ? 'your-turn' : 'ai-turn'); }
+function updateJDCtrl() {
+  const rem = gs.playerJD.filter(c => c).length, ctrl = document.getElementById('jdControl');
+  if (gs.hand === 1) { ctrl.innerHTML = '<input type="checkbox" disabled><label style="color:#52525B">JD (1st)</label>'; ctrl.classList.add('disabled'); }
+  else if (!rem) { ctrl.innerHTML = '<input type="checkbox" disabled><label style="color:#52525B">JD (0)</label>'; ctrl.classList.add('disabled'); }
+  else if (gs.lastHand) { ctrl.innerHTML = '<input type="checkbox" checked disabled><label>JD FORCED (' + rem + ')</label>'; ctrl.classList.add('disabled'); gs.useJD = true; }
+  else { ctrl.innerHTML = '<input type="checkbox" id="useJdCheck" onchange="toggleJD()"><label>JD (' + rem + ')</label>'; ctrl.classList.remove('disabled'); }
 }
+function createCard(card) { const el = document.createElement('div'); el.className = 'game-card ' + card.house; el.innerHTML = '<span class="game-card-symbol" style="color:' + HOUSES[card.house].primary + '">' + HOUSES[card.house].symbol + '</span><span class="game-card-value">' + card.displayValue + '</span>'; return el; }
 
-function renderAIHand() {
-  const c = document.getElementById('aiHand'); c.innerHTML = '';
-  for (let i = 0; i < gameState.aiHand.length; i++) { const el = document.createElement('div'); el.className = 'card-back'; c.appendChild(el); }
-}
-
-function renderTable() {
-  const c = document.getElementById('tableCards');
-  if (gameState.table.length === 0) { c.innerHTML = '<div class="table-empty">Cleared!</div>'; return; }
-  c.innerHTML = '';
-  gameState.table.forEach(card => c.appendChild(createGameCard(card)));
-}
-
-function renderPlayerHand() {
-  const c = document.getElementById('playerHand'); c.innerHTML = '';
-  gameState.playerHand.forEach((card, i) => {
-    const el = createGameCard(card);
-    el.onclick = () => selectCard(i);
-    el.ondblclick = () => playCardAtIndex(i);
-    if (gameState.selectedCard === i) el.classList.add('selected');
-    c.appendChild(el);
-  });
-  document.getElementById('playCardBtn').disabled = gameState.turn !== 'player' || gameState.selectedCard === null;
-  
-  // Highlight possible captures on table
-  highlightCaptures();
-}
-
-function renderCaptures() {
-  document.getElementById('playerCaptureCount').textContent = gameState.playerCaptures.length;
-  document.getElementById('aiCaptureCount').textContent = gameState.aiCaptures.length;
-  document.getElementById('deckCount').textContent = gameState.deck.length;
-  
-  // Render player capture stack
-  renderCaptureStack('playerCaptureStack', gameState.playerCaptures, gameState.playerTokens);
-  // Render AI capture stack  
-  renderCaptureStack('aiCaptureStack', gameState.aiCaptures, gameState.aiTokens);
-}
-
-function renderCaptureStack(containerId, captures, tokenCount) {
-  const container = document.getElementById(containerId);
-  container.innerHTML = '';
-  
-  if (captures.length === 0) return;
-  
-  // Show stack of cards (max 6 visible)
-  const maxShow = Math.min(captures.length, 6);
-  for (let i = 0; i < maxShow; i++) {
-    const card = document.createElement('div');
-    card.className = 'capture-card';
-    card.style.top = (i * 3) + 'px';
-    card.style.left = (i * 2) + 'px';
-    card.style.zIndex = i;
-    container.appendChild(card);
-  }
-  
-  // Show TOKEN markers (rotated cards on top)
-  for (let t = 0; t < tokenCount; t++) {
-    const tokenCard = document.createElement('div');
-    tokenCard.className = 'capture-card token-card';
-    tokenCard.style.top = ((maxShow + t) * 3) + 'px';
-    tokenCard.style.left = '10px';
-    tokenCard.style.zIndex = maxShow + t;
-    container.appendChild(tokenCard);
-  }
-}
-
-function renderStats() {
-  document.getElementById('statHand').textContent = gameState.handNumber;
-  document.getElementById('statPoints').textContent = calcScore('player');
-  document.getElementById('statCards').textContent = gameState.playerCaptures.length;
-  document.getElementById('statTokens').textContent = gameState.playerTokens;
-  document.getElementById('statAces').textContent = countAces('player');
-  document.getElementById('scoreYou').textContent = calcScore('player');
-  document.getElementById('scoreAI').textContent = calcScore('ai');
-}
-
-function renderTurn() {
-  const ind = document.getElementById('turnIndicator');
-  ind.textContent = gameState.turn === 'player' ? 'Your Turn' : 'AI Turn';
-  ind.className = 'turn-indicator ' + (gameState.turn === 'player' ? 'your-turn' : 'ai-turn');
-}
-
-function updateJDControl() {
-  const rem = gameState.playerJD.filter(c => c).length;
-  const ctrl = document.getElementById('jdControl');
-  if (!ctrl) return; // Safety check
-  
-  const label = ctrl.querySelector('label');
-  if (!label) return;
-  
-  // First hand: disabled
-  if (gameState.handNumber === 1) {
-    ctrl.classList.add('disabled');
-    ctrl.innerHTML = '<input type="checkbox" id="useJdCheck" disabled><label>JollyDraw (Not allowed 1st hand)</label>';
-    gameState.useJD = false;
-  }
-  // No JD left: disabled
-  else if (rem === 0) {
-    ctrl.classList.add('disabled');
-    ctrl.innerHTML = '<input type="checkbox" id="useJdCheck" disabled><label>JollyDraw (Exhausted)</label>';
-    gameState.useJD = false;
-  }
-  // Last hand: forced
-  else if (gameState.isLastHand) {
-    ctrl.classList.add('disabled');
-    ctrl.innerHTML = '<input type="checkbox" id="useJdCheck" checked disabled><label>JollyDraw FORCED (' + rem + ')</label>';
-    gameState.useJD = true;
-  }
-  // Normal hand: optional, max 1
-  else {
-    ctrl.classList.remove('disabled');
-    ctrl.innerHTML = '<input type="checkbox" id="useJdCheck" onchange="toggleJD()"><label for="useJdCheck">Draw 1 from JollyDraw (' + rem + ' left)</label>';
-  }
-}
-
-function createGameCard(card) {
-  const el = document.createElement('div');
-  el.className = 'game-card ' + card.house;
-  el.innerHTML = '<span class="game-card-symbol" style="color:' + HOUSES[card.house].primary + '">' + HOUSES[card.house].symbol + '</span><span class="game-card-value">' + card.displayValue + '</span>';
-  return el;
-}
-
-function selectCard(i) { 
-  if (gameState.turn !== 'player') return; 
-  gameState.selectedCard = gameState.selectedCard === i ? null : i; 
-  renderPlayerHand(); 
-}
-
-function playCardAtIndex(i) {
-  if (gameState.turn !== 'player') return;
-  gameState.selectedCard = i;
-  playSelectedCard();
-}
-
-function highlightCaptures() {
-  // Remove old highlights
-  document.querySelectorAll('.game-card.highlight-capture').forEach(el => el.classList.remove('highlight-capture'));
-  
-  if (gameState.selectedCard === null || gameState.turn !== 'player') return;
-  
-  const card = gameState.playerHand[gameState.selectedCard];
-  if (!card) return;
-  
-  const val = parseInt(card.value);
-  const captureIndices = findCaptures(val);
-  
-  // Highlight cards on table
-  const tableCards = document.getElementById('tableCards').querySelectorAll('.game-card');
-  captureIndices.forEach(idx => {
-    if (tableCards[idx]) {
-      tableCards[idx].classList.add('highlight-capture');
-    }
-  });
-}
-function toggleJD() { gameState.useJD = document.getElementById('useJdCheck').checked; }
-
-function playSelectedCard() {
-  if (gameState.turn !== 'player' || gameState.selectedCard === null) return;
-  const card = gameState.playerHand.splice(gameState.selectedCard, 1)[0];
-  gameState.selectedCard = null;
-  playCard(card, 'player');
-}
+function selCard(i) { if (gs.turn !== 'player') return; gs.selected = gs.selected === i ? null : i; renderPlayer(); }
+function playIdx(i) { if (gs.turn !== 'player') return; gs.selected = i; playSelected(); }
+function highlightCaps() { document.querySelectorAll('.game-card.highlight-capture').forEach(el => el.classList.remove('highlight-capture')); if (gs.selected === null || gs.turn !== 'player') return; const card = gs.playerHand[gs.selected]; if (!card) return; const caps = findCaps(+card.value); document.getElementById('tableCards').querySelectorAll('.game-card').forEach((el, i) => { if (caps.includes(i)) el.classList.add('highlight-capture'); }); }
+function toggleJD() { const c = document.getElementById('useJdCheck'); gs.useJD = c ? c.checked : false; }
+function playSelected() { if (gs.turn !== 'player' || gs.selected === null) return; const card = gs.playerHand.splice(gs.selected, 1)[0]; gs.selected = null; playCard(card, 'player'); }
 
 function playCard(card, player) {
-  console.log('playCard called by:', player, 'card:', card.displayValue);
-  
-  // Stop timer when player plays
-  if (player === 'player') {
-    stopTimer();
-  }
-  
-  gameState.turnNumber++;
-  
-  const val = parseInt(card.value);
-  const caps = findCaptures(val);
-  const capturedCards = [];
+  if (player === 'player') stopTimer();
+  gs.turnNum++;
+  const val = +card.value, caps = findCaps(val), captured = [];
   let isToken = false;
-  
-  if (caps.length > 0) {
-    caps.sort((a, b) => b - a).forEach(i => capturedCards.push(gameState.table.splice(i, 1)[0]));
-    const allCaptured = [card, ...capturedCards];
-    if (player === 'player') { gameState.playerCaptures.push(...allCaptured); gameState.lastCapture = 'player'; }
-    else { gameState.aiCaptures.push(...allCaptured); gameState.lastCapture = 'ai'; }
-    if (gameState.table.length === 0) {
-      isToken = true;
-      if (player === 'player') { gameState.playerTokens++; }
-      else { gameState.aiTokens++; }
-    }
-  } else { 
-    gameState.table.push(card); 
-  }
-  
-  // Add to game log
-  addLogEntry(player, card, capturedCards, isToken);
-  
-  // Show play animation
-  showPlayAnimation(player, card, capturedCards, isToken, () => {
-    console.log('After play - playerHand:', gameState.playerHand.length, 'aiHand:', gameState.aiHand.length);
-    
-    // Check if BOTH hands are empty -> end hand
-    if (gameState.playerHand.length === 0 && gameState.aiHand.length === 0) { 
-      console.log('Both hands empty, ending hand');
-      renderGame();
-      setTimeout(() => endHand(), 500); 
-      return; 
-    }
-    
-    // Switch turns and schedule next action
-    if (player === 'player') { 
-      gameState.turn = 'ai'; 
-      gameState.selectedCard = null;
-      renderGame(); 
-      console.log('Switched to AI turn, scheduling aiTurn()');
-      setTimeout(function() {
-        console.log('AI timeout fired, aiHand:', gameState.aiHand.length);
-        if (gameState.aiHand.length > 0 && gameState.turn === 'ai') {
-          aiTurn(); 
-        }
-      }, 500);
-    } else { 
-      gameState.turn = 'player'; 
-      gameState.selectedCard = null;
-      console.log('Switched to player turn');
-      renderGame();
-      startTimer(); // Start player timer
-    }
+  if (caps.length) { caps.sort((a, b) => b - a).forEach(i => captured.push(gs.table.splice(i, 1)[0])); const all = [card, ...captured]; if (player === 'player') { gs.playerCaptures.push(...all); gs.lastCap = 'player'; } else { gs.aiCaptures.push(...all); gs.lastCap = 'ai'; } if (!gs.table.length) { isToken = true; if (player === 'player') gs.playerTokens++; else gs.aiTokens++; } }
+  else { gs.table.push(card); }
+  addLog(player, card, captured, isToken);
+  showAnim(player, card, captured, isToken, () => {
+    if (!gs.playerHand.length && !gs.aiHand.length) { render(); setTimeout(endHand, 500); return; }
+    if (player === 'player') { gs.turn = 'ai'; gs.selected = null; render(); setTimeout(() => { if (gs.aiHand.length && gs.turn === 'ai') aiTurn(); }, 500); }
+    else { gs.turn = 'player'; gs.selected = null; render(); startTimer(); }
   });
 }
+function findCaps(val) { for (let i = 0; i < gs.table.length; i++) if (+gs.table[i].value === val) return [i]; const tv = gs.table.map(c => +c.value), combos = []; function bt(s, cur, sum) { if (sum === val && cur.length) { combos.push([...cur]); return; } if (sum > val) return; for (let i = s; i < tv.length; i++) { cur.push(i); bt(i + 1, cur, sum + tv[i]); cur.pop(); } } bt(0, [], 0); return combos.length ? combos[0] : []; }
+function aiTurn() { if (!gs.aiHand.length || gs.turn !== 'ai') return; let best = 0, bestScore = -1; gs.aiHand.forEach((c, i) => { const caps = findCaps(+c.value); if (caps.length > bestScore) { bestScore = caps.length; best = i; } }); if (!bestScore) { let low = 0; gs.aiHand.forEach((c, i) => { if (+c.value < +gs.aiHand[low].value) low = i; }); best = low; } const card = gs.aiHand.splice(best, 1)[0]; playCard(card, 'ai'); }
 
-function showPlayAnimation(player, card, captured, isToken, callback) {
-  const overlay = document.getElementById('playAnimation');
-  const playInfo = document.getElementById('playInfo');
-  const playedCard = document.getElementById('playedCard');
-  const captureInfo = document.getElementById('captureInfo');
-  const capturedCards = document.getElementById('capturedCards');
-  
-  // Set player info
-  playInfo.textContent = player === 'player' ? 'YOU PLAY' : 'AI PLAYS';
-  playInfo.className = 'play-info ' + player;
-  
-  // Set played card
-  const house = HOUSES[card.house];
-  playedCard.className = 'played-card game-card ' + card.house;
-  playedCard.innerHTML = '<span style="color:' + house.primary + ';font-size:18px;">' + house.symbol + '</span><span class="game-card-value" style="font-size:40px;">' + card.displayValue + '</span>';
-  
-  // Set capture info
-  if (captured.length > 0) {
-    captureInfo.textContent = isToken ? '🎯 TOKEN! Captures:' : 'Captures:';
-    capturedCards.innerHTML = '';
-    captured.forEach((c, i) => {
-      const h = HOUSES[c.house];
-      const mini = document.createElement('div');
-      mini.className = 'mini-card game-card ' + c.house;
-      mini.style.animationDelay = (i * 0.1) + 's';
-      mini.innerHTML = '<span style="color:' + h.primary + '">' + h.symbol + '</span><span style="font-size:16px;">' + c.displayValue + '</span>';
-      capturedCards.appendChild(mini);
-    });
-  } else {
-    captureInfo.textContent = 'No capture';
-    capturedCards.innerHTML = '';
-  }
-  
-  // Show animation
-  overlay.classList.add('visible');
-  
-  // Hide after delay
-  const duration = captured.length > 0 ? 1200 : 800;
-  setTimeout(() => {
-    overlay.classList.remove('visible');
-    if (isToken) {
-      showToast('🎯', 'TOKEN!');
-      setTimeout(callback, 800);
-    } else {
-      callback();
-    }
-  }, duration);
-}
-
-function addLogEntry(player, card, captured, isToken) {
-  const entry = {
-    turn: gameState.turnNumber,
-    player: player,
-    card: card.displayValue,
-    house: card.house,
-    captured: captured.map(c => c.displayValue),
-    isToken: isToken
-  };
-  gameState.gameLog.push(entry);
-  renderLog();
-}
-
-function renderLog() {
-  const container = document.getElementById('logContent');
-  container.innerHTML = '';
-  
-  // Show last 20 entries (newest first)
-  const entries = [...gameState.gameLog].reverse().slice(0, 20);
-  
-  entries.forEach(e => {
-    const div = document.createElement('div');
-    div.className = 'log-entry ' + e.player;
-    
-    let html = '<div class="log-turn">#' + e.turn + '</div>';
-    html += '<div class="log-action">' + (e.player === 'player' ? 'You' : 'AI') + ' played <strong>' + e.card + '</strong></div>';
-    
-    if (e.captured.length > 0) {
-      html += '<div class="log-capture">' + (e.isToken ? '🎯 TOKEN! ' : '') + 'Took: ' + e.captured.join(', ') + '</div>';
-    }
-    
-    div.innerHTML = html;
-    container.appendChild(div);
-  });
-}
-
-// ============================================
-// TIMER FUNCTIONS
-// ============================================
-function startTimer() {
-  stopTimer();
-  timeLeft = TURN_TIME;
-  updateTimerDisplay();
-  
-  timerInterval = setInterval(() => {
-    timeLeft--;
-    updateTimerDisplay();
-    
-    if (timeLeft <= 0) {
-      stopTimer();
-      autoPlay();
-    }
-  }, 1000);
-}
-
-function stopTimer() {
-  if (timerInterval) {
-    clearInterval(timerInterval);
-    timerInterval = null;
-  }
-}
-
-function updateTimerDisplay() {
-  const fill = document.getElementById('timerFill');
-  const text = document.getElementById('timerText');
-  
-  const percent = (timeLeft / TURN_TIME) * 100;
-  fill.style.width = percent + '%';
-  text.textContent = timeLeft;
-  
-  // Color changes
-  fill.classList.remove('warning', 'danger');
-  text.classList.remove('warning', 'danger');
-  
-  if (timeLeft <= 5) {
-    fill.classList.add('danger');
-    text.classList.add('danger');
-  } else if (timeLeft <= 10) {
-    fill.classList.add('warning');
-    text.classList.add('warning');
-  }
-}
-
-function autoPlay() {
-  if (gameState.turn !== 'player' || gameState.playerHand.length === 0) return;
-  
-  addSystemLog('⏱️ Time up! Auto-playing...');
-  
-  // Find best play (same logic as AI)
-  let best = 0, bestScore = -1;
-  gameState.playerHand.forEach((c, i) => { 
-    const caps = findCaptures(parseInt(c.value)); 
-    if (caps.length > bestScore) { bestScore = caps.length; best = i; } 
-  });
-  
-  // If no captures, play lowest value
-  if (bestScore === 0) { 
-    let low = 0; 
-    gameState.playerHand.forEach((c, i) => { 
-      if (parseInt(c.value) < parseInt(gameState.playerHand[low].value)) low = i; 
-    }); 
-    best = low; 
-  }
-  
-  // Play the card
-  const card = gameState.playerHand.splice(best, 1)[0];
-  gameState.selectedCard = null;
-  playCard(card, 'player');
-}
-
-// ============================================
-// LOG TOGGLE
-// ============================================
-function toggleLog() {
-  const log = document.getElementById('gameLog');
-  const toggle = document.getElementById('logToggle');
-  logCollapsed = !logCollapsed;
-  
-  if (logCollapsed) {
-    log.classList.add('collapsed');
-    toggle.textContent = '📜';
-  } else {
-    log.classList.remove('collapsed');
-    toggle.textContent = '✕';
-  }
-}
-
-function findCaptures(val) {
-  for (let i = 0; i < gameState.table.length; i++) if (parseInt(gameState.table[i].value) === val) return [i];
-  const tv = gameState.table.map(c => parseInt(c.value)), combos = [];
-  function bt(s, cur, sum) { if (sum === val && cur.length > 0) { combos.push([...cur]); return; } if (sum > val) return; for (let i = s; i < tv.length; i++) { cur.push(i); bt(i + 1, cur, sum + tv[i]); cur.pop(); } }
-  bt(0, [], 0);
-  return combos.length > 0 ? combos[0] : [];
-}
-
-function aiTurn() {
-  console.log('aiTurn called, aiHand:', gameState.aiHand.length, 'turn:', gameState.turn);
-  if (gameState.aiHand.length === 0) { endHand(); return; }
-  if (gameState.turn !== 'ai') { console.log('Not AI turn, aborting'); return; }
-  
-  let best = 0, bestScore = -1;
-  gameState.aiHand.forEach((c, i) => { const caps = findCaptures(parseInt(c.value)); if (caps.length > bestScore) { bestScore = caps.length; best = i; } });
-  if (bestScore === 0) { let low = 0; gameState.aiHand.forEach((c, i) => { if (parseInt(c.value) < parseInt(gameState.aiHand[low].value)) low = i; }); best = low; }
-  const card = gameState.aiHand.splice(best, 1)[0];
-  console.log('AI plays:', card.displayValue);
-  playCard(card, 'ai');
-}
-
-function endHand() {
-  // Check if this will be the last hand (deck empty after draw)
-  const deckAfterDraw = gameState.deck.length - 6; // 3 per player
-  gameState.isLastHand = deckAfterDraw <= 0;
-  
-  // If deck already empty and no JD left, game over
-  if (gameState.deck.length === 0 && gameState.playerJD.filter(c => c).length === 0 && gameState.aiJD.filter(c => c).length === 0) { 
-    endGame(); 
-    return; 
-  }
-  
-  gameState.handNumber++;
-  drawCards();
-}
-
+function endHand() { gs.lastHand = gs.deck.length <= 6; if (!gs.deck.length && !gs.playerJD.filter(c => c).length && !gs.aiJD.filter(c => c).length) { endGame(); return; } gs.hand++; drawCards(); }
 function drawCards() {
-  // Player draws
-  const playerJDRem = gameState.playerJD.filter(c => c).length;
-  
-  if (gameState.isLastHand && playerJDRem > 0) {
-    // Last hand: MUST use all JD cards
-    gameState.playerJD.forEach((c, i) => {
-      if (c) { gameState.playerHand.push(c); gameState.playerJD[i] = null; }
-    });
-    // Fill rest from deck if needed
-    while (gameState.playerHand.length < 3 && gameState.deck.length > 0) {
-      gameState.playerHand.push(gameState.deck.shift());
-    }
-  } else {
-    // Normal draw: max 1 from JD if checkbox checked
-    let drawnFromJD = false;
-    for (let i = 0; i < 3; i++) {
-      if (gameState.useJD && !drawnFromJD && playerJDRem > 0) {
-        const jdIdx = gameState.playerJD.findIndex(c => c);
-        if (jdIdx !== -1) {
-          gameState.playerHand.push(gameState.playerJD[jdIdx]);
-          gameState.playerJD[jdIdx] = null;
-          drawnFromJD = true;
-          continue;
-        }
-      }
-      if (gameState.deck.length > 0) gameState.playerHand.push(gameState.deck.shift());
-    }
-  }
-  
-  // AI draws (similar logic)
-  const aiJDRem = gameState.aiJD.filter(c => c).length;
-  if (gameState.isLastHand && aiJDRem > 0) {
-    gameState.aiJD.forEach((c, i) => {
-      if (c) { gameState.aiHand.push(c); gameState.aiJD[i] = null; }
-    });
-    while (gameState.aiHand.length < 3 && gameState.deck.length > 0) {
-      gameState.aiHand.push(gameState.deck.shift());
-    }
-  } else {
-    // AI randomly decides to use JD (50% chance if available and not first hand)
-    const aiUseJD = gameState.handNumber > 1 && aiJDRem > 0 && Math.random() < 0.5;
-    let aiDrawnFromJD = false;
-    for (let i = 0; i < 3; i++) {
-      if (aiUseJD && !aiDrawnFromJD) {
-        const jdIdx = gameState.aiJD.findIndex(c => c);
-        if (jdIdx !== -1) {
-          gameState.aiHand.push(gameState.aiJD[jdIdx]);
-          gameState.aiJD[jdIdx] = null;
-          aiDrawnFromJD = true;
-          continue;
-        }
-      }
-      if (gameState.deck.length > 0) gameState.aiHand.push(gameState.deck.shift());
-    }
-  }
-  
-  // Reset checkbox
-  document.getElementById('useJdCheck').checked = false; 
-  gameState.useJD = false;
-  
-  // Log new hand
-  addSystemLog('📋 Hand #' + gameState.handNumber + ' dealt' + (gameState.isLastHand ? ' (FINAL)' : ''));
-  
-  renderGame();
-  
-  if (gameState.turn === 'ai') {
-    setTimeout(() => aiTurn(), 800);
-  } else {
-    startTimer(); // Player's turn after draw
-  }
+  const pJD = gs.playerJD.filter(c => c).length;
+  if (gs.lastHand && pJD) { gs.playerJD.forEach((c, i) => { if (c) { gs.playerHand.push(c); gs.playerJD[i] = null; } }); while (gs.playerHand.length < 3 && gs.deck.length) gs.playerHand.push(gs.deck.shift()); }
+  else { let drawn = false; for (let i = 0; i < 3; i++) { if (gs.useJD && !drawn && pJD) { const j = gs.playerJD.findIndex(c => c); if (j !== -1) { gs.playerHand.push(gs.playerJD[j]); gs.playerJD[j] = null; drawn = true; continue; } } if (gs.deck.length) gs.playerHand.push(gs.deck.shift()); } }
+  const aJD = gs.aiJD.filter(c => c).length;
+  if (gs.lastHand && aJD) { gs.aiJD.forEach((c, i) => { if (c) { gs.aiHand.push(c); gs.aiJD[i] = null; } }); while (gs.aiHand.length < 3 && gs.deck.length) gs.aiHand.push(gs.deck.shift()); }
+  else { const use = gs.hand > 1 && aJD && Math.random() < 0.5; let drawn = false; for (let i = 0; i < 3; i++) { if (use && !drawn) { const j = gs.aiJD.findIndex(c => c); if (j !== -1) { gs.aiHand.push(gs.aiJD[j]); gs.aiJD[j] = null; drawn = true; continue; } } if (gs.deck.length) gs.aiHand.push(gs.deck.shift()); } }
+  gs.useJD = false; sysLog('📋 Hand #' + gs.hand + (gs.lastHand ? ' (FINAL)' : '')); render();
+  if (gs.turn === 'ai') setTimeout(aiTurn, 800); else startTimer();
 }
-
-function drawOne(p) {
-  if (p === 'player' && gameState.useJD) { const i = gameState.playerJD.findIndex(c => c); if (i !== -1) { const c = gameState.playerJD[i]; gameState.playerJD[i] = null; return c; } }
-  if (gameState.deck.length > 0) return gameState.deck.shift();
-  const jd = p === 'player' ? gameState.playerJD : gameState.aiJD;
-  const i = jd.findIndex(c => c); if (i !== -1) { const c = jd[i]; jd[i] = null; return c; }
-  return null;
-}
-
-function endGame() {
-  stopTimer(); // Stop timer at game end
-  gameState.phase = 'gameover';
-  addSystemLog('🏁 Game Over!');
-  
-  if (gameState.table.length > 0 && gameState.lastCapture) {
-    if (gameState.lastCapture === 'player') gameState.playerCaptures.push(...gameState.table);
-    else gameState.aiCaptures.push(...gameState.table);
-    gameState.table = [];
-  }
-  const ps = calcScore('player'), as = calcScore('ai');
+function endGame(surr = false) {
+  stopTimer(); gs.phase = 'gameover';
+  if (!surr && gs.table.length && gs.lastCap) { if (gs.lastCap === 'player') gs.playerCaptures.push(...gs.table); else gs.aiCaptures.push(...gs.table); gs.table = []; }
+  let ps = surr ? 0 : calcScore('player'), as = surr ? Math.max(3, calcScore('ai')) : calcScore('ai');
   const win = ps > as, tie = ps === as;
   document.getElementById('gameoverIcon').textContent = win ? '🏆' : (tie ? '🤝' : '😢');
-  document.getElementById('gameoverTitle').textContent = win ? 'YOU WIN!' : (tie ? 'TIE!' : 'YOU LOSE');
+  document.getElementById('gameoverTitle').textContent = surr ? 'SURRENDERED' : (win ? 'YOU WIN!' : (tie ? 'TIE!' : 'YOU LOSE'));
   document.getElementById('gameoverTitle').className = 'gameover-title ' + (win ? 'win' : 'lose');
-  document.getElementById('finalScoreYou').textContent = ps;
-  document.getElementById('finalScoreAI').textContent = as;
-  document.getElementById('gameoverDetails').innerHTML = '<div class="gameover-detail"><span>Cards</span><span>' + gameState.playerCaptures.length + ' vs ' + gameState.aiCaptures.length + '</span></div><div class="gameover-detail"><span>TOKENs</span><span>' + gameState.playerTokens + ' vs ' + gameState.aiTokens + '</span></div><div class="gameover-detail"><span>Aces</span><span>' + countAces('player') + ' vs ' + countAces('ai') + '</span></div>';
+  document.getElementById('finalScoreYou').textContent = ps; document.getElementById('finalScoreAI').textContent = as;
+  document.getElementById('gameoverDetails').innerHTML = '<div class="gameover-detail"><span>Cards</span><span>' + gs.playerCaptures.length + ' vs ' + gs.aiCaptures.length + '</span></div><div class="gameover-detail"><span>TOKENs</span><span>' + gs.playerTokens + ' vs ' + gs.aiTokens + '</span></div>';
   document.getElementById('gameoverOverlay').classList.add('visible');
 }
+function calcScore(p) { let s = 0; const caps = p === 'player' ? gs.playerCaptures : gs.aiCaptures, toks = p === 'player' ? gs.playerTokens : gs.aiTokens, other = p === 'player' ? gs.aiCaptures : gs.playerCaptures; if (caps.length > other.length) s++; s += toks; const myA = countAces(p), theirA = countAces(p === 'player' ? 'ai' : 'player'); if (myA > theirA) s++; return s; }
+function countAces(p) { return (p === 'player' ? gs.playerCaptures : gs.aiCaptures).filter(c => c.value === '1' || c.displayValue === 'A').length; }
 
-function calcScore(p) {
-  let s = 0;
-  const caps = p === 'player' ? gameState.playerCaptures : gameState.aiCaptures;
-  const toks = p === 'player' ? gameState.playerTokens : gameState.aiTokens;
-  const other = p === 'player' ? gameState.aiCaptures : gameState.playerCaptures;
-  if (caps.length > other.length) s++;
-  s += toks;
-  const myA = countAces(p), theirA = p === 'player' ? countAces('ai') : countAces('player');
-  if (myA > theirA) s++;
-  return s;
+function startTimer() { stopTimer(); timeLeft = TURN_TIME; updTimer(); timer = setInterval(() => { timeLeft--; updTimer(); if (timeLeft <= 0) { stopTimer(); autoPlay(); } }, 1000); }
+function stopTimer() { if (timer) { clearInterval(timer); timer = null; } }
+function updTimer() { const f = document.getElementById('timerFill'), t = document.getElementById('timerText'); f.style.width = (timeLeft / TURN_TIME * 100) + '%'; t.textContent = timeLeft; f.classList.remove('warning', 'danger'); t.classList.remove('warning', 'danger'); if (timeLeft <= 5) { f.classList.add('danger'); t.classList.add('danger'); } else if (timeLeft <= 10) { f.classList.add('warning'); t.classList.add('warning'); } }
+function autoPlay() { if (gs.turn !== 'player' || !gs.playerHand.length) return; sysLog('⏱️ Auto'); let best = 0, bestScore = -1; gs.playerHand.forEach((c, i) => { const caps = findCaps(+c.value); if (caps.length > bestScore) { bestScore = caps.length; best = i; } }); if (!bestScore) { let low = 0; gs.playerHand.forEach((c, i) => { if (+c.value < +gs.playerHand[low].value) low = i; }); best = low; } playCard(gs.playerHand.splice(best, 1)[0], 'player'); }
+
+function addLog(player, card, captured, isToken) { gs.log.push({ turn: gs.turnNum, player, card: card.displayValue, captured: captured.map(c => c.displayValue), isToken }); updLogPreview(player, card, captured, isToken); renderLogContent(); }
+function sysLog(msg) { gs.log.push({ system: true, msg }); document.getElementById('logPreview').textContent = msg; renderLogContent(); }
+function updLogPreview(player, card, captured, isToken) { let t = (player === 'player' ? '<span class="p">You</span>' : '<span class="a">AI</span>') + ' ' + card; if (captured.length) t += ' → ' + captured.join(','); if (isToken) t += ' 🎯'; document.getElementById('logPreview').innerHTML = t; }
+function renderLogContent() { const c = document.getElementById('logContent'); c.innerHTML = ''; [...gs.log].reverse().slice(0, 25).forEach(e => { const d = document.createElement('div'); if (e.system) { d.className = 'log-entry system'; d.textContent = e.msg; } else { d.className = 'log-entry ' + e.player; d.innerHTML = '#' + e.turn + ' ' + (e.player === 'player' ? 'You' : 'AI') + ' ' + e.card + (e.captured.length ? ' → ' + e.captured.join(',') : '') + (e.isToken ? ' 🎯' : ''); } c.appendChild(d); }); }
+function toggleLog() { logOpen = !logOpen; document.getElementById('logExpanded').classList.toggle('visible', logOpen); document.getElementById('logToggle').classList.toggle('open', logOpen); }
+
+function showAnim(player, card, captured, isToken, cb) {
+  const o = document.getElementById('playAnimation');
+  document.getElementById('playInfo').textContent = player === 'player' ? 'YOU' : 'AI'; document.getElementById('playInfo').className = 'play-info ' + player;
+  const pc = document.getElementById('playedCard'); pc.className = 'played-card game-card ' + card.house; pc.innerHTML = '<span style="color:' + HOUSES[card.house].primary + '">' + HOUSES[card.house].symbol + '</span><span class="game-card-value" style="font-size:28px">' + card.displayValue + '</span>';
+  document.getElementById('captureInfo').textContent = captured.length ? (isToken ? '🎯 TOKEN!' : 'Takes:') : '';
+  const cc = document.getElementById('capturedCards'); cc.innerHTML = ''; captured.forEach(c => { const m = document.createElement('div'); m.className = 'mini-card game-card ' + c.house; m.innerHTML = '<span style="color:' + HOUSES[c.house].primary + '">' + HOUSES[c.house].symbol + '</span><span style="font-size:12px">' + c.displayValue + '</span>'; cc.appendChild(m); });
+  o.classList.add('visible'); setTimeout(() => { o.classList.remove('visible'); if (isToken) { showToast('🎯', 'TOKEN!'); setTimeout(cb, 500); } else cb(); }, captured.length ? 900 : 500);
 }
+function showToast(icon, title) { const t = document.getElementById('toast'); document.getElementById('toastIcon').textContent = icon; document.getElementById('toastTitle').textContent = title; t.classList.add('visible'); setTimeout(() => t.classList.remove('visible'), 1000); }
 
-function countAces(p) {
-  const caps = p === 'player' ? gameState.playerCaptures : gameState.aiCaptures;
-  return caps.filter(c => c.value === '1' || c.displayValue === 'A').length;
-}
+function showSurrender() { document.getElementById('surrenderOverlay').classList.add('visible'); }
+function hideSurrender() { document.getElementById('surrenderOverlay').classList.remove('visible'); }
+function confirmSurrender() { hideSurrender(); sysLog('🏳️ Surrendered'); endGame(true); }
 
-function showToast(icon, title) {
-  const t = document.getElementById('toast');
-  document.getElementById('toastIcon').textContent = icon;
-  document.getElementById('toastTitle').textContent = title;
-  t.classList.add('visible');
-  setTimeout(() => t.classList.remove('visible'), 1500);
-}
-
-document.addEventListener('DOMContentLoaded', loadBattleDecks);
+document.addEventListener('DOMContentLoaded', loadDecks);
 </script>
 
 </body>
