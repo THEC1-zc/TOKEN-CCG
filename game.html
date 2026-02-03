@@ -4,7 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>TOKEN - Game v1.4.0</title>
+  <title>TOKEN - Game v1.4.1</title>
+  <!-- Version: V1.4.1 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -490,6 +491,7 @@ function autoSelectJD() {
   });
   
   document.getElementById('jdConfirmBtn').disabled = false;
+  confirmJD();
 }
 
 function createCard(card) { const el = document.createElement('div'); el.className = 'game-card ' + card.house; el.innerHTML = '<span class="game-card-symbol" style="color:' + HOUSES[card.house].primary + '">' + HOUSES[card.house].symbol + '</span><span class="game-card-value">' + card.displayValue + '</span>'; return el; }

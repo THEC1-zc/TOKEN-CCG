@@ -1,6 +1,6 @@
 # Coding Rules
 
-Version: V1.2.0
+Version: V1.3.0
 Last updated: 2026-02-03
 
 ## Session start
@@ -8,7 +8,8 @@ Last updated: 2026-02-03
 - Only re-check desktop vs mobile if at least 30 minutes have passed since the last session checkpoint.
 
 ## Editing workflow
-- When a file is modified, provide the full file content in the response.
+- When on mobile, provide the full file content in the response for any modified file.
+- When on desktop, apply changes directly without dumping full files unless asked.
 - When a new file is created, use the exact requested filename.
 
 ## Versioning

@@ -1,6 +1,6 @@
 # Project Log
 
-Version: V0.1.4
+Version: V0.1.6
 Last updated: 2026-02-03
 
 ## 2026-02-03
@@ -11,3 +11,6 @@ Last updated: 2026-02-03
 - Added `docs/workflow.md` with Mac+mobile collaboration rules and versioning/logging requirements. (V1.0.0)
 - Added branching, commit, and testing rules to `coding rules.md`. (V1.1.0)
 - Added 30-minute checkpoint rule for desktop/mobile re-checks in `coding rules.md`. (V1.2.0)
+- Updated Base house icon color to blue on home page and added version marker. (index.html V1.0.1)
+- Updated JollyDraw auto button to select + confirm, and bumped game version. (game.html V1.4.1)
+- Updated editing workflow rule for desktop vs mobile output behavior. (`coding rules.md` V1.3.0)
