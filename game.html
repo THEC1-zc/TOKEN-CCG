@@ -291,8 +291,8 @@ function loadDecks() {
 }
 function loadCards() {
   allCards = [];
-  JSON.parse(localStorage.getItem('token_cards') || '[]').forEach(c => allCards.push({ ...c, uid: 'c-' + c.id }));
-  JSON.parse(localStorage.getItem('token_decks') || '[]').forEach(d => d.cards.forEach(c => allCards.push({ uid: 'd-' + d.id + '-' + c.value, house: d.house, value: c.value, displayValue: c.displayValue })));
+  JSON.parse(localStorage.getItem('token_cards') || '[]').forEach(c => allCards.push({ ...c, uid: 'card-' + c.id }));
+  JSON.parse(localStorage.getItem('token_decks') || '[]').forEach(d => d.cards.forEach(c => allCards.push({ uid: 'deck-' + d.id + '-' + c.value, house: d.house, value: c.value, displayValue: c.displayValue })));
 }
 function onDeckSelect() { document.getElementById('startBtn').disabled = !document.getElementById('deckSelect').value; }
 
@@ -301,8 +301,12 @@ function startJD() {
   battleDeck = saved[+document.getElementById('deckSelect').value];
   loadCards();
   pDeck1 = []; pDeck2 = [];
-  battleDeck.deck1Cards.forEach(uid => { const c = allCards.find(x => x.uid === uid); if (c) pDeck1.push({ ...c }); });
-  battleDeck.deck2Cards.forEach(uid => { const c = allCards.find(x => x.uid === uid); if (c) pDeck2.push({ ...c }); });
+  console.log('battleDeck:', battleDeck);
+  console.log('allCards:', allCards.length);
+  battleDeck.deck1Cards.forEach(uid => { const c = allCards.find(x => x.uid === uid); console.log('d1 uid:', uid, 'found:', !!c); if (c) pDeck1.push({ ...c }); });
+  battleDeck.deck2Cards.forEach(uid => { const c = allCards.find(x => x.uid === uid); console.log('d2 uid:', uid, 'found:', !!c); if (c) pDeck2.push({ ...c }); });
+  console.log('pDeck1:', pDeck1.length, 'pDeck2:', pDeck2.length);
+  if (!pDeck1.length || !pDeck2.length) { alert('Error loading deck cards. Check console.'); return; }
   document.getElementById('setupScreen').classList.add('hidden');
   document.getElementById('jdScreen').classList.add('visible');
   renderJD();
