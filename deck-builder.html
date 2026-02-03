@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Deck Builder v1.2.0</title>
-  <!-- Version: V1.2.0 -->
+  <title>TOKEN - Deck Builder v1.3.1</title>
+  <!-- Version: V1.3.1 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <style>
@@ -36,6 +36,15 @@
       font-family: 'Inter', system-ui, sans-serif;
       color: #FFFFFF;
     }
+    .bg-icon {
+      position: fixed;
+      inset: 0;
+      background: url("assets/main%20icon.png") center/360px auto no-repeat;
+      opacity: 0.25;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .container { position: relative; z-index: 1; }
     
     .container {
       max-width: 1400px;
@@ -598,6 +607,7 @@
   </style>
 </head>
 <body>
+  <div class="bg-icon" aria-hidden="true"></div>
   <a href="index.html" class="back-btn">← Home</a>
   <div class="container">
     <h1>🔧 DECK BUILDER</h1>

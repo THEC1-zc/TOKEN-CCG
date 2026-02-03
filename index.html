@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Crypto Card Game v1.1.0</title>
-  <!-- Version: V1.1.0 -->
+  <title>TOKEN - Crypto Card Game v1.2.1</title>
+  <!-- Version: V1.2.1 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <style>
@@ -17,6 +17,15 @@
       font-family: 'Inter', system-ui, sans-serif;
       color: #FFFFFF;
     }
+    .bg-icon {
+      position: fixed;
+      inset: 0;
+      background: url("assets/main%20icon.png") center/360px auto no-repeat;
+      opacity: 0.25;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .container, .hero, .menu-grid, .stats-bar { position: relative; z-index: 1; }
     
     .container {
       max-width: 900px;
@@ -284,6 +293,7 @@
   </style>
 </head>
 <body>
+  <div class="bg-icon" aria-hidden="true"></div>
   <div class="container">
     <!-- Hero -->
     <div class="hero">

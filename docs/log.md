@@ -1,6 +1,6 @@
 # Project Log
 
-Version: V0.1.7
+Version: V0.1.9
 Last updated: 2026-02-03
 
 ## 2026-02-03
@@ -15,3 +15,5 @@ Last updated: 2026-02-03
 - Updated JollyDraw auto button to select + confirm, and bumped game version. (game.html V1.4.1)
 - Updated editing workflow rule for desktop vs mobile output behavior. (`coding rules.md` V1.3.0)
 - Added wallet login dropdown UI (Farcaster/Base/Wallet) to all main pages with shared assets. (index.html V1.1.0, card-minter.html V1.8.0, deck-minter.html V1.3.0, collection.html V1.1.0, deck-builder.html V1.2.0, game.html V1.5.0, assets/wallet-ui.css V1.0.0, assets/wallet-ui.js V1.0.1)
+- Added main icon background to all pages except the game board. (index.html V1.2.0, card-minter.html V1.9.0, deck-minter.html V1.4.0, collection.html V1.2.0, deck-builder.html V1.3.0, generate-cardback.html V1.0.1)
+- Switched main icon to centered overlay image while keeping original background colors. (index.html V1.2.1, card-minter.html V1.9.1, deck-minter.html V1.4.1, collection.html V1.2.1, deck-builder.html V1.3.1, generate-cardback.html V1.0.2)
