@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Deck Builder v1.4.0</title>
-  <!-- Version: V1.4.0 -->
+  <title>TOKEN - Deck Builder v1.4.1</title>
+  <!-- Version: V1.4.1 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -597,7 +597,12 @@
     .house-bitcoin { color: #F7931A; }
     .house-ethereum { color: #C0C0C0; }
     .house-base { color: #0052FF; }
-    .house-tysm { color: #10B981; }
+    .house-tysm {
+      background: linear-gradient(90deg, #FACC15, #3B82F6);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
     
     .version {
       text-align: center;
@@ -613,7 +618,7 @@
     <div class="header-left">
       <a class="header-brand" href="index.html">
         <img src="assets/main%20icon.png" alt="TOKEN">
-        <span class="header-title">TOKEN</span>
+        <span class="header-title token-brand">TOKEN</span>
       </a>
       <span class="header-sep">/</span>
       <span class="header-page">Deck Builder</span>

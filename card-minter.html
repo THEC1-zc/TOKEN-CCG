@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Card Minter v2.0.0</title>
-  <!-- Version: V2.0.0 -->
+  <title>TOKEN - Card Minter v2.0.1</title>
+  <!-- Version: V2.0.1 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -515,8 +515,15 @@
     }
     
     .house-option[data-house="tysm"] {
-      --house-color: #10B981;
-      --house-bg: #10B98115;
+      --house-color: #3B82F6;
+      --house-bg: #3B82F615;
+    }
+    .house-option[data-house="tysm"] .house-symbol,
+    .house-option[data-house="tysm"] .house-name {
+      background: linear-gradient(90deg, #FACC15, #3B82F6);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
     }
     
     .house-symbol {
@@ -534,6 +541,9 @@
     
     .house-option.selected .house-name {
       color: var(--house-color);
+    }
+    .house-option[data-house="tysm"].selected .house-name {
+      color: transparent;
     }
     
     /* Mint Button */
@@ -608,7 +618,7 @@
     
     .card[data-house="tysm"] .card-border,
     .card[data-house="tysm"] .faction-frame {
-      background: linear-gradient(135deg, #10B981 0%, #6EE7B7 100%);
+      background: linear-gradient(135deg, #FACC15 0%, #3B82F6 100%);
     }
     
     .card-inner {
@@ -638,7 +648,13 @@
     .card[data-house="bitcoin"] .card-house-symbol { color: #F7931A; text-shadow: 0 0 8px #F7931A66; }
     .card[data-house="ethereum"] .card-house-symbol { color: #C0C0C0; text-shadow: 0 0 8px #C0C0C066; }
     .card[data-house="base"] .card-house-symbol { color: #0052FF; text-shadow: 0 0 8px #0052FF66; }
-    .card[data-house="tysm"] .card-house-symbol { color: #10B981; text-shadow: 0 0 8px #10B98166; }
+    .card[data-house="tysm"] .card-house-symbol {
+      background: linear-gradient(90deg, #FACC15, #3B82F6);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 10px #3B82F666;
+    }
     
     .card-value {
       font-family: 'Bebas Neue', sans-serif;
@@ -672,7 +688,7 @@
     .card[data-house="bitcoin"] .image-area { border-color: #F7931A44; }
     .card[data-house="ethereum"] .image-area { border-color: #C0C0C044; }
     .card[data-house="base"] .image-area { border-color: #0052FF44; }
-    .card[data-house="tysm"] .image-area { border-color: #10B98144; }
+    .card[data-house="tysm"] .image-area { border-color: #3B82F644; }
     
     .image-area-content {
       width: 100%;
@@ -941,7 +957,7 @@
     <div class="header-left">
       <a class="header-brand" href="index.html">
         <img src="assets/main%20icon.png" alt="TOKEN">
-        <span class="header-title">TOKEN</span>
+        <span class="header-title token-brand">TOKEN</span>
       </a>
       <span class="header-sep">/</span>
       <span class="header-page">Card Minter</span>

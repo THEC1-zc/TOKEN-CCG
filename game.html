@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>TOKEN - Game v1.6.0</title>
-  <!-- Version: V1.6.0 -->
+  <title>TOKEN - Game v1.6.1</title>
+  <!-- Version: V1.6.1 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -18,6 +18,7 @@
 .setup-screen { min-height: 100vh; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(180deg, #0a0a0f 0%, #12121f 50%, #0a0a0f 100%); }
 .setup-content { width: 100%; max-width: 380px; background: #141419; border-radius: 16px; padding: 24px; text-align: center; }
 .setup-title { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 4px; margin-bottom: 8px; }
+.setup-title .token-brand { font-size: 32px; }
 .setup-subtitle { color: #71717A; font-size: 13px; margin-bottom: 24px; }
 .setup-label { font-size: 11px; color: #A1A1AA; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: block; text-align: left; }
 .setup-select { width: 100%; padding: 14px; background: #0a0a0f; border: 1px solid #27272A; border-radius: 8px; color: #FFF; font-size: 14px; margin-bottom: 16px; }
@@ -124,6 +125,12 @@
 .game-card.base { border: 2px solid #0052FF; }
 .game-card.tysm { border: 2px solid #10B981; }
 .game-card-symbol { font-size: 9px; }
+.game-card.tysm .game-card-symbol {
+  background: linear-gradient(90deg, #FACC15, #3B82F6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important;
+}
 .game-card-value { font-family: 'Bebas Neue', sans-serif; font-size: 20px; }
 
 /* Footer */
@@ -196,7 +203,7 @@
     <div class="header-left">
       <a class="header-brand" href="index.html">
         <img src="assets/main%20icon.png" alt="TOKEN">
-        <span class="header-title">TOKEN</span>
+        <span class="header-title token-brand">TOKEN</span>
       </a>
       <span class="header-sep">/</span>
       <span class="header-page">Game</span>
@@ -213,7 +220,7 @@
   </header>
   <div class="setup-screen" id="setupScreen">
     <div class="setup-content">
-      <div class="setup-title">🎮 TOKEN</div>
+      <div class="setup-title">🎮 <span class="token-brand">TOKEN</span></div>
       <p class="setup-subtitle">Play vs AI</p>
       <div id="noDecksMsg" class="no-decks-msg" style="display:none;">No battle decks.<br><a href="deck-builder.html">Create one →</a></div>
       <label class="setup-label">Battle Deck</label>
@@ -313,7 +320,7 @@
     <div class="captured-cards" id="capturedCards"></div>
   </div>
 
-  <div class="toast" id="toast"><div class="toast-icon" id="toastIcon">🎯</div><div class="toast-title" id="toastTitle">TOKEN!</div></div>
+  <div class="toast" id="toast"><div class="toast-icon" id="toastIcon">🎯</div><div class="toast-title token-brand" id="toastTitle">TOKEN!</div></div>
 
   <div class="gameover-overlay" id="gameoverOverlay">
     <div class="gameover-content">
