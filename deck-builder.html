@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Deck Builder v1.0.0</title>
+  <title>TOKEN - Deck Builder v1.1.0</title>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -295,6 +295,41 @@
     
     .clear-deck-btn:hover {
       background: #3f3f46;
+    }
+    
+    /* Faction Auto-Select */
+    .faction-select-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .faction-select {
+      flex: 1;
+      padding: 8px 10px;
+      background: #0a0a0f;
+      border: 1px solid #27272A;
+      border-radius: 6px;
+      color: #FFFFFF;
+      font-size: 11px;
+    }
+    .auto-fill-btn {
+      padding: 8px 12px;
+      background: linear-gradient(135deg, #10B981, #059669);
+      border: none;
+      border-radius: 6px;
+      color: #000;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .auto-fill-btn:hover {
+      filter: brightness(1.1);
+    }
+    .auto-fill-btn:disabled {
+      background: #27272A;
+      color: #52525B;
+      cursor: not-allowed;
     }
     
     /* Collection Section */
@@ -592,6 +627,12 @@
           </div>
           <div class="deck-count incomplete" id="deck1Count">0/10</div>
         </div>
+        <div class="faction-select-row">
+          <select class="faction-select" id="deck1Faction" onchange="updateAutoFillBtn(1)">
+            <option value="">Select Faction to auto-fill</option>
+          </select>
+          <button class="auto-fill-btn" id="deck1AutoFill" onclick="autoFillDeck(1)" disabled>⚡ AUTO</button>
+        </div>
         <div class="deck-validation" id="deck1Validation">
           <!-- Validation messages -->
         </div>
@@ -615,6 +656,12 @@
             </select>
           </div>
           <div class="deck-count incomplete" id="deck2Count">0/10</div>
+        </div>
+        <div class="faction-select-row">
+          <select class="faction-select" id="deck2Faction" onchange="updateAutoFillBtn(2)">
+            <option value="">Select Faction to auto-fill</option>
+          </select>
+          <button class="auto-fill-btn" id="deck2AutoFill" onclick="autoFillDeck(2)" disabled>⚡ AUTO</button>
         </div>
         <div class="deck-validation" id="deck2Validation">
           <!-- Validation messages -->
@@ -659,7 +706,7 @@
       </div>
     </div>
     
-    <p class="version">Deck Builder v1.0.0</p>
+    <p class="version">Deck Builder v1.1.0</p>
   </div>
 
   <script>
@@ -1132,6 +1179,97 @@
             return;
           }
         }
+      }
+      
+      // Update faction dropdown
+      updateFactionSelect(deckNum);
+      
+      renderDeckSlots(deckNum);
+      renderCollection();
+      validateAll();
+    }
+    
+    function updateFactionSelect(deckNum) {
+      const house = deckNum === 1 ? deck1House : deck2House;
+      const select = document.getElementById(`deck${deckNum}Faction`);
+      const btn = document.getElementById(`deck${deckNum}AutoFill`);
+      
+      select.innerHTML = '<option value="">Select Faction to auto-fill</option>';
+      btn.disabled = true;
+      
+      if (!house) return;
+      
+      // Get unique factions for this house from collection
+      const factions = {};
+      allCards.filter(c => c.house === house).forEach(c => {
+        const fname = c.factionName || 'Unknown';
+        if (!factions[fname]) {
+          factions[fname] = { name: fname, icon: c.factionIcon || '🎴', count: 0 };
+        }
+        factions[fname].count++;
+      });
+      
+      // Add options sorted by card count
+      Object.values(factions)
+        .sort((a, b) => b.count - a.count)
+        .forEach(f => {
+          const opt = document.createElement('option');
+          opt.value = f.name;
+          opt.textContent = `${f.icon} ${f.name} (${f.count} cards)`;
+          select.appendChild(opt);
+        });
+    }
+    
+    function updateAutoFillBtn(deckNum) {
+      const select = document.getElementById(`deck${deckNum}Faction`);
+      const btn = document.getElementById(`deck${deckNum}AutoFill`);
+      btn.disabled = !select.value;
+    }
+    
+    function autoFillDeck(deckNum) {
+      const house = deckNum === 1 ? deck1House : deck2House;
+      const factionSelect = document.getElementById(`deck${deckNum}Faction`);
+      const factionName = factionSelect.value;
+      
+      if (!house || !factionName) return;
+      
+      // Get cards already used in both decks
+      const usedUids = [...deck1, ...deck2].filter(c => c).map(c => c.uid);
+      
+      // Get available cards from this faction, sorted by value (highest first)
+      const availableCards = allCards
+        .filter(c => c.house === house && c.factionName === factionName && !usedUids.includes(c.uid))
+        .sort((a, b) => parseInt(b.value) - parseInt(a.value));
+      
+      if (availableCards.length === 0) {
+        alert(`No available cards from ${factionName}!`);
+        return;
+      }
+      
+      // Clear deck first
+      if (deckNum === 1) {
+        deck1 = new Array(10).fill(null);
+      } else {
+        deck2 = new Array(10).fill(null);
+      }
+      
+      const deck = deckNum === 1 ? deck1 : deck2;
+      const usedValues = [];
+      let slotIndex = 0;
+      
+      // Fill with top 10 highest value cards (unique values only)
+      for (const card of availableCards) {
+        if (slotIndex >= 10) break;
+        if (usedValues.includes(card.value)) continue;
+        
+        deck[slotIndex] = card;
+        usedValues.push(card.value);
+        slotIndex++;
+      }
+      
+      const filled = deck.filter(c => c).length;
+      if (filled < 10) {
+        alert(`Only found ${filled} unique cards from ${factionName}. Add more cards manually or choose another faction.`);
       }
       
       renderDeckSlots(deckNum);
