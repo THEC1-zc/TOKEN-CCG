@@ -1,6 +1,6 @@
 # Project Log
 
-Version: V0.2.9
+Version: V0.3.0
 Last updated: 2026-02-03
 
 ## 2026-02-03
@@ -27,3 +27,4 @@ Last updated: 2026-02-03
 - Centered oversized wordmark without affecting alignment and removed joystick icons. (assets/header.css V1.6.0, index.html V1.3.5, game.html V1.6.4, docs/roadmap.md, docs/ROADMAP_v0.2.0.md, docs/ARCHITECTURE_v1.0.0.md)
 - Updated `docs/SYNC.md` with current versions, file structure, and 2026-02-04 changelog. (SYNC.md V1.1.0)
 - Added Supabase integration guide at `supabase/BACKEND_INTEGRATION.md`, guest-user helper in `supabase-client.js`, and wired Supabase into key pages. (BACKEND_INTEGRATION.md V1.0.0, supabase-client.js V1.0.1, index.html V1.4.0, card-minter.html V2.1.0, deck-minter.html V1.6.0, deck-builder.html V1.6.0, collection.html V1.5.0, game.html V1.7.0)
+- Set Supabase anon key in `supabase-client.js`. (supabase-client.js V1.0.2)
