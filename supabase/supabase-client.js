@@ -1,8 +1,12 @@
 // ============================================
 // TOKEN-CCG Supabase Client
-// Version: V1.0.4
+// Version: V1.0.5
 // ============================================
 
+if (typeof window !== 'undefined' && window.TokenDB) {
+  console.warn('TokenDB already loaded');
+} else {
+  (function () {
 const SUPABASE_URL = 'https://fyuqowfoklelfyzgndga.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ5dXFvd2Zva2xlbGZ5emduZGdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxMjAzMjksImV4cCI6MjA4NTY5NjMyOX0.EwJ9FmVg4jsO5pxnbIDvZbtfm9PMCpottzvKB07PRJg';
 
@@ -466,4 +470,6 @@ if (typeof window !== 'undefined') {
     // Migration
     migrateFromLocalStorage
   };
+}
+  })();
 }

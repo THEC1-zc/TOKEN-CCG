@@ -1,4 +1,4 @@
-// Version: V1.2.1
+// Version: V1.2.2
 
 const state = {
   sdk: null,
@@ -43,7 +43,12 @@ function getDisplayLabel() {
 }
 
 function getAvatarUrl() {
-  if (state.fcUser?.pfpUrl) return state.fcUser.pfpUrl;
+  const pfp = state.fcUser?.pfpUrl;
+  if (typeof pfp === 'string') return pfp;
+  if (pfp && typeof pfp === 'object') {
+    if (typeof pfp.url === 'string') return pfp.url;
+    if (typeof pfp.src === 'string') return pfp.src;
+  }
   return FALLBACK_AVATAR;
 }
 
@@ -262,11 +267,11 @@ function updateUI() {
 
   const avatarUrl = getAvatarUrl();
   if (avatarUrl) {
-    avatar.src = avatarUrl;
+    avatar.src = String(avatarUrl);
     avatar.style.display = 'block';
   } else {
     avatar.removeAttribute('src');
-    avatar.style.display = 'block';
+    avatar.style.display = 'none';
   }
 
   label.textContent = getDisplayLabel();
