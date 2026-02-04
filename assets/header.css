@@ -1,4 +1,4 @@
-/* Version: V1.6.0 */
+/* Version: V1.7.2 */
 
 .app-header {
   position: fixed;
@@ -58,6 +58,28 @@
   vertical-align: middle;
 }
 
+.token-wordmark-toast {
+  height: 180px;
+  width: auto;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.token-brand {
+  background: linear-gradient(90deg, #10B981 0%, #22C55E 40%, #EF4444 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  opacity: 0.5;
+}
+
+.token-back {
+  height: 32px;
+  width: auto;
+  display: inline-block;
+  vertical-align: middle;
+}
+
 .token-hero {
   display: flex;
   align-items: center;
@@ -69,13 +91,17 @@
 @media (max-width: 768px) {
   .token-wordmark { height: 88px; }
   .token-wordmark-inline { height: 240px; }
+  .token-wordmark-toast { height: 140px; }
   .token-hero { min-height: 260px; }
+  .token-back { height: 26px; }
 }
 
 @media (max-width: 480px) {
   .token-wordmark { height: 72px; }
   .token-wordmark-inline { height: 192px; }
+  .token-wordmark-toast { height: 110px; }
   .token-hero { min-height: 210px; }
+  .token-back { height: 22px; }
 }
 
 .header-sep {

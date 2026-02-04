@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>TOKEN - Game v1.7.0</title>
-  <!-- Version: V1.7.0 -->
+  <title>TOKEN - Game v1.7.2</title>
+  <!-- Version: V1.7.2 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -220,7 +220,7 @@
     <div class="header-left">
       <a class="header-brand" href="index.html">
         <img src="assets/main%20icon.png" alt="TOKEN">
-        <img class="token-wordmark" src="assets/token_icon.png" alt="TOKEN">
+        <span class="header-title token-brand">TOKEN</span>
       </a>
       <span class="header-sep">/</span>
       <span class="header-page">Game</span>
@@ -237,13 +237,13 @@
   </header>
   <div class="setup-screen" id="setupScreen">
     <div class="setup-content">
-      <div class="setup-title"><img class="token-wordmark-inline" src="assets/token_icon.png" alt="TOKEN"></div>
+      <div class="setup-title token-brand">TOKEN</div>
       <p class="setup-subtitle">Play vs AI</p>
       <div id="noDecksMsg" class="no-decks-msg" style="display:none;">No battle decks.<br><a href="deck-builder.html">Create one →</a></div>
       <label class="setup-label">Battle Deck</label>
       <select class="setup-select" id="deckSelect" onchange="onDeckSelect()"><option value="">-- Select --</option></select>
       <button class="setup-btn" id="startBtn" onclick="startJD()" disabled>START</button>
-      <a href="index.html" class="back-link">← Home</a>
+      <a href="index.html" class="back-link">← <img class="token-back" src="assets/token_icon.png" alt="TOKEN"> Home</a>
     </div>
   </div>
 
@@ -337,7 +337,7 @@
     <div class="captured-cards" id="capturedCards"></div>
   </div>
 
-  <div class="toast" id="toast"><div class="toast-icon" id="toastIcon">🎯</div><div class="toast-title" id="toastTitle"><img class="token-wordmark-inline" src="assets/token_icon.png" alt="TOKEN"></div></div>
+  <div class="toast" id="toast"><div class="toast-icon" id="toastIcon">🎯</div><div class="toast-title" id="toastTitle"><img class="token-wordmark-toast" src="assets/token_icon.png" alt="TOKEN"></div></div>
 
   <div class="gameover-overlay" id="gameoverOverlay">
     <div class="gameover-content">

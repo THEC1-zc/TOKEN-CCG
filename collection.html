@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Collection Viewer v1.5.0</title>
-  <!-- Version: V1.5.0 -->
+  <title>TOKEN - Collection Viewer v1.5.1</title>
+  <!-- Version: V1.5.1 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -15,6 +15,9 @@
       position: fixed;
       top: 16px;
       left: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
       padding: 8px 16px;
       background: #27272A;
       border: 1px solid #3f3f46;
@@ -22,6 +25,7 @@
       color: #FFFFFF;
       text-decoration: none;
       font-size: 13px;
+      line-height: 1;
       z-index: 100;
       transition: all 0.2s;
     }
@@ -486,7 +490,7 @@
     <div class="header-left">
       <a class="header-brand" href="index.html">
         <img src="assets/main%20icon.png" alt="TOKEN">
-        <img class="token-wordmark" src="assets/token_icon.png" alt="TOKEN">
+        <span class="header-title token-brand">TOKEN</span>
       </a>
       <span class="header-sep">/</span>
       <span class="header-page">Collection</span>
@@ -501,7 +505,7 @@
       <div id="walletHeaderMount"></div>
     </div>
   </header>
-  <a href="index.html" class="back-btn">← Home</a>
+  <a href="index.html" class="back-btn">← <img class="token-back" src="assets/token_icon.png" alt="TOKEN"> Home</a>
   <div class="container">
     <h1>🖼️ MY COLLECTION</h1>
     <p class="subtitle">View and manage all your TOKEN cards</p>

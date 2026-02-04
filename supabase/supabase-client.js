@@ -1,10 +1,10 @@
 // ============================================
 // TOKEN-CCG Supabase Client
-// Version: V1.0.2
+// Version: V1.0.3
 // ============================================
 
 const SUPABASE_URL = 'https://fyuqowfoklelfyzgndga.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_kfR478dY4Yk5qy5hFVLhnA_TXNwknby';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ5dXFvd2Zva2xlbGZ5emduZGdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxMjAzMjksImV4cCI6MjA4NTY5NjMyOX0.EwJ9FmVg4jsO5pxnbIDvZbtfm9PMCpottzvKB07PRJg';
 
 // Initialize Supabase client
 // Include this in your HTML: <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

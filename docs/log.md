@@ -1,7 +1,7 @@
 # Project Log
 
-Version: V0.3.0
-Last updated: 2026-02-03
+Version: V0.3.3
+Last updated: 2026-02-04
 
 ## 2026-02-03
 - Added `docs/handoff.md` and `docs/decisions.md` for cross-agent continuity. (V1.0.1)
@@ -28,3 +28,7 @@ Last updated: 2026-02-03
 - Updated `docs/SYNC.md` with current versions, file structure, and 2026-02-04 changelog. (SYNC.md V1.1.0)
 - Added Supabase integration guide at `supabase/BACKEND_INTEGRATION.md`, guest-user helper in `supabase-client.js`, and wired Supabase into key pages. (BACKEND_INTEGRATION.md V1.0.0, supabase-client.js V1.0.1, index.html V1.4.0, card-minter.html V2.1.0, deck-minter.html V1.6.0, deck-builder.html V1.6.0, collection.html V1.5.0, game.html V1.7.0)
 - Set Supabase anon key in `supabase-client.js`. (supabase-client.js V1.0.2)
+- Updated Supabase anon key to JWT value for production use. (supabase-client.js V1.0.3)
+
+## 2026-02-04
+- Replaced header TOKEN image with gradient text branding and moved token_icon usage to hero/back/toast only. (assets/header.css V1.7.2, index.html V1.4.1, card-minter.html V2.1.1, deck-minter.html V1.6.1, deck-builder.html V1.6.1, collection.html V1.5.1, game.html V1.7.2, generate-cardback.html V1.1.3)
