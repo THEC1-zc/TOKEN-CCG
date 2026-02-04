@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Collection Viewer v1.3.3</title>
-  <!-- Version: V1.3.3 -->
+  <title>TOKEN - Collection Viewer v1.5.0</title>
+  <!-- Version: V1.5.0 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -641,6 +641,10 @@
     </div>
   </div>
 
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- TOKEN DB Client -->
+  <script src="supabase/supabase-client.js"></script>
   <script>
     // ============================================
     // CONFIGURATION
@@ -665,39 +669,76 @@
     // ============================================
     // DATA LOADING
     // ============================================
-    function loadAllCards() {
+    async function getUserId() {
+      TokenDB.init();
+      return await TokenDB.getOrCreateGuestUser();
+    }
+
+    async function loadAllCards() {
       allCards = [];
-      
-      // Load single cards from card-minter
-      const singleCards = JSON.parse(localStorage.getItem(DB_KEYS.CARDS) || '[]');
-      singleCards.forEach(card => {
-        allCards.push({
-          ...card,
-          source: 'minter'
-        });
-      });
-      
-      // Load cards from deck-minter
-      const decks = JSON.parse(localStorage.getItem(DB_KEYS.DECKS) || '[]');
-      decks.forEach(deck => {
-        deck.cards.forEach(card => {
+      try {
+        const userId = await getUserId();
+        const singleCards = await TokenDB.getUserCards(userId);
+        const decks = await TokenDB.getUserDecks(userId);
+
+        singleCards.forEach(card => {
           allCards.push({
-            id: `${deck.id}-${card.value}`,
-            house: deck.house,
-            value: card.value,
-            displayValue: card.displayValue,
-            cardName: card.cardName,
-            factionName: deck.faction,
-            factionIcon: deck.factionIcon,
-            xp: 0,
-            level: 1,
-            created: deck.created,
-            source: 'deck',
-            deckId: deck.id
+            ...card,
+            source: 'minter',
+            factionName: card.faction_name,
+            factionIcon: card.faction_icon,
+            displayValue: card.display_value
           });
         });
-      });
-      
+
+        decks.forEach(deck => {
+          (deck.cards || []).forEach(card => {
+            allCards.push({
+              id: `${deck.id}-${card.value}`,
+              house: deck.house,
+              value: card.value,
+              displayValue: card.displayValue || card.display_value || card.value,
+              cardName: card.cardName || card.card_name || 'CARD',
+              factionName: deck.faction_name || deck.faction,
+              factionIcon: deck.faction_icon || deck.factionIcon,
+              xp: 0,
+              level: 1,
+              created: deck.created_at || deck.created,
+              source: 'deck',
+              deckId: deck.id
+            });
+          });
+        });
+      } catch (e) {
+        const singleCards = JSON.parse(localStorage.getItem(DB_KEYS.CARDS) || '[]');
+        singleCards.forEach(card => {
+          allCards.push({
+            ...card,
+            source: 'minter'
+          });
+        });
+
+        const decks = JSON.parse(localStorage.getItem(DB_KEYS.DECKS) || '[]');
+        decks.forEach(deck => {
+          deck.cards.forEach(card => {
+            allCards.push({
+              id: `${deck.id}-${card.value}`,
+              house: deck.house,
+              value: card.value,
+              displayValue: card.displayValue,
+              cardName: card.cardName,
+              factionName: deck.faction,
+              factionIcon: deck.factionIcon,
+              xp: 0,
+              level: 1,
+              created: deck.created,
+              source: 'deck',
+              deckId: deck.id
+            });
+          });
+        });
+      }
+
       return allCards;
     }
     
@@ -893,19 +934,25 @@
       document.body.removeChild(link);
     }
     
-    function deleteCard(card) {
+    async function deleteCard(card) {
       if (!confirm(`Delete "${card.cardName}"? This cannot be undone.`)) return;
       
-      if (card.source === 'minter') {
-        // Delete from single cards
-        const cards = JSON.parse(localStorage.getItem(DB_KEYS.CARDS) || '[]');
-        const updated = cards.filter(c => c.id !== card.id);
-        localStorage.setItem(DB_KEYS.CARDS, JSON.stringify(updated));
-      } else {
-        // Delete from deck (remove entire deck)
-        const decks = JSON.parse(localStorage.getItem(DB_KEYS.DECKS) || '[]');
-        const updated = decks.filter(d => d.id !== card.deckId);
-        localStorage.setItem(DB_KEYS.DECKS, JSON.stringify(updated));
+      try {
+        if (card.source === 'minter') {
+          await TokenDB.deleteCard(card.id);
+        } else if (card.deckId) {
+          await TokenDB.deleteDeck(card.deckId);
+        }
+      } catch (e) {
+        if (card.source === 'minter') {
+          const cards = JSON.parse(localStorage.getItem(DB_KEYS.CARDS) || '[]');
+          const updated = cards.filter(c => c.id !== card.id);
+          localStorage.setItem(DB_KEYS.CARDS, JSON.stringify(updated));
+        } else {
+          const decks = JSON.parse(localStorage.getItem(DB_KEYS.DECKS) || '[]');
+          const updated = decks.filter(d => d.id !== card.deckId);
+          localStorage.setItem(DB_KEYS.DECKS, JSON.stringify(updated));
+        }
       }
       
       closeModal();
@@ -1103,8 +1150,8 @@
     // ============================================
     // INIT
     // ============================================
-    function init() {
-      loadAllCards();
+    async function init() {
+      await loadAllCards();
       updateStats();
       populateFactionFilter();
       applyFilters();

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Crypto Card Game v1.3.5</title>
-  <!-- Version: V1.3.5 -->
+  <title>TOKEN - Crypto Card Game v1.4.0</title>
+  <!-- Version: V1.4.0 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -395,6 +395,7 @@
     <div class="quick-actions">
       <a href="deck-minter.html" class="quick-btn">⚡ Quick Start (Generate Deck)</a>
       <a href="#" class="quick-btn" onclick="clearAllData(); return false;">🗑️ Reset All Data</a>
+      <a href="#" class="quick-btn" onclick="migrateData(); return false;">📦 Migrate Data</a>
     </div>
     
     <!-- How to Play -->
@@ -451,32 +452,63 @@
     </div>
   </div>
 
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- TOKEN DB Client -->
+  <script src="supabase/supabase-client.js"></script>
   <script>
+    async function getUserId() {
+      return await TokenDB.getOrCreateGuestUser();
+    }
+
     // Load stats
-    function loadStats() {
-      // Cards (from both sources)
-      const singleCards = JSON.parse(localStorage.getItem('token_cards') || '[]');
-      const decks = JSON.parse(localStorage.getItem('token_decks') || '[]');
-      let totalCards = singleCards.length;
-      decks.forEach(d => totalCards += d.cards?.length || 0);
-      
-      // Decks
-      const deckCount = decks.length;
-      
-      // Battle Decks
-      const battleDecks = JSON.parse(localStorage.getItem('token_battle_decks') || '[]');
-      
-      // Games (from stats)
-      const gameStats = JSON.parse(localStorage.getItem('token_game_stats') || '{}');
-      const gamesPlayed = gameStats.gamesPlayed || 0;
-      
-      // Update UI
-      document.getElementById('statCards').textContent = totalCards;
-      document.getElementById('statDecks').textContent = deckCount;
-      document.getElementById('statBattleDecks').textContent = battleDecks.length;
-      document.getElementById('statGames').textContent = gamesPlayed;
+    async function loadStats() {
+      try {
+        TokenDB.init();
+        const userId = await getUserId();
+        const cards = await TokenDB.getUserCards(userId);
+        const decks = await TokenDB.getUserDecks(userId);
+        const battleDecks = await TokenDB.getUserBattleDecks(userId);
+        const games = await TokenDB.getUserGames(userId, 100);
+
+        const totalCards = cards.length + decks.reduce((acc, d) => acc + (d.cards?.length || 0), 0);
+        document.getElementById('statCards').textContent = totalCards;
+        document.getElementById('statDecks').textContent = decks.length;
+        document.getElementById('statBattleDecks').textContent = battleDecks.length;
+        document.getElementById('statGames').textContent = games.length;
+      } catch (e) {
+        // Fallback to localStorage if Supabase is unavailable
+        const singleCards = JSON.parse(localStorage.getItem('token_cards') || '[]');
+        const decks = JSON.parse(localStorage.getItem('token_decks') || '[]');
+        let totalCards = singleCards.length;
+        decks.forEach(d => totalCards += d.cards?.length || 0);
+
+        const battleDecks = JSON.parse(localStorage.getItem('token_battle_decks') || '[]');
+        const gameStats = JSON.parse(localStorage.getItem('token_game_stats') || '{}');
+        const gamesPlayed = gameStats.gamesPlayed || 0;
+
+        document.getElementById('statCards').textContent = totalCards;
+        document.getElementById('statDecks').textContent = decks.length;
+        document.getElementById('statBattleDecks').textContent = battleDecks.length;
+        document.getElementById('statGames').textContent = gamesPlayed;
+      }
     }
     
+    async function migrateData() {
+      try {
+        TokenDB.init();
+        const userId = await getUserId();
+        const result = await TokenDB.migrateFromLocalStorage(userId);
+        alert(`Migration complete!\nCards: ${result.cards}\nDecks: ${result.decks}\nBattle Decks: ${result.battleDecks}\nErrors: ${result.errors.length}`);
+        if (result.errors.length > 0) {
+          console.log('Migration errors:', result.errors);
+        }
+      } catch (e) {
+        alert('Migration failed. See console.');
+        console.error(e);
+      }
+    }
+
     function clearAllData() {
       if (!confirm('⚠️ This will delete ALL your cards, decks, and game data. Are you sure?')) return;
       if (!confirm('Really? This cannot be undone!')) return;
@@ -488,7 +520,7 @@
       localStorage.removeItem('token_stats');
       localStorage.removeItem('token_game_stats');
       
-      alert('All data cleared!');
+      alert('All local data cleared!');
       loadStats();
     }
     

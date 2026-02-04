@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>TOKEN - Game v1.6.4</title>
-  <!-- Version: V1.6.4 -->
+  <title>TOKEN - Game v1.7.0</title>
+  <!-- Version: V1.7.0 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -366,6 +366,10 @@
     </div>
   </div>
 
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- TOKEN DB Client -->
+  <script src="supabase/supabase-client.js"></script>
 <script>
 const HOUSES = { bitcoin: { symbol: '₿', primary: '#F7931A' }, ethereum: { symbol: '◊', primary: '#C0C0C0' }, base: { symbol: '■', primary: '#0052FF' }, tysm: { symbol: '🙏', primary: '#3B82F6' } };
 const TURN_TIME = 15;
@@ -373,21 +377,41 @@ let timer = null, timeLeft = TURN_TIME, logOpen = false;
 let gs = { phase: 'setup', turn: 'player', deck: [], table: [], playerHand: [], aiHand: [], playerCaptures: [], aiCaptures: [], playerJD: [], aiJD: [], playerTokens: 0, aiTokens: 0, selected: null, useJD: false, lastCap: null, hand: 1, lastHand: false, turnNum: 0, log: [] };
 let battleDeck = null, allCards = [], jdSel = { d1: null, d2: null }, pDeck1 = [], pDeck2 = [];
 
-function loadDecks() {
-  const saved = JSON.parse(localStorage.getItem('token_battle_decks') || '[]');
+async function getUserId() {
+  TokenDB.init();
+  return await TokenDB.getOrCreateGuestUser();
+}
+
+async function loadDecks() {
+  let saved = [];
+  try {
+    const userId = await getUserId();
+    saved = await TokenDB.getUserBattleDecks(userId);
+  } catch (e) {
+    saved = JSON.parse(localStorage.getItem('token_battle_decks') || '[]');
+  }
   if (!saved.length) { document.getElementById('noDecksMsg').style.display = 'block'; return; }
   const sel = document.getElementById('deckSelect');
   saved.forEach((d, i) => { const o = document.createElement('option'); o.value = i; o.textContent = d.name; sel.appendChild(o); });
 }
-function loadCards() {
-  allCards = [];
-  JSON.parse(localStorage.getItem('token_cards') || '[]').forEach(c => allCards.push({ ...c, uid: 'card-' + c.id }));
-  JSON.parse(localStorage.getItem('token_decks') || '[]').forEach(d => d.cards.forEach(c => allCards.push({ uid: 'deck-' + d.id + '-' + c.value, house: d.house, value: c.value, displayValue: c.displayValue })));
-}
+function loadCards() {}
 function onDeckSelect() { document.getElementById('startBtn').disabled = !document.getElementById('deckSelect').value; }
 
-function startJD() {
-  const saved = JSON.parse(localStorage.getItem('token_battle_decks') || '[]');
+async function startJD() {
+  let saved = [];
+  try {
+    const userId = await getUserId();
+    saved = await TokenDB.getUserBattleDecks(userId);
+    const singleCards = await TokenDB.getUserCards(userId);
+    const decks = await TokenDB.getUserDecks(userId);
+    allCards = [];
+    singleCards.forEach(c => allCards.push({ ...c, uid: 'card-' + c.id, displayValue: c.display_value }));
+    decks.forEach(d => d.cards.forEach(c => allCards.push({ uid: 'deck-' + d.id + '-' + c.value, house: d.house, value: c.value, displayValue: c.displayValue || c.display_value || c.value })));
+  } catch (e) {
+    saved = JSON.parse(localStorage.getItem('token_battle_decks') || '[]');
+    JSON.parse(localStorage.getItem('token_cards') || '[]').forEach(c => allCards.push({ ...c, uid: 'card-' + c.id }));
+    JSON.parse(localStorage.getItem('token_decks') || '[]').forEach(d => d.cards.forEach(c => allCards.push({ uid: 'deck-' + d.id + '-' + c.value, house: d.house, value: c.value, displayValue: c.displayValue })));
+  }
   battleDeck = saved[+document.getElementById('deckSelect').value];
   loadCards();
   pDeck1 = []; pDeck2 = [];
@@ -574,7 +598,7 @@ function drawCards() {
   gs.useJD = false; sysLog('📋 Hand #' + gs.hand + (gs.lastHand ? ' (FINAL)' : '')); render();
   if (gs.turn === 'ai') setTimeout(aiTurn, 800); else startTimer();
 }
-function endGame(surr = false) {
+async function endGame(surr = false) {
   stopTimer(); gs.phase = 'gameover';
   if (!surr && gs.table.length && gs.lastCap) { if (gs.lastCap === 'player') gs.playerCaptures.push(...gs.table); else gs.aiCaptures.push(...gs.table); gs.table = []; }
   let ps = surr ? 0 : calcScore('player'), as = surr ? Math.max(3, calcScore('ai')) : calcScore('ai');
@@ -585,6 +609,24 @@ function endGame(surr = false) {
   document.getElementById('finalScoreYou').textContent = ps; document.getElementById('finalScoreAI').textContent = as;
   document.getElementById('gameoverDetails').innerHTML = '<div class="gameover-detail"><span>Cards</span><span>' + gs.playerCaptures.length + ' vs ' + gs.aiCaptures.length + '</span></div><div class="gameover-detail"><span>TOKENs</span><span>' + gs.playerTokens + ' vs ' + gs.aiTokens + '</span></div>';
   document.getElementById('gameoverOverlay').classList.add('visible');
+
+  try {
+    const userId = await getUserId();
+    await TokenDB.recordGame({
+      player1Id: userId,
+      player2Id: null,
+      winnerId: win ? userId : null,
+      player1Score: ps,
+      player2Score: as,
+      player1Tokens: gs.playerTokens,
+      player2Tokens: gs.aiTokens,
+      isSurrender: surr,
+      isAiGame: true,
+      gameLog: gs.log
+    });
+  } catch (e) {
+    // noop
+  }
 }
 function calcScore(p) { let s = 0; const caps = p === 'player' ? gs.playerCaptures : gs.aiCaptures, toks = p === 'player' ? gs.playerTokens : gs.aiTokens, other = p === 'player' ? gs.aiCaptures : gs.playerCaptures; if (caps.length > other.length) s++; s += toks; const myA = countAces(p), theirA = countAces(p === 'player' ? 'ai' : 'player'); if (myA > theirA) s++; return s; }
 function countAces(p) { return (p === 'player' ? gs.playerCaptures : gs.aiCaptures).filter(c => c.value === '1' || c.displayValue === 'A').length; }

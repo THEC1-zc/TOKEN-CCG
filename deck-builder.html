@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Deck Builder v1.5.1</title>
-  <!-- Version: V1.5.1 -->
+  <title>TOKEN - Deck Builder v1.6.0</title>
+  <!-- Version: V1.6.0 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -759,6 +759,10 @@
       <p class="version">Deck Builder v1.5.0</p>
   </div>
 
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- TOKEN DB Client -->
+  <script src="supabase/supabase-client.js"></script>
   <script>
     // ============================================
     // CONFIGURATION
@@ -788,42 +792,82 @@
     // ============================================
     // DATA LOADING
     // ============================================
-    function loadAllCards() {
+    async function getUserId() {
+      TokenDB.init();
+      return await TokenDB.getOrCreateGuestUser();
+    }
+
+    async function loadAllCards() {
       allCards = [];
       
-      // Load single cards
-      const singleCards = JSON.parse(localStorage.getItem(DB_KEYS.CARDS) || '[]');
-      singleCards.forEach(card => {
-        allCards.push({
-          ...card,
-          uid: `card-${card.id}`,
-          source: 'minter'
-        });
-      });
-      
-      // Load deck cards
-      const decks = JSON.parse(localStorage.getItem(DB_KEYS.DECKS) || '[]');
-      decks.forEach(deck => {
-        deck.cards.forEach(card => {
+      try {
+        const userId = await getUserId();
+        const singleCards = await TokenDB.getUserCards(userId);
+        singleCards.forEach(card => {
           allCards.push({
-            uid: `deck-${deck.id}-${card.value}`,
-            id: `${deck.id}-${card.value}`,
-            house: deck.house,
-            value: card.value,
-            displayValue: card.displayValue,
-            cardName: card.cardName,
-            factionName: deck.faction,
-            factionIcon: deck.factionIcon,
-            source: 'deck'
+            ...card,
+            uid: `card-${card.id}`,
+            source: 'minter',
+            factionName: card.faction_name,
+            factionIcon: card.faction_icon,
+            displayValue: card.display_value
           });
         });
-      });
+
+        const decks = await TokenDB.getUserDecks(userId);
+        decks.forEach(deck => {
+          (deck.cards || []).forEach(card => {
+            allCards.push({
+              uid: `deck-${deck.id}-${card.value}`,
+              id: `${deck.id}-${card.value}`,
+              house: deck.house,
+              value: card.value,
+              displayValue: card.displayValue || card.display_value || card.value,
+              cardName: card.cardName || card.card_name || 'CARD',
+              factionName: deck.faction_name || deck.faction,
+              factionIcon: deck.faction_icon || deck.factionIcon,
+              source: 'deck'
+            });
+          });
+        });
+      } catch (e) {
+        const singleCards = JSON.parse(localStorage.getItem(DB_KEYS.CARDS) || '[]');
+        singleCards.forEach(card => {
+          allCards.push({
+            ...card,
+            uid: `card-${card.id}`,
+            source: 'minter'
+          });
+        });
+
+        const decks = JSON.parse(localStorage.getItem(DB_KEYS.DECKS) || '[]');
+        decks.forEach(deck => {
+          deck.cards.forEach(card => {
+            allCards.push({
+              uid: `deck-${deck.id}-${card.value}`,
+              id: `${deck.id}-${card.value}`,
+              house: deck.house,
+              value: card.value,
+              displayValue: card.displayValue,
+              cardName: card.cardName,
+              factionName: deck.faction,
+              factionIcon: deck.factionIcon,
+              source: 'deck'
+            });
+          });
+        });
+      }
       
       return allCards;
     }
     
-    function loadSavedBattleDecks() {
-      return JSON.parse(localStorage.getItem(DB_KEYS.BATTLE_DECKS) || '[]');
+    async function loadSavedBattleDecks() {
+      try {
+        const userId = await getUserId();
+        return await TokenDB.getUserBattleDecks(userId);
+      } catch (e) {
+        return JSON.parse(localStorage.getItem(DB_KEYS.BATTLE_DECKS) || '[]');
+      }
     }
     
     // ============================================
@@ -914,9 +958,9 @@
       });
     }
     
-    function renderSavedDecks() {
+    async function renderSavedDecks() {
       const container = document.getElementById('savedList');
-      const saved = loadSavedBattleDecks();
+      const saved = await loadSavedBattleDecks();
       
       if (saved.length === 0) {
         container.innerHTML = '<div class="saved-empty">No saved battle decks yet</div>';
@@ -1424,7 +1468,7 @@
     // ============================================
     // SAVE / LOAD
     // ============================================
-    function saveBattleDeck() {
+    async function saveBattleDeck() {
       const name = prompt('Enter a name for this battle deck:', `Battle ${new Date().toLocaleDateString()}`);
       if (!name) return;
       
@@ -1438,16 +1482,27 @@
         created: Date.now()
       };
       
-      const saved = loadSavedBattleDecks();
-      saved.push(battleDeck);
-      localStorage.setItem(DB_KEYS.BATTLE_DECKS, JSON.stringify(saved));
+      try {
+        const userId = await getUserId();
+        await TokenDB.createBattleDeck(userId, {
+          name: battleDeck.name,
+          deck1House: battleDeck.deck1House,
+          deck2House: battleDeck.deck2House,
+          deck1Cards: battleDeck.deck1Cards,
+          deck2Cards: battleDeck.deck2Cards
+        });
+      } catch (e) {
+        const saved = await loadSavedBattleDecks();
+        saved.push(battleDeck);
+        localStorage.setItem(DB_KEYS.BATTLE_DECKS, JSON.stringify(saved));
+      }
       
       renderSavedDecks();
       alert('Battle deck saved!');
     }
     
-    function loadBattleDeck(index) {
-      const saved = loadSavedBattleDecks();
+    async function loadBattleDeck(index) {
+      const saved = await loadSavedBattleDecks();
       const bd = saved[index];
       if (!bd) return;
       
@@ -1477,24 +1532,35 @@
       validateAll();
     }
     
-    function deleteBattleDeck(index) {
+    async function deleteBattleDeck(index) {
       if (!confirm('Delete this battle deck?')) return;
-      
-      const saved = loadSavedBattleDecks();
-      saved.splice(index, 1);
-      localStorage.setItem(DB_KEYS.BATTLE_DECKS, JSON.stringify(saved));
-      
-      renderSavedDecks();
+      try {
+        const userId = await getUserId();
+        const saved = await loadSavedBattleDecks();
+        const toDelete = saved[index];
+        if (toDelete?.id) {
+          await TokenDB.deleteBattleDeck(toDelete.id);
+        } else {
+          saved.splice(index, 1);
+          localStorage.setItem(DB_KEYS.BATTLE_DECKS, JSON.stringify(saved));
+        }
+        renderSavedDecks();
+      } catch (e) {
+        const saved = await loadSavedBattleDecks();
+        saved.splice(index, 1);
+        localStorage.setItem(DB_KEYS.BATTLE_DECKS, JSON.stringify(saved));
+        renderSavedDecks();
+      }
     }
     
     // ============================================
     // INIT
     // ============================================
-    function init() {
+    async function init() {
       deck1 = new Array(10).fill(null);
       deck2 = new Array(10).fill(null);
       
-      loadAllCards();
+      await loadAllCards();
       updateGlobalFactionSelect(1);
       updateGlobalFactionSelect(2);
       renderDeckSlots(1);

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Deck Minter v1.5.4</title>
-  <!-- Version: V1.5.4 -->
+  <title>TOKEN - Deck Minter v1.6.0</title>
+  <!-- Version: V1.6.0 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -601,6 +601,10 @@
   <!-- JSZip Library for ZIP download -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- TOKEN DB Client -->
+  <script src="supabase/supabase-client.js"></script>
   <script>
     // ============================================
     // CONFIGURATION
@@ -623,6 +627,11 @@
       DECKS: 'token_decks',
       STATS: 'token_stats'
     };
+
+    async function getUserId() {
+      TokenDB.init();
+      return await TokenDB.getOrCreateGuestUser();
+    }
     
     // State
     let selectedHouse = null;
@@ -1012,7 +1021,7 @@
       document.body.removeChild(link);
     }
     
-    function saveDeck() {
+    async function saveDeck() {
       if (!currentDeck) return;
       
       const deckToSave = {
@@ -1024,9 +1033,13 @@
         }))
       };
       
-      const decks = JSON.parse(localStorage.getItem(DB_KEYS.DECKS) || '[]');
-      decks.push(deckToSave);
-      localStorage.setItem(DB_KEYS.DECKS, JSON.stringify(decks));
+      const userId = await getUserId();
+      await TokenDB.createDeck(userId, {
+        house: deckToSave.house,
+        factionName: deckToSave.faction,
+        factionIcon: deckToSave.factionIcon,
+        cards: deckToSave.cards
+      });
       
       updateStats(1, 10);
       alert('Deck saved successfully!');

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Card Minter v2.0.2</title>
-  <!-- Version: V2.0.2 -->
+  <title>TOKEN - Card Minter v2.1.0</title>
+  <!-- Version: V2.1.0 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -1185,6 +1185,10 @@
     </div>
   </div>
   
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- TOKEN DB Client -->
+  <script src="supabase/supabase-client.js"></script>
   <script>
     // ============================================
     // PERSPECTIVE API CONFIGURATION
@@ -1236,6 +1240,17 @@
       FACTIONS: 'cryptoscopa_factions',
       CARDS: 'cryptoscopa_cards'
     };
+
+    async function getUserId() {
+      TokenDB.init();
+      return await TokenDB.getOrCreateGuestUser();
+    }
+
+    async function canMintCard(factionName, value) {
+      const userId = await getUserId();
+      const cards = await TokenDB.getUserCards(userId);
+      return !cards.some(c => c.faction_name === factionName && String(c.value) === String(value));
+    }
     
     // Initialize or get wallet
     function getWallet() {
@@ -1315,34 +1330,25 @@
       return data ? JSON.parse(data) : [];
     }
     
-    // Save card (with image compression)
+    // Save card (Supabase)
     async function saveCard(card) {
-      const cards = getAllCards();
-      
-      // Compress images before saving to avoid quota issues
+      const userId = await getUserId();
+
       const cardToSave = { ...card };
-      
-      // Don't save full card image in DB, just metadata
-      // The image can be regenerated from the data
       cardToSave.image = card.image ? '[IMAGE_STORED_SEPARATELY]' : null;
-      
-      // Compress faction icon if it's an image
+
       if (card.factionIconType === 'image' && card.factionIcon && card.factionIcon.startsWith('data:')) {
         cardToSave.factionIcon = await compressImage(card.factionIcon, 50, 0.6);
       }
-      
-      cards.push(cardToSave);
-      
-      try {
-        localStorage.setItem(DB_KEYS.CARDS, JSON.stringify(cards));
-      } catch (e) {
-        console.error('Storage error:', e);
-        // If still too big, try removing old cards
-        if (cards.length > 50) {
-          cards.splice(0, 10); // Remove oldest 10
-          localStorage.setItem(DB_KEYS.CARDS, JSON.stringify(cards));
-        }
-      }
+
+      await TokenDB.createCard(userId, {
+        house: cardToSave.house,
+        factionName: cardToSave.factionName,
+        factionIcon: cardToSave.factionIcon,
+        value: parseInt(cardToSave.value),
+        displayValue: cardToSave.displayValue,
+        cardName: cardToSave.cardName
+      });
     }
     
     // ============================================
@@ -1721,6 +1727,12 @@
         await createFaction(state.factionName, state.factionIcon, state.factionIconType);
       }
       
+      // Duplicate check in Supabase
+      if (!await canMintCard(state.factionName, state.value)) {
+        alert(`Card with value ${displayValue} already exists in ${state.factionName}!`);
+        return;
+      }
+
       // Increment faction card count
       incrementFactionCount(state.factionName);
       
@@ -1772,7 +1784,7 @@
         bitcoin: { primary: '#F7931A', secondary: '#FFD93D' },
         ethereum: { primary: '#C0C0C0', secondary: '#E8E8E8' },
         base: { primary: '#0052FF', secondary: '#5C9DFF' },
-        tysm: { primary: '#10B981', secondary: '#6EE7B7' }
+        tysm: { primary: '#FACC15', secondary: '#3B82F6' }
       };
       
       const colors = houseColors[state.house];
