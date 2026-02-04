@@ -1,4 +1,4 @@
-// Version: V1.1.1
+// Version: V1.1.2
 
 const state = {
   sdk: null,
@@ -232,6 +232,10 @@ if (typeof window !== 'undefined') {
     getAddress: () => state.address,
     getFarcasterUser: () => state.fcUser,
     getProviderType: () => state.providerType,
-    getDisplayLabel
+    getDisplayLabel,
+    isOwner: (ownerAddress) => {
+      if (!ownerAddress || !state.address) return false;
+      return state.address.toLowerCase() === ownerAddress.toLowerCase();
+    }
   };
 }

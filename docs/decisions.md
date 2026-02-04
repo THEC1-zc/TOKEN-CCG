@@ -1,7 +1,7 @@
 # Decisions
 
-Version: V1.0.1
-Last updated: 2026-02-03
+Version: V1.0.2
+Last updated: 2026-02-04
 
 ## Compliance baseline
 - Follow official, up-to-date docs for Neynar, Farcaster Mini Apps, Base App, and Vercel.
@@ -9,6 +9,9 @@ Last updated: 2026-02-03
 
 ## Deployment
 - Use Vercel static hosting with `vercel.json` project configuration.
+
+## Repository
+- GitHub: https://github.com/THEC1-zc/TOKEN-CCG
 
 ## Mini App structure
 - Target Farcaster Mini App spec for embed metadata and manifest.

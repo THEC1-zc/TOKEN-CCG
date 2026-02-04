@@ -1,6 +1,6 @@
 # Project Log
 
-Version: V0.3.7
+Version: V0.4.0
 Last updated: 2026-02-04
 
 ## 2026-02-03
@@ -36,3 +36,6 @@ Last updated: 2026-02-04
 - Updated roadmaps with Supabase data-layer phase, priorities, and current file versions. (docs/roadmap.md V0.2.1, docs/ROADMAP_v0.2.0.md V0.2.1)
 - Added admin panel plan and access rules. (docs/admin.md V1.0.0)
 - Added admin dashboard page and admin data helpers, plus wallet UI export hooks. (admin.html V1.0.0, supabase/supabase-client.js V1.0.4, assets/wallet-ui.js V1.1.1, docs/admin.md V1.0.1)
+- Added repository URL to decisions log. (docs/decisions.md V1.0.2)
+- Added Admin link to header nav across pages. (index.html V1.4.2, card-minter.html V2.1.2, deck-minter.html V1.6.2, deck-builder.html V1.6.2, collection.html V1.5.2, game.html V1.7.4, generate-cardback.html V1.1.4)
+- Added owner-only Admin link visibility and Admin badge in header. (assets/header.css V1.7.3, assets/admin-link.js V1.0.0, assets/wallet-ui.js V1.1.2, admin.html V1.0.1, index.html V1.4.3, card-minter.html V2.1.3, deck-minter.html V1.6.3, deck-builder.html V1.6.3, collection.html V1.5.3, game.html V1.7.5, generate-cardback.html V1.1.5)

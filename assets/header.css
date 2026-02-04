@@ -1,4 +1,4 @@
-/* Version: V1.7.2 */
+/* Version: V1.7.3 */
 
 .app-header {
   position: fixed;
@@ -134,6 +134,24 @@
 .header-nav a:hover {
   background: #1f1f27;
   color: #F7931A;
+}
+
+.admin-link.hidden {
+  display: none;
+}
+
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid #F7931A;
+  color: #F7931A;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: rgba(247, 147, 26, 0.08);
 }
 
 .header-right {

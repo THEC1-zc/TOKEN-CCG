@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Admin v1.0.0</title>
-  <!-- Version: V1.0.0 -->
+  <title>TOKEN - Admin v1.0.1</title>
+  <!-- Version: V1.0.1 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -161,6 +161,7 @@
     </nav>
     <div class="header-right">
       <span class="status-pill">Admin</span>
+      <span class="admin-badge hidden" id="adminBadge">Admin</span>
       <div id="walletHeaderMount"></div>
     </div>
   </header>
@@ -282,6 +283,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase/supabase-client.js"></script>
   <script src="assets/wallet-ui.js"></script>
+  <script src="assets/admin-link.js"></script>
   <script>
     const OWNER_WALLET = '0xd29c790466675153A50DF7860B9EFDb689A21cDe'.toLowerCase();
     const accessEl = document.getElementById('accessStatus');
