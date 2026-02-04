@@ -1,6 +1,6 @@
 # Project Log
 
-Version: V0.4.2
+Version: V0.4.3
 Last updated: 2026-02-04
 
 ## 2026-02-03
@@ -41,3 +41,4 @@ Last updated: 2026-02-04
 - Added owner-only Admin link visibility and Admin badge in header. (assets/header.css V1.7.3, assets/admin-link.js V1.0.0, assets/wallet-ui.js V1.1.2, admin.html V1.0.1, index.html V1.4.3, card-minter.html V2.1.3, deck-minter.html V1.6.3, deck-builder.html V1.6.3, collection.html V1.5.3, game.html V1.7.5, generate-cardback.html V1.1.5)
 - Saved official compliance docs index and updated decisions/admin login behavior. (docs/compliance/README.md V1.0.0, docs/decisions.md V1.0.3, docs/admin.md V1.0.2)
 - Split wallet login actions (Farcaster/Base/Wallet/Logout) and added generic avatar fallback. (assets/wallet-ui.js V1.2.0)
+- Set connected wallet label to green for clarity. (assets/wallet-ui.css V1.1.1, assets/wallet-ui.js V1.2.1)

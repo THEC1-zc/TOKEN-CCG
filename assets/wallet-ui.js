@@ -1,4 +1,4 @@
-// Version: V1.2.0
+// Version: V1.2.1
 
 const state = {
   sdk: null,
@@ -270,6 +270,7 @@ function updateUI() {
   }
 
   label.textContent = getDisplayLabel();
+  label.classList.toggle('connected', Boolean(state.address || state.fcUser));
 
   fcBtn.style.display = state.sdk?.actions?.signIn ? 'block' : 'none';
   baseBtn.style.display = state.sdk?.wallet?.getEthereumProvider ? 'block' : 'none';

@@ -1,4 +1,4 @@
-/* Version: V1.1.0 */
+/* Version: V1.1.1 */
 
 .wallet-header {
   position: static;
@@ -38,6 +38,10 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.wallet-label.connected {
+  color: #10B981;
 }
 
 .wallet-menu {
