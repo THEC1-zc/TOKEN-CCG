@@ -1,6 +1,6 @@
 # Project Log
 
-Version: V0.4.0
+Version: V0.4.2
 Last updated: 2026-02-04
 
 ## 2026-02-03
@@ -39,3 +39,5 @@ Last updated: 2026-02-04
 - Added repository URL to decisions log. (docs/decisions.md V1.0.2)
 - Added Admin link to header nav across pages. (index.html V1.4.2, card-minter.html V2.1.2, deck-minter.html V1.6.2, deck-builder.html V1.6.2, collection.html V1.5.2, game.html V1.7.4, generate-cardback.html V1.1.4)
 - Added owner-only Admin link visibility and Admin badge in header. (assets/header.css V1.7.3, assets/admin-link.js V1.0.0, assets/wallet-ui.js V1.1.2, admin.html V1.0.1, index.html V1.4.3, card-minter.html V2.1.3, deck-minter.html V1.6.3, deck-builder.html V1.6.3, collection.html V1.5.3, game.html V1.7.5, generate-cardback.html V1.1.5)
+- Saved official compliance docs index and updated decisions/admin login behavior. (docs/compliance/README.md V1.0.0, docs/decisions.md V1.0.3, docs/admin.md V1.0.2)
+- Split wallet login actions (Farcaster/Base/Wallet/Logout) and added generic avatar fallback. (assets/wallet-ui.js V1.2.0)

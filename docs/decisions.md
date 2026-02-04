@@ -1,6 +1,6 @@
 # Decisions
 
-Version: V1.0.2
+Version: V1.0.3
 Last updated: 2026-02-04
 
 ## Compliance baseline
@@ -16,6 +16,14 @@ Last updated: 2026-02-04
 ## Mini App structure
 - Target Farcaster Mini App spec for embed metadata and manifest.
 - Provide `/.well-known/farcaster.json` and sign it for domain association.
+
+## Wallet login architecture (current decision)
+- Keep a single dropdown UI with separate actions for:
+  - Farcaster login (Mini App context only)
+  - Base wallet login
+  - Browser wallet login
+  - Logout
+- Use Farcaster PFP when available, otherwise a generic browser wallet avatar.
 
 ## Game architecture (current)
 - All apps are static HTML/CSS/JS files with local storage.

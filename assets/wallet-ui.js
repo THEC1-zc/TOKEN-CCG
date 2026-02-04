@@ -1,4 +1,4 @@
-// Version: V1.1.2
+// Version: V1.2.0
 
 const state = {
   sdk: null,
@@ -14,6 +14,17 @@ const LABELS = {
   base: 'Base Wallet',
 };
 
+const FALLBACK_AVATAR =
+  'data:image/svg+xml;utf8,' +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">' +
+      '<defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1">' +
+      '<stop offset="0" stop-color="#10B981"/><stop offset="1" stop-color="#0EA5E9"/>' +
+      '</linearGradient></defs>' +
+      '<rect width="64" height="64" rx="16" fill="url(#g)"/>' +
+      '<path d="M18 24h28a4 4 0 0 1 4 4v12a4 4 0 0 1-4 4H18a4 4 0 0 1-4-4V28a4 4 0 0 1 4-4zm4 8h20" stroke="#0a0a0f" stroke-width="4" stroke-linecap="round"/>' +
+      '</svg>'
+  );
 function shortAddr(addr) {
   if (!addr) return '';
   return addr.slice(0, 6) + '…' + addr.slice(-4);
@@ -33,7 +44,7 @@ function getDisplayLabel() {
 
 function getAvatarUrl() {
   if (state.fcUser?.pfpUrl) return state.fcUser.pfpUrl;
-  return '';
+  return FALLBACK_AVATAR;
 }
 
 async function initSdk() {
@@ -64,6 +75,63 @@ function getProvider() {
     return window.ethereum;
   }
   return null;
+}
+
+function getBaseProvider() {
+  if (state.sdk?.wallet?.getEthereumProvider) {
+    try {
+      const p = state.sdk.wallet.getEthereumProvider();
+      if (p) {
+        state.providerType = 'base';
+        return p;
+      }
+    } catch (_) {}
+  }
+  return null;
+}
+
+function getBrowserProvider() {
+  if (window.ethereum) {
+    state.providerType = 'browser';
+    return window.ethereum;
+  }
+  return null;
+}
+
+async function connectBaseWallet() {
+  const provider = getBaseProvider();
+  if (!provider) {
+    alert('Base wallet provider not found.');
+    return;
+  }
+  state.provider = provider;
+  try {
+    const accounts = await provider.request({ method: 'eth_requestAccounts' });
+    state.address = accounts?.[0] || null;
+    state.chainId = await provider.request({ method: 'eth_chainId' });
+    attachProviderEvents(provider);
+  } catch (err) {
+    console.error('Base wallet connect failed', err);
+  }
+  updateUI();
+}
+
+async function connectBrowserWallet() {
+  const provider = getBrowserProvider();
+  if (!provider) {
+    alert('No browser wallet provider found.');
+    return;
+  }
+  state.provider = provider;
+  try {
+    const accounts = await provider.request({ method: 'eth_requestAccounts' });
+    state.address = accounts?.[0] || null;
+    state.chainId = await provider.request({ method: 'eth_chainId' });
+    attachProviderEvents(provider);
+  } catch (err) {
+    console.error('Browser wallet connect failed', err);
+  }
+  updateUI();
 }
 
 async function connectWallet() {
@@ -142,12 +210,16 @@ function buildHeader() {
   menu.className = 'wallet-menu';
 
   const fcBtn = document.createElement('button');
-  fcBtn.textContent = 'Farcaster Sign In';
+  fcBtn.textContent = 'Farcaster Login';
   fcBtn.onclick = farcasterSignin;
 
-  const connectBtn = document.createElement('button');
-  connectBtn.textContent = 'Connect Wallet';
-  connectBtn.onclick = connectWallet;
+  const baseBtn = document.createElement('button');
+  baseBtn.textContent = 'Base Login';
+  baseBtn.onclick = connectBaseWallet;
+
+  const browserBtn = document.createElement('button');
+  browserBtn.textContent = 'Wallet Login';
+  browserBtn.onclick = connectBrowserWallet;
 
   const disconnectBtn = document.createElement('button');
   disconnectBtn.textContent = 'Logout';
@@ -158,7 +230,8 @@ function buildHeader() {
   sub.textContent = 'Farcaster → Base → Wallet address';
 
   menu.appendChild(fcBtn);
-  menu.appendChild(connectBtn);
+  menu.appendChild(baseBtn);
+  menu.appendChild(browserBtn);
   menu.appendChild(disconnectBtn);
   menu.appendChild(sub);
 
@@ -179,13 +252,13 @@ function buildHeader() {
   if (mount) mount.appendChild(header);
   else document.body.appendChild(header);
 
-  header._els = { avatar, label, menu, fcBtn, connectBtn, disconnectBtn };
+  header._els = { avatar, label, menu, fcBtn, baseBtn, browserBtn, disconnectBtn };
 }
 
 function updateUI() {
   const header = document.getElementById('walletHeader');
   if (!header || !header._els) return;
-  const { avatar, label, fcBtn, disconnectBtn } = header._els;
+  const { avatar, label, fcBtn, baseBtn, browserBtn, disconnectBtn } = header._els;
 
   const avatarUrl = getAvatarUrl();
   if (avatarUrl) {
@@ -199,6 +272,8 @@ function updateUI() {
   label.textContent = getDisplayLabel();
 
   fcBtn.style.display = state.sdk?.actions?.signIn ? 'block' : 'none';
+  baseBtn.style.display = state.sdk?.wallet?.getEthereumProvider ? 'block' : 'none';
+  browserBtn.style.display = window.ethereum ? 'block' : 'none';
   disconnectBtn.style.display = state.address || state.fcUser ? 'block' : 'none';
 
   document.dispatchEvent(new CustomEvent('token:wallet-updated', {
@@ -233,6 +308,10 @@ if (typeof window !== 'undefined') {
     getFarcasterUser: () => state.fcUser,
     getProviderType: () => state.providerType,
     getDisplayLabel,
+    connectBaseWallet,
+    connectBrowserWallet,
+    farcasterSignin,
+    disconnectWallet,
     isOwner: (ownerAddress) => {
       if (!ownerAddress || !state.address) return false;
       return state.address.toLowerCase() === ownerAddress.toLowerCase();

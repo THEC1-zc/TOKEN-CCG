@@ -1,6 +1,6 @@
 # Admin Panel Plan
 
-Version: V1.0.1  
+Version: V1.0.2  
 Last updated: 2026-02-04
 
 ## Goal
@@ -12,6 +12,14 @@ Provide a Supabase-backed admin dashboard for TOKEN with wallet-gated access (ow
   - `0xd29c790466675153A50DF7860B9EFDb689A21cDe`
 - All other wallets see “Access denied”.
 - No server-side auth for now; client-side gating only.
+
+## Login UI Behavior
+- Single dropdown with explicit actions:
+  - Farcaster login (Mini App only)
+  - Base wallet login
+  - Browser wallet login
+  - Logout
+- PFP uses Farcaster avatar when available, otherwise generic wallet avatar.
 
 ## Initial Scope (MVP)
 - Page: `admin.html`
