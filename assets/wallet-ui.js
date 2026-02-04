@@ -1,4 +1,4 @@
-// Version: V1.1.0
+// Version: V1.1.1
 
 const state = {
   sdk: null,
@@ -200,6 +200,14 @@ function updateUI() {
 
   fcBtn.style.display = state.sdk?.actions?.signIn ? 'block' : 'none';
   disconnectBtn.style.display = state.address || state.fcUser ? 'block' : 'none';
+
+  document.dispatchEvent(new CustomEvent('token:wallet-updated', {
+    detail: {
+      address: state.address,
+      fcUser: state.fcUser,
+      providerType: state.providerType
+    }
+  }));
 }
 
 async function boot() {
@@ -217,4 +225,13 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', boot);
 } else {
   boot();
+}
+
+if (typeof window !== 'undefined') {
+  window.TokenWallet = {
+    getAddress: () => state.address,
+    getFarcasterUser: () => state.fcUser,
+    getProviderType: () => state.providerType,
+    getDisplayLabel
+  };
 }

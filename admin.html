@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TOKEN - Admin v1.0.0</title>
+  <!-- Version: V1.0.0 -->
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/wallet-ui.css">
+  <link rel="stylesheet" href="assets/header.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      background: linear-gradient(180deg, #0a0a0f 0%, #12121f 50%, #0a0a0f 100%);
+      padding: 20px;
+      font-family: 'Inter', system-ui, sans-serif;
+      color: #FFFFFF;
+    }
+    .bg-icon {
+      position: fixed;
+      inset: 0;
+      background: url("assets/main%20icon.png") center/360px auto no-repeat;
+      opacity: 0.2;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .container { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; }
+    h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
+      letter-spacing: 4px;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #A1A1AA;
+      font-size: 12px;
+      margin-bottom: 24px;
+    }
+    .status-card {
+      background: #141419;
+      border: 1px solid #27272A;
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .status-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #71717A;
+    }
+    .status-value {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .status-value.ok { color: #10B981; }
+    .status-value.no { color: #EF4444; }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .kpi {
+      background: #141419;
+      border: 1px solid #27272A;
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+    }
+    .kpi-value {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 24px;
+      color: #F7931A;
+    }
+    .kpi-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #71717A;
+    }
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .tab {
+      padding: 8px 12px;
+      background: #1b1b23;
+      border: 1px solid #2a2a33;
+      border-radius: 8px;
+      color: #E4E4E7;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .tab.active {
+      border-color: #F7931A;
+      color: #F7931A;
+    }
+    .panel {
+      display: none;
+      background: #141419;
+      border: 1px solid #27272A;
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .panel.active { display: block; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    th, td {
+      text-align: left;
+      padding: 8px;
+      border-bottom: 1px solid #27272A;
+      color: #E4E4E7;
+    }
+    th {
+      color: #A1A1AA;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 10px;
+    }
+    .empty {
+      text-align: center;
+      color: #71717A;
+      font-size: 12px;
+      padding: 16px 0;
+    }
+    .error {
+      color: #EF4444;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-icon" aria-hidden="true"></div>
+  <header class="app-header">
+    <div class="header-left">
+      <a class="header-brand" href="index.html">
+        <img src="assets/main%20icon.png" alt="TOKEN">
+        <span class="header-title token-brand">TOKEN</span>
+      </a>
+      <span class="header-sep">/</span>
+      <span class="header-page">Admin</span>
+    </div>
+    <nav class="header-nav">
+      <a href="index.html">Home</a>
+      <a href="index.html#how-to-play">How to Play</a>
+      <a href="docs/rules.md">Rules</a>
+    </nav>
+    <div class="header-right">
+      <span class="status-pill">Admin</span>
+      <div id="walletHeaderMount"></div>
+    </div>
+  </header>
+
+  <div class="container">
+    <h1>ADMIN PANEL</h1>
+    <div class="subtitle">Supabase backoffice (owner only)</div>
+
+    <div class="status-card">
+      <div>
+        <div class="status-label">Access</div>
+        <div class="status-value no" id="accessStatus">Not authorized</div>
+      </div>
+      <div>
+        <div class="status-label">Wallet</div>
+        <div class="status-value" id="walletStatus">Disconnected</div>
+      </div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-value" id="kpiCards">0</div>
+        <div class="kpi-label">Cards</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-value" id="kpiDecks">0</div>
+        <div class="kpi-label">Decks</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-value" id="kpiBattleDecks">0</div>
+        <div class="kpi-label">Battle Decks</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-value" id="kpiUsers">0</div>
+        <div class="kpi-label">Users</div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="cards">Cards</button>
+      <button class="tab" data-tab="decks">Decks</button>
+      <button class="tab" data-tab="battleDecks">Battle Decks</button>
+      <button class="tab" data-tab="users">Users</button>
+    </div>
+
+    <div class="panel active" id="panel-cards">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>User</th>
+            <th>House</th>
+            <th>Value</th>
+            <th>Faction</th>
+            <th>Card Name</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody id="cardsTable"></tbody>
+      </table>
+      <div class="empty" id="cardsEmpty">No data.</div>
+      <div class="error" id="cardsError"></div>
+    </div>
+
+    <div class="panel" id="panel-decks">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>User</th>
+            <th>House</th>
+            <th>Faction</th>
+            <th>Cards</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody id="decksTable"></tbody>
+      </table>
+      <div class="empty" id="decksEmpty">No data.</div>
+      <div class="error" id="decksError"></div>
+    </div>
+
+    <div class="panel" id="panel-battleDecks">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>User</th>
+            <th>Name</th>
+            <th>Deck 1</th>
+            <th>Deck 2</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody id="battleDecksTable"></tbody>
+      </table>
+      <div class="empty" id="battleDecksEmpty">No data.</div>
+      <div class="error" id="battleDecksError"></div>
+    </div>
+
+    <div class="panel" id="panel-users">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Wallet</th>
+            <th>Username</th>
+            <th>Farcaster</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody id="usersTable"></tbody>
+      </table>
+      <div class="empty" id="usersEmpty">No data.</div>
+      <div class="error" id="usersError"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase/supabase-client.js"></script>
+  <script src="assets/wallet-ui.js"></script>
+  <script>
+    const OWNER_WALLET = '0xd29c790466675153A50DF7860B9EFDb689A21cDe'.toLowerCase();
+    const accessEl = document.getElementById('accessStatus');
+    const walletEl = document.getElementById('walletStatus');
+
+    function setAccess(isOk) {
+      accessEl.textContent = isOk ? 'Authorized' : 'Not authorized';
+      accessEl.classList.toggle('ok', isOk);
+      accessEl.classList.toggle('no', !isOk);
+    }
+
+    function setWalletLabel() {
+      walletEl.textContent = window.TokenWallet?.getDisplayLabel?.() || 'Disconnected';
+    }
+
+    function isOwner() {
+      const addr = window.TokenWallet?.getAddress?.();
+      return addr && addr.toLowerCase() === OWNER_WALLET;
+    }
+
+    function renderTable(rows, tbodyId, emptyId) {
+      const tbody = document.getElementById(tbodyId);
+      const empty = document.getElementById(emptyId);
+      tbody.innerHTML = '';
+      if (!rows || !rows.length) {
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+      rows.forEach((row) => tbody.appendChild(row));
+    }
+
+    function td(text) {
+      const cell = document.createElement('td');
+      cell.textContent = text ?? '-';
+      return cell;
+    }
+
+    async function loadAdminData() {
+      TokenDB.init();
+      setWalletLabel();
+      const ok = isOwner();
+      setAccess(ok);
+      if (!ok) return;
+
+      try {
+        const [cards, decks, battleDecks, users] = await Promise.all([
+          TokenDB.getAllCards(),
+          TokenDB.getAllDecks(),
+          TokenDB.getAllBattleDecks(),
+          TokenDB.getAllUsers()
+        ]);
+
+        document.getElementById('kpiCards').textContent = cards.length;
+        document.getElementById('kpiDecks').textContent = decks.length;
+        document.getElementById('kpiBattleDecks').textContent = battleDecks.length;
+        document.getElementById('kpiUsers').textContent = users.length;
+
+        const cardRows = cards.map((c) => {
+          const tr = document.createElement('tr');
+          tr.appendChild(td(c.id));
+          tr.appendChild(td(c.user_id));
+          tr.appendChild(td(c.house));
+          tr.appendChild(td(c.display_value || c.value));
+          tr.appendChild(td(c.faction_name));
+          tr.appendChild(td(c.card_name));
+          tr.appendChild(td(c.created_at ? new Date(c.created_at).toLocaleString() : '-'));
+          return tr;
+        });
+        renderTable(cardRows, 'cardsTable', 'cardsEmpty');
+
+        const deckRows = decks.map((d) => {
+          const tr = document.createElement('tr');
+          tr.appendChild(td(d.id));
+          tr.appendChild(td(d.user_id));
+          tr.appendChild(td(d.house));
+          tr.appendChild(td(d.faction_name));
+          tr.appendChild(td(d.cards ? d.cards.length : '-'));
+          tr.appendChild(td(d.created_at ? new Date(d.created_at).toLocaleString() : '-'));
+          return tr;
+        });
+        renderTable(deckRows, 'decksTable', 'decksEmpty');
+
+        const battleRows = battleDecks.map((b) => {
+          const tr = document.createElement('tr');
+          tr.appendChild(td(b.id));
+          tr.appendChild(td(b.user_id));
+          tr.appendChild(td(b.name));
+          tr.appendChild(td(b.deck1_house));
+          tr.appendChild(td(b.deck2_house));
+          tr.appendChild(td(b.created_at ? new Date(b.created_at).toLocaleString() : '-'));
+          return tr;
+        });
+        renderTable(battleRows, 'battleDecksTable', 'battleDecksEmpty');
+
+        const userRows = users.map((u) => {
+          const tr = document.createElement('tr');
+          tr.appendChild(td(u.id));
+          tr.appendChild(td(u.wallet_address));
+          tr.appendChild(td(u.username));
+          tr.appendChild(td(u.farcaster_fid));
+          tr.appendChild(td(u.created_at ? new Date(u.created_at).toLocaleString() : '-'));
+          return tr;
+        });
+        renderTable(userRows, 'usersTable', 'usersEmpty');
+      } catch (err) {
+        document.getElementById('cardsError').textContent = err.message || String(err);
+        document.getElementById('decksError').textContent = err.message || String(err);
+        document.getElementById('battleDecksError').textContent = err.message || String(err);
+        document.getElementById('usersError').textContent = err.message || String(err);
+      }
+    }
+
+    document.querySelectorAll('.tab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach((t) => t.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach((p) => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+      });
+    });
+
+    document.addEventListener('token:wallet-updated', () => {
+      loadAdminData();
+    });
+
+    window.addEventListener('load', () => {
+      loadAdminData();
+    });
+  </script>
+</body>
+</html>

@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>TOKEN - Game v1.7.2</title>
-  <!-- Version: V1.7.2 -->
+  <title>TOKEN - Game v1.7.3</title>
+  <!-- Version: V1.7.3 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -337,7 +337,7 @@
     <div class="captured-cards" id="capturedCards"></div>
   </div>
 
-  <div class="toast" id="toast"><div class="toast-icon" id="toastIcon">🎯</div><div class="toast-title" id="toastTitle"><img class="token-wordmark-toast" src="assets/token_icon.png" alt="TOKEN"></div></div>
+  <div class="toast" id="toast"><div class="toast-icon" id="toastIcon">🎯</div><div class="toast-title" id="toastTitle"></div></div>
 
   <div class="gameover-overlay" id="gameoverOverlay">
     <div class="gameover-content">
@@ -650,7 +650,7 @@ function showAnim(player, card, captured, isToken, cb) {
   const cc = document.getElementById('capturedCards'); cc.innerHTML = ''; captured.forEach(c => { const m = document.createElement('div'); m.className = 'mini-card game-card ' + c.house; m.innerHTML = '<span class="house-' + c.house + '">' + HOUSES[c.house].symbol + '</span><span style="font-size:12px">' + c.displayValue + '</span>'; cc.appendChild(m); });
   o.classList.add('visible'); setTimeout(() => { o.classList.remove('visible'); if (isToken) { showToast('🎯', 'TOKEN!'); setTimeout(cb, 500); } else cb(); }, captured.length ? 900 : 500);
 }
-function showToast(icon, title) { const t = document.getElementById('toast'); document.getElementById('toastIcon').textContent = icon; document.getElementById('toastTitle').textContent = title; t.classList.add('visible'); setTimeout(() => t.classList.remove('visible'), 1000); }
+function showToast(icon, title) { const t = document.getElementById('toast'); const iconEl = document.getElementById('toastIcon'); const titleEl = document.getElementById('toastTitle'); if (title === 'TOKEN!') { iconEl.textContent = ''; titleEl.innerHTML = '<img class="token-wordmark-toast" src="assets/token_icon.png" alt="TOKEN">'; } else { iconEl.textContent = icon; titleEl.textContent = title; } t.classList.add('visible'); setTimeout(() => t.classList.remove('visible'), 1000); }
 
 function showSurrender() { document.getElementById('surrenderOverlay').classList.add('visible'); }
 function hideSurrender() { document.getElementById('surrenderOverlay').classList.remove('visible'); }

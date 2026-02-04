@@ -1,6 +1,6 @@
 // ============================================
 // TOKEN-CCG Supabase Client
-// Version: V1.0.3
+// Version: V1.0.4
 // ============================================
 
 const SUPABASE_URL = 'https://fyuqowfoklelfyzgndga.supabase.co';
@@ -119,6 +119,18 @@ async function getUserCards(userId) {
   return data;
 }
 
+// Admin: get all cards
+async function getAllCards(limit = 200) {
+  const { data, error } = await supabase
+    .from('cards')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return data;
+}
+
 // Create a new card
 async function createCard(userId, cardData) {
   const { data, error } = await supabase
@@ -183,6 +195,18 @@ async function getUserDecks(userId) {
   return data;
 }
 
+// Admin: get all decks
+async function getAllDecks(limit = 200) {
+  const { data, error } = await supabase
+    .from('decks')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return data;
+}
+
 // Create a new deck
 async function createDeck(userId, deckData) {
   const { data, error } = await supabase
@@ -223,6 +247,18 @@ async function getUserBattleDecks(userId) {
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
   
+  if (error) throw error;
+  return data;
+}
+
+// Admin: get all battle decks
+async function getAllBattleDecks(limit = 200) {
+  const { data, error } = await supabase
+    .from('battle_decks')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
   if (error) throw error;
   return data;
 }
@@ -305,6 +341,18 @@ async function getLeaderboard(limit = 100) {
     .select('*')
     .limit(limit);
   
+  if (error) throw error;
+  return data;
+}
+
+// Admin: get all users
+async function getAllUsers(limit = 200) {
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
   if (error) throw error;
   return data;
 }
@@ -395,21 +443,26 @@ if (typeof window !== 'undefined') {
     signInWithFarcaster,
     // Cards
     getUserCards,
+    getAllCards,
     createCard,
     updateCardXP,
     deleteCard,
     // Decks
     getUserDecks,
+    getAllDecks,
     createDeck,
     deleteDeck,
     // Battle Decks
     getUserBattleDecks,
+    getAllBattleDecks,
     createBattleDeck,
     deleteBattleDeck,
     // Games
     recordGame,
     getUserGames,
     getLeaderboard,
+    // Admin
+    getAllUsers,
     // Migration
     migrateFromLocalStorage
   };

@@ -1,17 +1,17 @@
 # TOKEN - Project Roadmap
 
-> Ultimo aggiornamento: Febbraio 2025
-> Versione: 0.2.0
+> Ultimo aggiornamento: 4 Febbraio 2026
+> Versione: V0.2.1
 
 ---
 
 ## 📊 STATUS PROGETTO
 
 ```
-████████████████████░░░░░░░░ 60% Complete
+█████████████████████░░░░░░ 65% Complete
 ```
 
-**Fase attuale**: Offchain Testing Suite ✅ → Multiplayer & Blockchain
+**Fase attuale**: Offchain Testing Suite ✅ → Supabase Data Layer (WIP) → Multiplayer & Blockchain
 
 ---
 
@@ -120,13 +120,23 @@ Formato: `FILENAME_vX.Y.Z.ext`
   - [x] How to play guide
   - [x] Quick rules
 
-### ❌ Fase 5: Multiplayer - DA FARE
+### 🟡 Fase 5: Data Layer (Supabase) - IN CORSO
+- [x] Client Supabase integrato nei file HTML principali
+- [x] Guest user helper per test offchain
+- [x] Lettura collezione/mazzi/battle deck da Supabase (con fallback locale)
+- [ ] Minting carte su DB (fix RLS/permessi/errori runtime)
+- [ ] Minting deck/battle deck su DB
+- [ ] Storage bucket per immagini carte
+- [ ] Upload immagine carta su Storage + URL nel DB
+- [ ] Disattivare fallback locale dopo stabilizzazione
+
+### ❌ Fase 6: Multiplayer - DA FARE
 - [ ] WebSocket integration
 - [ ] Matchmaking
 - [ ] Battle system (best of 3)
 - [ ] Real-time sync
 
-### ❌ Fase 6: Blockchain - DA FARE
+### ❌ Fase 7: Blockchain - DA FARE
 - [ ] Smart Contract ERC-721
 - [ ] Wallet integration (RainbowKit)
 - [ ] Minting on-chain
@@ -134,13 +144,13 @@ Formato: `FILENAME_vX.Y.Z.ext`
 - [ ] Burn mechanism
 - [ ] OpenSea compatibility
 
-### ❌ Fase 7: Economy - DA FARE
+### ❌ Fase 8: Economy - DA FARE
 - [ ] Token integration
 - [ ] Entry fee system
 - [ ] Payout distribution
 - [ ] Marketplace interno
 
-### ❌ Fase 8: Polish - DA FARE
+### ❌ Fase 9: Polish - DA FARE
 - [ ] Sound effects
 - [ ] Animazioni
 - [ ] Mobile optimization
@@ -155,25 +165,25 @@ Formato: `FILENAME_vX.Y.Z.ext`
 
 | # | Task | Stato | Output |
 |---|------|-------|--------|
-| 1 | Test completo su Safari Mac | ⏳ | QA Report |
-| 2 | Fix bug emersi da testing | ⏳ | v1.x.x patches |
-| 3 | Mobile responsive check | ⏳ | CSS fixes |
+| 1 | Fix minting Supabase (RLS/permessi/console error) | ⏳ | DB write OK |
+| 2 | Storage bucket + upload carte | ⏳ | URL immagini su DB |
+| 3 | Verifica end-to-end mint → collection | ⏳ | QA Report |
 
 ### Priorità 🟡 MEDIA
 
 | # | Task | Stato | Output |
 |---|------|-------|--------|
-| 4 | Tutorial interattivo | ❌ | tutorial_v1.0.0.html |
-| 5 | AI migliorata | ❌ | game_v1.1.0.html |
-| 6 | Sound effects base | ❌ | sounds/ folder |
+| 4 | Test completo su Safari Mac | ⏳ | QA Report |
+| 5 | Mobile responsive check | ⏳ | CSS fixes |
+| 6 | Tutorial interattivo | ❌ | tutorial_v1.0.0.html |
 
 ### Priorità 🟢 BASSA
 
 | # | Task | Stato | Output |
 |---|------|-------|--------|
-| 7 | Animazioni carte | ❌ | CSS animations |
-| 8 | Leaderboard locale | ❌ | leaderboard_v1.0.0.html |
-| 9 | Achievements | ❌ | Sistema badge |
+| 7 | AI migliorata | ❌ | game_v1.1.0.html |
+| 8 | Sound effects base | ❌ | sounds/ folder |
+| 9 | Animazioni carte | ❌ | CSS animations |
 
 ---
 
@@ -193,11 +203,12 @@ Formato: `FILENAME_vX.Y.Z.ext`
 
 | File | Descrizione | Versione |
 |------|-------------|----------|
-| `index.html` | Hub principale | 1.0.0 |
-| `card-minter_v1.7.2.html` | Crea carta singola | 1.7.2 |
-| `deck-minter_v1.1.0.html` | Genera mazzo 10 carte | 1.1.0 |
-| `collection_v1.0.0.html` | Visualizza collezione | 1.0.0 |
-| `deck-builder_v1.0.0.html` | Costruisci Battle Deck | 1.0.0 |
+| `index.html` | Hub principale | 1.4.1 |
+| `card-minter.html` | Crea carta singola | 2.1.1 |
+| `deck-minter.html` | Genera mazzo 10 carte | 1.6.1 |
+| `collection.html` | Visualizza collezione | 1.5.1 |
+| `deck-builder.html` | Costruisci Battle Deck | 1.6.1 |
+| `game.html` | Gameplay | 1.7.3 |
 | `game_v1.0.0.html` | Gioca vs AI | 1.0.0 |
 
 ---

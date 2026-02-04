@@ -1,6 +1,6 @@
 # Project Log
 
-Version: V0.3.3
+Version: V0.3.7
 Last updated: 2026-02-04
 
 ## 2026-02-03
@@ -32,3 +32,7 @@ Last updated: 2026-02-04
 
 ## 2026-02-04
 - Replaced header TOKEN image with gradient text branding and moved token_icon usage to hero/back/toast only. (assets/header.css V1.7.2, index.html V1.4.1, card-minter.html V2.1.1, deck-minter.html V1.6.1, deck-builder.html V1.6.1, collection.html V1.5.1, game.html V1.7.2, generate-cardback.html V1.1.3)
+- Switched game TOKEN toast to use only the hero token icon (no text). (game.html V1.7.3)
+- Updated roadmaps with Supabase data-layer phase, priorities, and current file versions. (docs/roadmap.md V0.2.1, docs/ROADMAP_v0.2.0.md V0.2.1)
+- Added admin panel plan and access rules. (docs/admin.md V1.0.0)
+- Added admin dashboard page and admin data helpers, plus wallet UI export hooks. (admin.html V1.0.0, supabase/supabase-client.js V1.0.4, assets/wallet-ui.js V1.1.1, docs/admin.md V1.0.1)
