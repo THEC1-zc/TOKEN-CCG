@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Admin v1.0.5</title>
-  <!-- Version: V1.0.5 -->
+  <title>TOKEN - Admin v1.0.7</title>
+  <!-- Version: V1.0.7 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -205,6 +205,10 @@
       font-size: 11px;
       color: #E4E4E7;
     }
+    .tools.disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
@@ -386,13 +390,38 @@
       accessEl.classList.toggle('no', !isOk);
     }
 
-    function setWalletLabel() {
-      walletEl.textContent = window.TokenWallet?.getDisplayLabel?.() || 'Disconnected';
+    function shortAddr(addr) {
+      if (!addr) return '';
+      return addr.slice(0, 6) + '…' + addr.slice(-4);
     }
 
-    function isOwner() {
+    async function getConnectedAddress() {
       const addr = window.TokenWallet?.getAddress?.();
+      if (addr) return addr;
+      try {
+        if (window.ethereum?.request) {
+          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          return accounts?.[0] || null;
+        }
+      } catch (_) {}
+      return null;
+    }
+
+    async function setWalletLabel() {
+      const addr = await getConnectedAddress();
+      walletEl.textContent = addr ? shortAddr(addr) : 'Disconnected';
+    }
+
+    async function isOwner() {
+      const addr = await getConnectedAddress();
       return addr && OWNER_WALLETS.includes(addr.toLowerCase());
+    }
+
+    function setToolsEnabled(enabled) {
+      document.querySelectorAll('.tools').forEach((el) => {
+        if (enabled) el.classList.remove('disabled');
+        else el.classList.add('disabled');
+      });
     }
 
     function renderTable(rows, tbodyId, emptyId) {
@@ -415,9 +444,10 @@
 
     async function loadAdminData() {
       TokenDB.init();
-      setWalletLabel();
-      const ok = isOwner();
+      await setWalletLabel();
+      const ok = await isOwner();
       setAccess(ok);
+      setToolsEnabled(ok);
       if (!ok) return;
 
       try {
@@ -496,7 +526,7 @@
     }
 
     async function adminMint() {
-      if (!isOwner()) {
+      if (!await isOwner()) {
         alert('Not authorized.');
         return;
       }
@@ -531,7 +561,7 @@
     }
 
     async function adminBurn(kind) {
-      if (!isOwner()) {
+      if (!await isOwner()) {
         alert('Not authorized.');
         return;
       }
@@ -572,11 +602,13 @@
 
     document.addEventListener('token:wallet-updated', () => {
       loadAdminData();
+      updateContractStatus();
     });
 
     window.addEventListener('load', () => {
       loadAdminData();
       updateContractStatus();
+      setTimeout(loadAdminData, 800);
     });
 
     async function updateContractStatus() {

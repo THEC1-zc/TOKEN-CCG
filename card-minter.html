@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Card Minter v2.1.4</title>
-  <!-- Version: V2.1.4 -->
+  <title>TOKEN - Card Minter v2.1.6</title>
+  <!-- Version: V2.1.6 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -953,6 +953,57 @@
       font-size: 9px;
       margin-top: 24px;
     }
+
+    .onchain-box {
+      margin-top: 16px;
+      padding: 12px;
+      border: 1px dashed #27272A;
+      border-radius: 10px;
+      background: #0f0f14;
+    }
+    .onchain-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #E4E4E7;
+      margin-bottom: 8px;
+    }
+    .onchain-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .onchain-row input {
+      background: #0a0a0f;
+      border: 1px solid #27272A;
+      border-radius: 8px;
+      color: #FFFFFF;
+      padding: 8px 10px;
+      font-size: 12px;
+      min-width: 180px;
+      flex: 1;
+    }
+    .onchain-row button {
+      background: linear-gradient(135deg, #10B981, #6EE7B7);
+      border: none;
+      color: #0a0a0f;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .onchain-row .ghost {
+      background: #27272A;
+      color: #FFFFFF;
+      border: 1px solid #3f3f46;
+      font-weight: 500;
+    }
+    .onchain-note {
+      font-size: 11px;
+      color: #71717A;
+    }
   </style>
 </head>
 <body>
@@ -1131,6 +1182,17 @@
         <button class="mint-button" id="mintButton" onclick="mintCard()" disabled>
           FILL ALL FIELDS
         </button>
+
+        <div class="onchain-box">
+          <div class="onchain-title">Onchain Mint (Testnet)</div>
+          <div class="onchain-row">
+            <input id="onchainCardContract" placeholder="Card contract address" value="0x561F84D0b4246b64dFbAb1BDf87D6842412F1A18">
+            <input id="onchainCardUri" placeholder="Token URI (https://...json)">
+            <button onclick="mintOnchainCard()">Mint Onchain</button>
+            <button class="ghost" onclick="fillOnchainUri()">Use Template</button>
+          </div>
+          <div class="onchain-note">Base Sepolia testnet. Mint is public; admin can burn in Admin panel.</div>
+        </div>
       </div>
       
       <!-- Preview -->
@@ -2047,5 +2109,38 @@
     document.addEventListener('DOMContentLoaded', initUI);
   </script>
   <script type="module" src="assets/wallet-ui.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <script>
+    function fillOnchainUri() {
+      const contract = document.getElementById('onchainCardContract').value.trim().slice(0, 8);
+      const now = Date.now();
+      document.getElementById('onchainCardUri').value = `https://example.com/token/${contract}-${now}.json`;
+    }
+
+    async function mintOnchainCard() {
+      const address = document.getElementById('onchainCardContract').value.trim();
+      const uri = document.getElementById('onchainCardUri').value.trim();
+      if (!address || !uri) {
+        alert('Enter contract address and token URI.');
+        return;
+      }
+      if (!window.ethereum) {
+        alert('No wallet provider found.');
+        return;
+      }
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const abi = ['function mint(string uri) external returns (uint256)'];
+        const contract = new ethers.Contract(address, abi, signer);
+        const tx = await contract.mint(uri);
+        await tx.wait();
+        alert('Onchain mint complete.');
+      } catch (err) {
+        console.error(err);
+        alert('Onchain mint failed: ' + (err?.message || err));
+      }
+    }
+  </script>
 </body>
 </html>
