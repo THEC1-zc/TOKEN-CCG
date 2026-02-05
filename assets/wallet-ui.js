@@ -1,4 +1,4 @@
-// Version: V1.2.2
+// Version: V1.2.3
 
 const state = {
   sdk: null,
@@ -27,7 +27,8 @@ const FALLBACK_AVATAR =
   );
 function shortAddr(addr) {
   if (!addr) return '';
-  return addr.slice(0, 6) + '…' + addr.slice(-4);
+  const s = String(addr);
+  return s.slice(0, 6) + '…' + s.slice(-4);
 }
 
 function isBaseChain(chainId) {
@@ -35,8 +36,10 @@ function isBaseChain(chainId) {
 }
 
 function getDisplayLabel() {
-  if (state.fcUser?.username) return state.fcUser.username;
-  if (state.fcUser?.displayName) return state.fcUser.displayName;
+  const u = state.fcUser?.username;
+  if (u) return typeof u === 'string' ? u : String(u);
+  const dn = state.fcUser?.displayName;
+  if (dn) return typeof dn === 'string' ? dn : String(dn);
   if (state.providerType === 'base' && state.address) return LABELS.base + ' • ' + shortAddr(state.address);
   if (state.address) return shortAddr(state.address);
   return LABELS.disconnected;
@@ -181,6 +184,10 @@ function attachProviderEvents(provider) {
 
 async function farcasterSignin() {
   if (!state.sdk?.actions?.signIn) return;
+  if (!state.sdk?.context?.user && !state.sdk?.context?.client) {
+    alert('Farcaster login works only inside a Mini App.');
+    return;
+  }
   try {
     const nonce = (globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : Math.random().toString(36).slice(2, 10)) + 'fc';
     // NOTE: signIn result must be verified server-side before it is trusted.
@@ -274,7 +281,7 @@ function updateUI() {
     avatar.style.display = 'none';
   }
 
-  label.textContent = getDisplayLabel();
+  label.textContent = String(getDisplayLabel());
   label.classList.toggle('connected', Boolean(state.address || state.fcUser));
 
   fcBtn.style.display = state.sdk?.actions?.signIn ? 'block' : 'none';
