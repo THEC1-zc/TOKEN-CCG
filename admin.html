@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Admin v1.0.2</title>
-  <!-- Version: V1.0.2 -->
+  <title>TOKEN - Admin v1.0.3</title>
+  <!-- Version: V1.0.3 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -141,6 +141,50 @@
       font-size: 12px;
       margin-top: 8px;
     }
+
+    .tools {
+      margin-top: 16px;
+      padding: 12px;
+      border: 1px dashed #27272A;
+      border-radius: 10px;
+      background: #0f0f14;
+    }
+    .tools h3 {
+      font-size: 12px;
+      color: #E4E4E7;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .tools-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .tools input, .tools select {
+      background: #0a0a0f;
+      border: 1px solid #27272A;
+      border-radius: 8px;
+      color: #FFFFFF;
+      padding: 8px 10px;
+      font-size: 12px;
+      min-width: 180px;
+    }
+    .tools button {
+      background: #27272A;
+      border: 1px solid #3f3f46;
+      color: #FFFFFF;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .tools button:hover { border-color: #F7931A; }
+    .tools .note {
+      font-size: 11px;
+      color: #71717A;
+    }
   </style>
 </head>
 <body>
@@ -223,6 +267,15 @@
       </table>
       <div class="empty" id="cardsEmpty">No data.</div>
       <div class="error" id="cardsError"></div>
+      <div class="tools">
+        <h3>Cleanup Tools (Admin Only)</h3>
+        <div class="tools-row">
+          <input id="cardContract" placeholder="Card contract address">
+          <input id="cardTokenId" placeholder="Card tokenId (ERC-721)">
+          <button onclick="adminBurn('card')">Burn Card</button>
+        </div>
+        <div class="note">Requires Base Sepolia, admin wallet, and contract deployed.</div>
+      </div>
     </div>
 
     <div class="panel" id="panel-decks">
@@ -241,6 +294,15 @@
       </table>
       <div class="empty" id="decksEmpty">No data.</div>
       <div class="error" id="decksError"></div>
+      <div class="tools">
+        <h3>Cleanup Tools (Admin Only)</h3>
+        <div class="tools-row">
+          <input id="deckContract" placeholder="Deck contract address">
+          <input id="deckTokenId" placeholder="Deck tokenId (ERC-721)">
+          <button onclick="adminBurn('deck')">Burn Deck</button>
+        </div>
+        <div class="note">Decks are ERC-721 for now; admin burn only.</div>
+      </div>
     </div>
 
     <div class="panel" id="panel-battleDecks">
@@ -282,8 +344,12 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase/supabase-client.js"></script>
   <script src="assets/wallet-ui.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <script>
-    const OWNER_WALLET = '0xd29c790466675153A50DF7860B9EFDb689A21cDe'.toLowerCase();
+    const OWNER_WALLETS = [
+      '0xd29c790466675153A50DF7860B9EFDb689A21cDe',
+      '0x3b6CF1436B630035Ac1C6eEA0A8cF3C7C5f6d0f8'
+    ].map((w) => w.toLowerCase());
     const accessEl = document.getElementById('accessStatus');
     const walletEl = document.getElementById('walletStatus');
 
@@ -299,7 +365,7 @@
 
     function isOwner() {
       const addr = window.TokenWallet?.getAddress?.();
-      return addr && addr.toLowerCase() === OWNER_WALLET;
+      return addr && OWNER_WALLETS.includes(addr.toLowerCase());
     }
 
     function renderTable(rows, tbodyId, emptyId) {
@@ -392,6 +458,37 @@
         document.getElementById('decksError').textContent = err.message || String(err);
         document.getElementById('battleDecksError').textContent = err.message || String(err);
         document.getElementById('usersError').textContent = err.message || String(err);
+      }
+    }
+
+    async function adminBurn(kind) {
+      if (!isOwner()) {
+        alert('Not authorized.');
+        return;
+      }
+      const contractField = kind === 'card' ? 'cardContract' : 'deckContract';
+      const tokenField = kind === 'card' ? 'cardTokenId' : 'deckTokenId';
+      const address = document.getElementById(contractField).value.trim();
+      const tokenId = document.getElementById(tokenField).value.trim();
+      if (!address || !tokenId) {
+        alert('Enter contract address and tokenId.');
+        return;
+      }
+      if (!window.ethereum) {
+        alert('No wallet provider found.');
+        return;
+      }
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const abi = ['function adminBurn(uint256 tokenId) external'];
+        const contract = new ethers.Contract(address, abi, signer);
+        const tx = await contract.adminBurn(tokenId);
+        await tx.wait();
+        alert('Burn complete.');
+      } catch (err) {
+        console.error(err);
+        alert('Burn failed: ' + (err?.message || err));
       }
     }
 

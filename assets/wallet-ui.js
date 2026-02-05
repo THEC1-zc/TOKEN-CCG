@@ -1,4 +1,4 @@
-// Version: V1.3.0
+// Version: V1.3.1
 
 const state = {
   sdk: null,
@@ -13,6 +13,11 @@ const LABELS = {
   disconnected: 'Login',
   base: 'Base Wallet',
 };
+
+const OWNER_WALLETS = [
+  '0xd29c790466675153A50DF7860B9EFDb689A21cDe',
+  '0x3b6CF1436B630035Ac1C6eEA0A8cF3C7C5f6d0f8'
+].map((w) => w.toLowerCase());
 
 const FALLBACK_AVATAR =
   'data:image/svg+xml;utf8,' +
@@ -341,7 +346,7 @@ function updateUI() {
   baseBtn.style.display = Boolean(baseProvider && typeof baseProvider.request === 'function') ? 'block' : 'none';
   browserBtn.style.display = window.ethereum ? 'block' : 'none';
   disconnectBtn.style.display = state.address || state.fcUser ? 'block' : 'none';
-  adminBtn.style.display = window.TokenWallet?.isOwner?.('0xd29c790466675153A50DF7860B9EFDb689A21cDe') ? 'block' : 'none';
+  adminBtn.style.display = isOwnerAny(OWNER_WALLETS) ? 'block' : 'none';
 
   document.dispatchEvent(new CustomEvent('token:wallet-updated', {
     detail: {
@@ -391,6 +396,14 @@ if (typeof window !== 'undefined') {
     isOwner: (ownerAddress) => {
       if (!ownerAddress || !state.address) return false;
       return state.address.toLowerCase() === ownerAddress.toLowerCase();
-    }
+    },
+    isOwnerAny
   };
+}
+
+function isOwnerAny(owners) {
+  if (!state.address || !owners) return false;
+  const addr = state.address.toLowerCase();
+  const list = Array.isArray(owners) ? owners : [owners];
+  return list.some((o) => String(o).toLowerCase() === addr);
 }

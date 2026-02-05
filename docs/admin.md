@@ -1,6 +1,6 @@
 # Admin Panel Plan
 
-Version: V1.0.2  
+Version: V1.0.3  
 Last updated: 2026-02-04
 
 ## Goal
@@ -10,6 +10,7 @@ Provide a Supabase-backed admin dashboard for TOKEN with wallet-gated access (ow
 - Wallet login required.
 - Only allow access if connected wallet matches the owner address:
   - `0xd29c790466675153A50DF7860B9EFDb689A21cDe`
+  - `0x3b6CF1436B630035Ac1C6eEA0A8cF3C7C5f6d0f8`
 - All other wallets see “Access denied”.
 - No server-side auth for now; client-side gating only.
 
@@ -31,7 +32,11 @@ Provide a Supabase-backed admin dashboard for TOKEN with wallet-gated access (ow
   - Battle Decks
   - Users / Stats
 - Minimal layout and table placeholders.
- - No admin actions in MVP (delete/reset will come later).
+- No admin actions in MVP (delete/reset will come later).
+
+## Cleanup Tools (Testnet)
+- Admin burn controls for ERC-721 card and deck contracts.
+- Uses admin-only `adminBurn(uint256 tokenId)`.
 
 ## Data Model Expectations (Supabase)
 - Tables are read-only for admin MVP (no writes).
