@@ -1,6 +1,6 @@
 # Project Log
 
-Version: V0.5.1
+Version: V0.5.2
 Last updated: 2026-02-04
 
 ## 2026-02-03
@@ -50,3 +50,4 @@ Last updated: 2026-02-04
 - Improved browser wallet provider selection and error messaging. (assets/wallet-ui.js V1.2.6)
 - Hardened Base login guard and softened Farcaster login errors outside MiniApp. (assets/wallet-ui.js V1.2.7)
 - Improved MetaMask selection and account restore on load. (assets/wallet-ui.js V1.2.8)
+- Reworked header login UI: removed admin tags, added login icon + dropdown with admin link only for owner. (assets/wallet-ui.css V1.2.0, assets/wallet-ui.js V1.3.0, index.html V1.4.4, card-minter.html V2.1.4, deck-minter.html V1.6.4, deck-builder.html V1.6.4, collection.html V1.5.4, game.html V1.7.6, generate-cardback.html V1.1.6, admin.html V1.0.2)

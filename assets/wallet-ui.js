@@ -1,4 +1,4 @@
-// Version: V1.2.8
+// Version: V1.3.0
 
 const state = {
   sdk: null,
@@ -10,7 +10,7 @@ const state = {
 };
 
 const LABELS = {
-  disconnected: 'Connect',
+  disconnected: 'Login',
   base: 'Base Wallet',
 };
 
@@ -22,7 +22,7 @@ const FALLBACK_AVATAR =
       '<stop offset="0" stop-color="#10B981"/><stop offset="1" stop-color="#0EA5E9"/>' +
       '</linearGradient></defs>' +
       '<rect width="64" height="64" rx="16" fill="url(#g)"/>' +
-      '<path d="M18 24h28a4 4 0 0 1 4 4v12a4 4 0 0 1-4 4H18a4 4 0 0 1-4-4V28a4 4 0 0 1 4-4zm4 8h20" stroke="#0a0a0f" stroke-width="4" stroke-linecap="round"/>' +
+      '<path d="M20 22h24a4 4 0 0 1 4 4v12a4 4 0 0 1-4 4H20a4 4 0 0 1-4-4V26a4 4 0 0 1 4-4zm4 8h16" stroke="#0a0a0f" stroke-width="4" stroke-linecap="round"/>' +
       '</svg>'
   );
 function shortAddr(addr) {
@@ -242,26 +242,41 @@ function buildHeader() {
   avatar.className = 'wallet-avatar';
   avatar.alt = 'avatar';
 
+  const icon = document.createElement('span');
+  icon.className = 'wallet-icon';
+  icon.textContent = '⇄';
+
   const label = document.createElement('span');
   label.className = 'wallet-label';
+
+  const nameLine = document.createElement('span');
+  nameLine.className = 'wallet-name';
+  const addrLine = document.createElement('span');
+  addrLine.className = 'wallet-address';
 
   const menu = document.createElement('div');
   menu.className = 'wallet-menu';
 
   const fcBtn = document.createElement('button');
-  fcBtn.textContent = 'Farcaster Login';
+  fcBtn.innerHTML = '<span class="menu-row"><span class="menu-icon fc">FC</span><span>Farcaster Login</span></span>';
   fcBtn.onclick = farcasterSignin;
 
   const baseBtn = document.createElement('button');
-  baseBtn.textContent = 'Base Login';
+  baseBtn.innerHTML = '<span class="menu-row"><span class="menu-icon base">B</span><span>Base Login</span></span>';
   baseBtn.onclick = connectBaseWallet;
 
   const browserBtn = document.createElement('button');
-  browserBtn.textContent = 'Wallet Login';
+  browserBtn.innerHTML = '<span class="menu-row"><span class="menu-icon wallet">W</span><span>Wallet Login</span></span>';
   browserBtn.onclick = connectBrowserWallet;
 
+  const adminBtn = document.createElement('button');
+  adminBtn.innerHTML = '<span class="menu-row"><span class="menu-icon">A</span><span>Admin</span></span>';
+  adminBtn.onclick = () => {
+    window.location.href = 'admin.html';
+  };
+
   const disconnectBtn = document.createElement('button');
-  disconnectBtn.textContent = 'Logout';
+  disconnectBtn.innerHTML = '<span class="menu-row"><span class="menu-icon">⏻</span><span>Logout</span></span>';
   disconnectBtn.onclick = disconnectWallet;
 
   const sub = document.createElement('div');
@@ -271,10 +286,15 @@ function buildHeader() {
   menu.appendChild(fcBtn);
   menu.appendChild(baseBtn);
   menu.appendChild(browserBtn);
+  menu.appendChild(adminBtn);
   menu.appendChild(disconnectBtn);
   menu.appendChild(sub);
 
+  label.appendChild(nameLine);
+  label.appendChild(addrLine);
+
   button.appendChild(avatar);
+  button.appendChild(icon);
   button.appendChild(label);
 
   button.onclick = () => {
@@ -291,13 +311,13 @@ function buildHeader() {
   if (mount) mount.appendChild(header);
   else document.body.appendChild(header);
 
-  header._els = { avatar, label, menu, fcBtn, baseBtn, browserBtn, disconnectBtn };
+  header._els = { avatar, icon, label, nameLine, addrLine, menu, fcBtn, baseBtn, browserBtn, adminBtn, disconnectBtn };
 }
 
 function updateUI() {
   const header = document.getElementById('walletHeader');
   if (!header || !header._els) return;
-  const { avatar, label, fcBtn, baseBtn, browserBtn, disconnectBtn } = header._els;
+  const { avatar, icon, label, nameLine, addrLine, fcBtn, baseBtn, browserBtn, adminBtn, disconnectBtn } = header._els;
 
   const avatarUrl = getAvatarUrl();
   if (avatarUrl) {
@@ -308,8 +328,12 @@ function updateUI() {
     avatar.style.display = 'none';
   }
 
-  label.textContent = String(getDisplayLabel());
+  const displayLabel = String(getDisplayLabel());
+  const shortAddress = state.address ? shortAddr(state.address) : '';
+  nameLine.textContent = displayLabel || LABELS.disconnected;
+  addrLine.textContent = shortAddress || '';
   label.classList.toggle('connected', Boolean(state.address || state.fcUser));
+  icon.style.display = state.address || state.fcUser ? 'none' : 'inline-flex';
 
   const isMiniApp = Boolean(state.sdk?.context?.user || state.sdk?.context?.client);
   const baseProvider = getBaseProvider();
@@ -317,6 +341,7 @@ function updateUI() {
   baseBtn.style.display = Boolean(baseProvider && typeof baseProvider.request === 'function') ? 'block' : 'none';
   browserBtn.style.display = window.ethereum ? 'block' : 'none';
   disconnectBtn.style.display = state.address || state.fcUser ? 'block' : 'none';
+  adminBtn.style.display = window.TokenWallet?.isOwner?.('0xd29c790466675153A50DF7860B9EFDb689A21cDe') ? 'block' : 'none';
 
   document.dispatchEvent(new CustomEvent('token:wallet-updated', {
     detail: {

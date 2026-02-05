@@ -3,8 +3,8 @@
 <head>
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
-  <title>Generate Cardback v1.1.5</title>
-  <!-- Version: V1.1.5 -->
+  <title>Generate Cardback v1.1.6</title>
+  <!-- Version: V1.1.6 -->
 </head>
 <body style="background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;">
   <div style="position:fixed;inset:0;background:url(&quot;assets/main%20icon.png&quot;) center/360px auto no-repeat;opacity:0.25;pointer-events:none;z-index:0;" aria-hidden="true"></div>
@@ -21,11 +21,9 @@
       <a href="index.html">Home</a>
       <a href="index.html#how-to-play">How to Play</a>
       <a href="docs/rules.md">Rules</a>
-      <a href="admin.html" class="admin-link hidden">Admin</a>
     </nav>
     <div class="header-right">
       <span class="status-pill">Test Mode</span>
-      <span class="admin-badge hidden" id="adminBadge">Admin</span>
       <div id="walletHeaderMount"></div>
     </div>
   </header>
@@ -33,7 +31,6 @@
 <br>
 <a id="dl" download="cardback.png" style="color:#fff;padding:12px 24px;background:#F7931A;border-radius:8px;text-decoration:none;margin-top:20px;">Download cardback.png</a>
 <script type="module" src="assets/wallet-ui.js"></script>
-<script src="assets/admin-link.js"></script>
 <script>
 const c = document.getElementById('c'), ctx = c.getContext('2d');
 const w = 540, h = 810;
