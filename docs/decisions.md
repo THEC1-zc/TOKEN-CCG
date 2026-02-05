@@ -1,6 +1,6 @@
 # Decisions
 
-Version: V1.0.3
+Version: V1.0.4
 Last updated: 2026-02-04
 
 ## Compliance baseline
@@ -24,6 +24,9 @@ Last updated: 2026-02-04
   - Browser wallet login
   - Logout
 - Use Farcaster PFP when available, otherwise a generic browser wallet avatar.
+
+## Testnet contracts (Base Sepolia)
+- TokenCard (ERC-721): `0x561F84D0b4246b64dFbAb1BDf87D6842412F1A18`
 
 ## Game architecture (current)
 - All apps are static HTML/CSS/JS files with local storage.

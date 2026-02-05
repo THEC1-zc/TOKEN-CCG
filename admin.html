@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Admin v1.0.3</title>
-  <!-- Version: V1.0.3 -->
+  <title>TOKEN - Admin v1.0.4</title>
+  <!-- Version: V1.0.4 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -181,6 +181,16 @@
       font-size: 12px;
     }
     .tools button:hover { border-color: #F7931A; }
+    .tools .primary {
+      background: linear-gradient(135deg, #10B981, #6EE7B7);
+      border: none;
+      color: #0a0a0f;
+      font-weight: 600;
+    }
+    .tools .danger {
+      border-color: #EF4444;
+      color: #FEE2E2;
+    }
     .tools .note {
       font-size: 11px;
       color: #71717A;
@@ -268,11 +278,15 @@
       <div class="empty" id="cardsEmpty">No data.</div>
       <div class="error" id="cardsError"></div>
       <div class="tools">
-        <h3>Cleanup Tools (Admin Only)</h3>
+        <h3>Test Tools (Admin Only)</h3>
         <div class="tools-row">
-          <input id="cardContract" placeholder="Card contract address">
+          <input id="cardContract" placeholder="Card contract address" value="0x561F84D0b4246b64dFbAb1BDf87D6842412F1A18">
+          <input id="cardTokenUri" placeholder="Token URI (https://...json)">
+          <button class="primary" onclick="adminMint()">Mint Card</button>
+        </div>
+        <div class="tools-row">
           <input id="cardTokenId" placeholder="Card tokenId (ERC-721)">
-          <button onclick="adminBurn('card')">Burn Card</button>
+          <button class="danger" onclick="adminBurn('card')">Burn Card</button>
         </div>
         <div class="note">Requires Base Sepolia, admin wallet, and contract deployed.</div>
       </div>
@@ -295,11 +309,11 @@
       <div class="empty" id="decksEmpty">No data.</div>
       <div class="error" id="decksError"></div>
       <div class="tools">
-        <h3>Cleanup Tools (Admin Only)</h3>
+        <h3>Test Tools (Admin Only)</h3>
         <div class="tools-row">
           <input id="deckContract" placeholder="Deck contract address">
           <input id="deckTokenId" placeholder="Deck tokenId (ERC-721)">
-          <button onclick="adminBurn('deck')">Burn Deck</button>
+          <button class="danger" onclick="adminBurn('deck')">Burn Deck</button>
         </div>
         <div class="note">Decks are ERC-721 for now; admin burn only.</div>
       </div>
@@ -458,6 +472,35 @@
         document.getElementById('decksError').textContent = err.message || String(err);
         document.getElementById('battleDecksError').textContent = err.message || String(err);
         document.getElementById('usersError').textContent = err.message || String(err);
+      }
+    }
+
+    async function adminMint() {
+      if (!isOwner()) {
+        alert('Not authorized.');
+        return;
+      }
+      const address = document.getElementById('cardContract').value.trim();
+      const uri = document.getElementById('cardTokenUri').value.trim();
+      if (!address || !uri) {
+        alert('Enter contract address and token URI.');
+        return;
+      }
+      if (!window.ethereum) {
+        alert('No wallet provider found.');
+        return;
+      }
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const abi = ['function mint(string uri) external returns (uint256)'];
+        const contract = new ethers.Contract(address, abi, signer);
+        const tx = await contract.mint(uri);
+        await tx.wait();
+        alert('Mint complete.');
+      } catch (err) {
+        console.error(err);
+        alert('Mint failed: ' + (err?.message || err));
       }
     }
 
