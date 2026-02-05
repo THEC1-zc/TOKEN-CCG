@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Admin v1.0.4</title>
-  <!-- Version: V1.0.4 -->
+  <title>TOKEN - Admin v1.0.5</title>
+  <!-- Version: V1.0.5 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -195,6 +195,16 @@
       font-size: 11px;
       color: #71717A;
     }
+    .tools .status {
+      font-size: 11px;
+      color: #A1A1AA;
+      margin-top: 6px;
+    }
+    .tools .mono {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: #E4E4E7;
+    }
   </style>
 </head>
 <body>
@@ -283,11 +293,14 @@
           <input id="cardContract" placeholder="Card contract address" value="0x561F84D0b4246b64dFbAb1BDf87D6842412F1A18">
           <input id="cardTokenUri" placeholder="Token URI (https://...json)">
           <button class="primary" onclick="adminMint()">Mint Card</button>
+          <button onclick="fillTokenUri()">Use Template</button>
         </div>
         <div class="tools-row">
           <input id="cardTokenId" placeholder="Card tokenId (ERC-721)">
           <button class="danger" onclick="adminBurn('card')">Burn Card</button>
         </div>
+        <div class="status">Last minted tokenId: <span class="mono" id="lastMinted">-</span></div>
+        <div class="status">Contract: <span class="mono" id="contractStatus">unknown</span></div>
         <div class="note">Requires Base Sepolia, admin wallet, and contract deployed.</div>
       </div>
     </div>
@@ -475,6 +488,13 @@
       }
     }
 
+    function fillTokenUri() {
+      const contract = document.getElementById('cardContract').value.trim().slice(0, 8);
+      const now = Date.now();
+      const uri = `https://example.com/token/${contract}-${now}.json`;
+      document.getElementById('cardTokenUri').value = uri;
+    }
+
     async function adminMint() {
       if (!isOwner()) {
         alert('Not authorized.');
@@ -497,6 +517,12 @@
         const contract = new ethers.Contract(address, abi, signer);
         const tx = await contract.mint(uri);
         await tx.wait();
+        let mintedId = '-';
+        try {
+          const event = tx?.events?.find((e) => e.event === 'Transfer');
+          if (event?.args?.tokenId) mintedId = event.args.tokenId.toString();
+        } catch (_) {}
+        document.getElementById('lastMinted').textContent = mintedId;
         alert('Mint complete.');
       } catch (err) {
         console.error(err);
@@ -550,7 +576,21 @@
 
     window.addEventListener('load', () => {
       loadAdminData();
+      updateContractStatus();
     });
+
+    async function updateContractStatus() {
+      const address = document.getElementById('cardContract')?.value?.trim();
+      const statusEl = document.getElementById('contractStatus');
+      if (!address || !statusEl || !window.ethereum) return;
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const code = await provider.getCode(address);
+        statusEl.textContent = code && code !== '0x' ? 'deployed' : 'not found';
+      } catch (_) {
+        statusEl.textContent = 'unknown';
+      }
+    }
   </script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 # Project Log
 
-Version: V0.5.5
+Version: V0.5.6
 Last updated: 2026-02-04
 
 ## 2026-02-03
@@ -54,3 +54,4 @@ Last updated: 2026-02-04
 - Added admin cleanup tools and ERC-721 contract draft. (admin.html V1.0.3, assets/wallet-ui.js V1.3.1, contracts/TokenCard.sol V0.1.0, docs/admin.md V1.0.3)
 - Fixed Ownable constructor for OpenZeppelin v5 deployment. (contracts/TokenCard.sol V0.1.1)
 - Saved TokenCard contract address and added admin mint/burn test tools. (docs/decisions.md V1.0.4, admin.html V1.0.4, docs/admin.md V1.0.4)
+- Added tokenURI template, last minted token display, and contract status panel to admin tests. (admin.html V1.0.5, docs/admin.md V1.0.5)
