@@ -1,6 +1,6 @@
 // ============================================
 // TOKEN-CCG Supabase Client
-// Version: V1.0.5
+// Version: V1.0.6
 // ============================================
 
 if (typeof window !== 'undefined' && window.TokenDB) {
@@ -31,14 +31,7 @@ async function getOrCreateGuestUser() {
 
   let guestId = localStorage.getItem('token_guest_id');
   if (!guestId) {
-    const { data, error } = await supabase
-      .from('users')
-      .insert({ username: 'Guest_' + Date.now() })
-      .select()
-      .single();
-
-    if (error) throw error;
-    guestId = data.id;
+    guestId = 'guest_' + Date.now();
     localStorage.setItem('token_guest_id', guestId);
   }
 
