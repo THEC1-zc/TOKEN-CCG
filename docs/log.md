@@ -1,6 +1,6 @@
 # Project Log
 
-Version: V0.4.9
+Version: V0.5.1
 Last updated: 2026-02-04
 
 ## 2026-02-03
@@ -48,3 +48,5 @@ Last updated: 2026-02-04
 - Avoided object truthiness coercion in wallet label checks. (assets/wallet-ui.js V1.2.5)
 - Added local-only guest user fallback to bypass Supabase users 401 until policies are set. (supabase/supabase-client.js V1.0.6)
 - Improved browser wallet provider selection and error messaging. (assets/wallet-ui.js V1.2.6)
+- Hardened Base login guard and softened Farcaster login errors outside MiniApp. (assets/wallet-ui.js V1.2.7)
+- Improved MetaMask selection and account restore on load. (assets/wallet-ui.js V1.2.8)

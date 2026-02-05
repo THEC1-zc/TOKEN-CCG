@@ -154,6 +154,10 @@
   background: rgba(247, 147, 26, 0.08);
 }
 
+.admin-badge.hidden {
+  display: none;
+}
+
 .header-right {
   display: flex;
   align-items: center;

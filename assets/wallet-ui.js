@@ -1,4 +1,4 @@
-// Version: V1.2.6
+// Version: V1.2.8
 
 const state = {
   sdk: null,
@@ -134,8 +134,8 @@ function getBrowserProvider() {
 
 async function connectBaseWallet() {
   const provider = getBaseProvider();
-  if (!provider) {
-    alert('Base wallet provider not found.');
+  if (!provider || typeof provider.request !== 'function') {
+    alert('Base wallet provider not available in this context.');
     return;
   }
   state.provider = provider;
@@ -159,7 +159,7 @@ async function connectBrowserWallet() {
   state.provider = provider;
   try {
     const accounts = await provider.request({ method: 'eth_requestAccounts' });
-    state.address = accounts?.[0] || null;
+    state.address = accounts?.[0] || provider.selectedAddress || null;
     state.chainId = await provider.request({ method: 'eth_chainId' });
     attachProviderEvents(provider);
   } catch (err) {
@@ -222,7 +222,7 @@ async function farcasterSignin() {
     state.fcSignIn = result || null;
     if (state.sdk?.context?.user) state.fcUser = state.sdk.context.user;
   } catch (err) {
-    console.error('Farcaster sign-in failed', err);
+    console.warn('Farcaster sign-in failed', err);
   }
   updateUI();
 }
@@ -311,8 +311,10 @@ function updateUI() {
   label.textContent = String(getDisplayLabel());
   label.classList.toggle('connected', Boolean(state.address || state.fcUser));
 
-  fcBtn.style.display = state.sdk?.actions?.signIn ? 'block' : 'none';
-  baseBtn.style.display = state.sdk?.wallet?.getEthereumProvider ? 'block' : 'none';
+  const isMiniApp = Boolean(state.sdk?.context?.user || state.sdk?.context?.client);
+  const baseProvider = getBaseProvider();
+  fcBtn.style.display = isMiniApp && state.sdk?.actions?.signIn ? 'block' : 'none';
+  baseBtn.style.display = Boolean(baseProvider && typeof baseProvider.request === 'function') ? 'block' : 'none';
   browserBtn.style.display = window.ethereum ? 'block' : 'none';
   disconnectBtn.style.display = state.address || state.fcUser ? 'block' : 'none';
 
@@ -328,6 +330,15 @@ function updateUI() {
 async function boot() {
   buildHeader();
   await initSdk();
+  try {
+    if (window.ethereum?.request) {
+      const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+      if (accounts?.[0]) {
+        state.address = accounts[0];
+        state.providerType = 'browser';
+      }
+    }
+  } catch (_) {}
   updateUI();
   try {
     if (state.sdk?.actions?.ready) {
