@@ -1,4 +1,4 @@
-// Version: V1.2.5
+// Version: V1.2.6
 
 const state = {
   sdk: null,
@@ -113,10 +113,21 @@ function getBaseProvider() {
   return null;
 }
 
+function pickBrowserProvider() {
+  const eth = window.ethereum;
+  if (!eth) return null;
+  if (Array.isArray(eth.providers) && eth.providers.length) {
+    const mm = eth.providers.find((p) => p.isMetaMask);
+    return mm || eth.providers[0];
+  }
+  return eth;
+}
+
 function getBrowserProvider() {
-  if (window.ethereum) {
+  const provider = pickBrowserProvider();
+  if (provider) {
     state.providerType = 'browser';
-    return window.ethereum;
+    return provider;
   }
   return null;
 }
@@ -153,6 +164,7 @@ async function connectBrowserWallet() {
     attachProviderEvents(provider);
   } catch (err) {
     console.error('Browser wallet connect failed', err);
+    alert('Wallet connect failed. Check if MetaMask is unlocked and connected.');
   }
   updateUI();
 }
