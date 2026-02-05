@@ -1,4 +1,4 @@
-// Version: V1.2.3
+// Version: V1.2.4
 
 const state = {
   sdk: null,
@@ -27,7 +27,8 @@ const FALLBACK_AVATAR =
   );
 function shortAddr(addr) {
   if (!addr) return '';
-  const s = String(addr);
+  const s = toSafeString(addr);
+  if (!s) return '';
   return s.slice(0, 6) + '…' + s.slice(-4);
 }
 
@@ -37,12 +38,26 @@ function isBaseChain(chainId) {
 
 function getDisplayLabel() {
   const u = state.fcUser?.username;
-  if (u) return typeof u === 'string' ? u : String(u);
+  if (u) return toSafeString(u);
   const dn = state.fcUser?.displayName;
-  if (dn) return typeof dn === 'string' ? dn : String(dn);
+  if (dn) return toSafeString(dn);
   if (state.providerType === 'base' && state.address) return LABELS.base + ' • ' + shortAddr(state.address);
   if (state.address) return shortAddr(state.address);
   return LABELS.disconnected;
+}
+
+function toSafeString(value) {
+  if (typeof value === 'string') return value;
+  if (value == null) return '';
+  try {
+    return String(value);
+  } catch (_) {
+    try {
+      return JSON.stringify(value);
+    } catch (_) {
+      return '';
+    }
+  }
 }
 
 function getAvatarUrl() {

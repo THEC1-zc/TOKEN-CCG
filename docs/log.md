@@ -1,6 +1,6 @@
 # Project Log
 
-Version: V0.4.5
+Version: V0.4.6
 Last updated: 2026-02-04
 
 ## 2026-02-03
@@ -44,3 +44,4 @@ Last updated: 2026-02-04
 - Set connected wallet label to green for clarity. (assets/wallet-ui.css V1.1.1, assets/wallet-ui.js V1.2.1)
 - Fixed duplicate TokenDB load errors and avatar assignment in wallet UI. (supabase/supabase-client.js V1.0.5, assets/wallet-ui.js V1.2.2)
 - Hardened wallet UI labels and Farcaster login guard for non-MiniApp contexts. (assets/wallet-ui.js V1.2.3)
+- Added safe string handling for wallet labels to prevent object conversion errors. (assets/wallet-ui.js V1.2.4)
