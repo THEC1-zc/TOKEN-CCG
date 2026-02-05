@@ -1,4 +1,4 @@
-// Version: V1.2.4
+// Version: V1.2.5
 
 const state = {
   sdk: null,
@@ -38,9 +38,9 @@ function isBaseChain(chainId) {
 
 function getDisplayLabel() {
   const u = state.fcUser?.username;
-  if (u) return toSafeString(u);
+  if (u !== undefined && u !== null) return toSafeString(u);
   const dn = state.fcUser?.displayName;
-  if (dn) return toSafeString(dn);
+  if (dn !== undefined && dn !== null) return toSafeString(dn);
   if (state.providerType === 'base' && state.address) return LABELS.base + ' • ' + shortAddr(state.address);
   if (state.address) return shortAddr(state.address);
   return LABELS.disconnected;

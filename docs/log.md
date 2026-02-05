@@ -1,6 +1,6 @@
 # Project Log
 
-Version: V0.4.6
+Version: V0.4.7
 Last updated: 2026-02-04
 
 ## 2026-02-03
@@ -45,3 +45,4 @@ Last updated: 2026-02-04
 - Fixed duplicate TokenDB load errors and avatar assignment in wallet UI. (supabase/supabase-client.js V1.0.5, assets/wallet-ui.js V1.2.2)
 - Hardened wallet UI labels and Farcaster login guard for non-MiniApp contexts. (assets/wallet-ui.js V1.2.3)
 - Added safe string handling for wallet labels to prevent object conversion errors. (assets/wallet-ui.js V1.2.4)
+- Avoided object truthiness coercion in wallet label checks. (assets/wallet-ui.js V1.2.5)
