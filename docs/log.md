@@ -1,6 +1,6 @@
 # Project Log
 
-Version: V0.5.7
+Version: V0.5.8
 Last updated: 2026-02-04
 
 ## 2026-02-03
@@ -56,3 +56,4 @@ Last updated: 2026-02-04
 - Saved TokenCard contract address and added admin mint/burn test tools. (docs/decisions.md V1.0.4, admin.html V1.0.4, docs/admin.md V1.0.4)
 - Added tokenURI template, last minted token display, and contract status panel to admin tests. (admin.html V1.0.5, docs/admin.md V1.0.5)
 - Added admin wallet detection fixes and onchain mint panels for cards/decks. (admin.html V1.0.7, card-minter.html V2.1.6, deck-minter.html V1.6.5)
+- Added agent roadmaps and agent summary docs. (docs/agentroadmap1.md V1.0.0, docs/agentroadmap2.md V1.0.0, docs/agentroadmap3.md V1.0.0, docs/agent1.md V1.0.0)
