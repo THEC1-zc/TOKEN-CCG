@@ -530,6 +530,11 @@
         alert('Not authorized.');
         return;
       }
+      const addr = await getConnectedAddress();
+      if (!addr) {
+        alert('Connect wallet first.');
+        return;
+      }
       const address = document.getElementById('cardContract').value.trim();
       const uri = document.getElementById('cardTokenUri').value.trim();
       if (!address || !uri) {

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Card Minter v2.1.6</title>
-  <!-- Version: V2.1.6 -->
+  <title>TOKEN - Card Minter v2.1.7</title>
+  <!-- Version: V2.1.7 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -1004,6 +1004,18 @@
       font-size: 11px;
       color: #71717A;
     }
+    .onchain-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: #A1A1AA;
+    }
+    .onchain-status {
+      font-size: 11px;
+      color: #93c5fd;
+      margin-left: auto;
+    }
   </style>
 </head>
 <body>
@@ -1190,6 +1202,13 @@
             <input id="onchainCardUri" placeholder="Token URI (https://...json)">
             <button onclick="mintOnchainCard()">Mint Onchain</button>
             <button class="ghost" onclick="fillOnchainUri()">Use Template</button>
+          </div>
+          <div class="onchain-row">
+            <label class="onchain-toggle">
+              <input type="checkbox" id="onchainAutoMint">
+              Mint onchain when card is minted
+            </label>
+            <span class="onchain-status" id="onchainStatus">idle</span>
           </div>
           <div class="onchain-note">Base Sepolia testnet. Mint is public; admin can burn in Admin panel.</div>
         </div>
@@ -1829,6 +1848,11 @@
       updateStats();
       updateFactionDropdown();
       
+      // Optional onchain mint
+      if (document.getElementById('onchainAutoMint')?.checked) {
+        await mintOnchainCard();
+      }
+
       // Show modal with image
       document.getElementById('modalCardImage').src = imageDataUrl;
       document.getElementById('successModal').classList.add('visible');
@@ -2111,15 +2135,37 @@
   <script type="module" src="assets/wallet-ui.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <script>
-    function fillOnchainUri() {
-      const contract = document.getElementById('onchainCardContract').value.trim().slice(0, 8);
-      const now = Date.now();
-      document.getElementById('onchainCardUri').value = `https://example.com/token/${contract}-${now}.json`;
+    function setOnchainStatus(text) {
+      const el = document.getElementById('onchainStatus');
+      if (el) el.textContent = text;
     }
 
-    async function mintOnchainCard() {
+    function fillOnchainUri() {
+      document.getElementById('onchainCardUri').value = buildOnchainUri();
+    }
+
+    function buildOnchainUri() {
+      const contract = document.getElementById('onchainCardContract').value.trim().slice(0, 8);
+      const now = Date.now();
+      return `https://example.com/token/${contract}-${now}.json`;
+    }
+
+    async function ensureBaseSepolia(provider) {
+      const chainId = await provider.request({ method: 'eth_chainId' });
+      if (chainId !== '0x14a34') {
+        alert('Please switch to Base Sepolia (chainId 84532).');
+        return false;
+      }
+      return true;
+    }
+
+    async function mintOnchainCard(uriOverride) {
       const address = document.getElementById('onchainCardContract').value.trim();
-      const uri = document.getElementById('onchainCardUri').value.trim();
+      const uriInput = document.getElementById('onchainCardUri').value.trim();
+      const uri = uriOverride || uriInput || buildOnchainUri();
+      if (!uriInput && !uriOverride) {
+        document.getElementById('onchainCardUri').value = uri;
+      }
       if (!address || !uri) {
         alert('Enter contract address and token URI.');
         return;
@@ -2130,14 +2176,18 @@
       }
       try {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
+        if (!await ensureBaseSepolia(provider.provider)) return;
         const signer = provider.getSigner();
         const abi = ['function mint(string uri) external returns (uint256)'];
         const contract = new ethers.Contract(address, abi, signer);
+        setOnchainStatus('minting...');
         const tx = await contract.mint(uri);
         await tx.wait();
+        setOnchainStatus('minted');
         alert('Onchain mint complete.');
       } catch (err) {
         console.error(err);
+        setOnchainStatus('error');
         alert('Onchain mint failed: ' + (err?.message || err));
       }
     }
