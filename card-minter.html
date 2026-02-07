@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Card Minter v2.1.7</title>
-  <!-- Version: V2.1.7 -->
+  <title>TOKEN - Card Minter v2.2.0</title>
+  <!-- Version: V2.2.0 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -1323,7 +1323,8 @@
     const DB_KEYS = {
       WALLET: 'cryptoscopa_wallet',
       FACTIONS: 'cryptoscopa_factions',
-      CARDS: 'cryptoscopa_cards'
+      CARDS: 'cryptoscopa_cards',
+      ONCHAIN_CARDS: 'token_onchain_cards'
     };
 
     async function getUserId() {
@@ -1331,10 +1332,27 @@
       return await TokenDB.getOrCreateGuestUser();
     }
 
+    function getOnchainCards() {
+      const raw = localStorage.getItem(DB_KEYS.ONCHAIN_CARDS);
+      return raw ? JSON.parse(raw) : [];
+    }
+
+    function saveOnchainCards(cards) {
+      localStorage.setItem(DB_KEYS.ONCHAIN_CARDS, JSON.stringify(cards));
+    }
+
+    function getConnectedWalletAddress() {
+      return window.TokenWallet?.getAddress?.() || getWallet();
+    }
+
     async function canMintCard(factionName, value) {
-      const userId = await getUserId();
-      const cards = await TokenDB.getUserCards(userId);
-      return !cards.some(c => c.faction_name === factionName && String(c.value) === String(value));
+      const owner = getConnectedWalletAddress().toLowerCase();
+      const cards = getOnchainCards();
+      return !cards.some((c) =>
+        c.owner?.toLowerCase() === owner &&
+        c.factionName === factionName &&
+        String(c.value) === String(value)
+      );
     }
     
     // Initialize or get wallet
@@ -1426,14 +1444,18 @@
         cardToSave.factionIcon = await compressImage(card.factionIcon, 50, 0.6);
       }
 
-      await TokenDB.createCard(userId, {
-        house: cardToSave.house,
-        factionName: cardToSave.factionName,
-        factionIcon: cardToSave.factionIcon,
-        value: parseInt(cardToSave.value),
-        displayValue: cardToSave.displayValue,
-        cardName: cardToSave.cardName
-      });
+      try {
+        await TokenDB.createCard(userId, {
+          house: cardToSave.house,
+          factionName: cardToSave.factionName,
+          factionIcon: cardToSave.factionIcon,
+          value: parseInt(cardToSave.value, 10),
+          displayValue: cardToSave.displayValue,
+          cardName: cardToSave.cardName
+        });
+      } catch (err) {
+        console.warn('Admin mirror save failed (card)', err?.message || err);
+      }
     }
     
     // ============================================
@@ -1511,7 +1533,7 @@
     // ============================================
     function initUI() {
       // Set wallet display
-      const wallet = getWallet();
+      const wallet = getConnectedWalletAddress();
       document.getElementById('walletAddress').textContent = 
         wallet.substring(0, 6) + '...' + wallet.substring(wallet.length - 4);
       
@@ -1603,7 +1625,9 @@
     }
     
     function updateStats() {
-      const cards = getAllCards();
+      const cards = getOnchainCards().filter(
+        (c) => c.owner?.toLowerCase() === getConnectedWalletAddress().toLowerCase()
+      );
       const factions = getMyFactions();
       
       document.getElementById('statCards').textContent = cards.length;
@@ -1825,7 +1849,7 @@
       const imageDataUrl = await generateCardImage();
       state.lastGeneratedImage = imageDataUrl;
       
-      // Save card to local DB (without full image to save space)
+      // Build card payload
       const card = {
         id: Date.now(),
         house: state.house,
@@ -1838,20 +1862,33 @@
         image: state.image,
         xp: 0,
         level: 1,
-        owner: getWallet(),
+        owner: getConnectedWalletAddress(),
         created: Date.now()
       };
-      
+
+      // Onchain-first path: enforce chain mint in test mode.
+      if (!document.getElementById('onchainAutoMint')?.checked) {
+        alert('Enable "Mint onchain when card is minted" to continue.');
+        return;
+      }
+
+      const onchainResult = await mintOnchainCard();
+      if (!onchainResult?.ok) return;
+
+      const cards = getOnchainCards();
+      cards.push({
+        ...card,
+        tokenId: onchainResult.tokenId,
+        txHash: onchainResult.txHash,
+        tokenUri: onchainResult.tokenUri,
+        contractAddress: onchainResult.contractAddress,
+        chainId: 84532
+      });
+      saveOnchainCards(cards);
+
       await saveCard(card);
-      
-      // Update stats
       updateStats();
       updateFactionDropdown();
-      
-      // Optional onchain mint
-      if (document.getElementById('onchainAutoMint')?.checked) {
-        await mintOnchainCard();
-      }
 
       // Show modal with image
       document.getElementById('modalCardImage').src = imageDataUrl;
@@ -2182,13 +2219,26 @@
         const contract = new ethers.Contract(address, abi, signer);
         setOnchainStatus('minting...');
         const tx = await contract.mint(uri);
-        await tx.wait();
-        setOnchainStatus('minted');
+        const receipt = await tx.wait();
+        let tokenId = null;
+        const transferEvent = receipt?.events?.find((e) => e.event === 'Transfer');
+        if (transferEvent?.args?.tokenId) {
+          tokenId = transferEvent.args.tokenId.toString();
+        }
+        setOnchainStatus(tokenId ? `minted #${tokenId}` : 'minted');
         alert('Onchain mint complete.');
+        return {
+          ok: true,
+          tokenId,
+          txHash: tx.hash,
+          tokenUri: uri,
+          contractAddress: address
+        };
       } catch (err) {
         console.error(err);
         setOnchainStatus('error');
         alert('Onchain mint failed: ' + (err?.message || err));
+        return { ok: false, error: err };
       }
     }
   </script>

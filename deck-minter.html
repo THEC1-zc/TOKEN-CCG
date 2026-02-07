@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Deck Minter v1.6.5</title>
-  <!-- Version: V1.6.5 -->
+  <title>TOKEN - Deck Minter v1.7.0</title>
+  <!-- Version: V1.7.0 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -691,7 +691,8 @@
     
     const DB_KEYS = {
       DECKS: 'token_decks',
-      STATS: 'token_stats'
+      STATS: 'token_stats',
+      ONCHAIN_DECKS: 'token_onchain_decks'
     };
 
     async function getUserId() {
@@ -703,6 +704,15 @@
     let selectedHouse = null;
     let selectedIcon = null;
     let currentDeck = null;
+
+    function getOnchainDecks() {
+      const raw = localStorage.getItem(DB_KEYS.ONCHAIN_DECKS);
+      return raw ? JSON.parse(raw) : [];
+    }
+
+    function saveOnchainDecks(decks) {
+      localStorage.setItem(DB_KEYS.ONCHAIN_DECKS, JSON.stringify(decks));
+    }
     
     // ============================================
     // INITIALIZATION
@@ -1099,16 +1109,35 @@
         }))
       };
       
-      const userId = await getUserId();
-      await TokenDB.createDeck(userId, {
-        house: deckToSave.house,
-        factionName: deckToSave.faction,
-        factionIcon: deckToSave.factionIcon,
-        cards: deckToSave.cards
+      const onchainResult = await mintOnchainDeck();
+      if (!onchainResult?.ok) return;
+
+      const decks = getOnchainDecks();
+      decks.push({
+        ...deckToSave,
+        owner: window.TokenWallet?.getAddress?.() || 'guest',
+        tokenId: onchainResult.tokenId,
+        txHash: onchainResult.txHash,
+        tokenUri: onchainResult.tokenUri,
+        contractAddress: onchainResult.contractAddress,
+        chainId: 84532
       });
-      
+      saveOnchainDecks(decks);
+
+      try {
+        const userId = await getUserId();
+        await TokenDB.createDeck(userId, {
+          house: deckToSave.house,
+          factionName: deckToSave.faction,
+          factionIcon: deckToSave.factionIcon,
+          cards: deckToSave.cards
+        });
+      } catch (err) {
+        console.warn('Admin mirror save failed (deck)', err?.message || err);
+      }
+
       updateStats(1, 10);
-      alert('Deck saved successfully!');
+      alert('Deck saved onchain and mirrored to admin backend.');
     }
     
     function resetConfig() {
@@ -1138,28 +1167,49 @@
       document.getElementById('onchainDeckUri').value = `https://example.com/deck/${contract}-${now}.json`;
     }
 
+    async function ensureBaseSepolia(provider) {
+      const chainId = await provider.request({ method: 'eth_chainId' });
+      if (chainId !== '0x14a34') {
+        alert('Please switch to Base Sepolia (chainId 84532).');
+        return false;
+      }
+      return true;
+    }
+
     async function mintOnchainDeck() {
       const address = document.getElementById('onchainDeckContract').value.trim();
-      const uri = document.getElementById('onchainDeckUri').value.trim();
+      const uri = document.getElementById('onchainDeckUri').value.trim() || `https://example.com/deck/${Date.now()}.json`;
       if (!address || !uri) {
         alert('Enter contract address and token URI.');
-        return;
+        return { ok: false };
       }
       if (!window.ethereum) {
         alert('No wallet provider found.');
-        return;
+        return { ok: false };
       }
       try {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
+        if (!await ensureBaseSepolia(provider.provider)) return { ok: false };
         const signer = provider.getSigner();
         const abi = ['function mint(string uri) external returns (uint256)'];
         const contract = new ethers.Contract(address, abi, signer);
         const tx = await contract.mint(uri);
-        await tx.wait();
+        const receipt = await tx.wait();
+        let tokenId = null;
+        const transferEvent = receipt?.events?.find((e) => e.event === 'Transfer');
+        if (transferEvent?.args?.tokenId) tokenId = transferEvent.args.tokenId.toString();
         alert('Onchain deck mint complete.');
+        return {
+          ok: true,
+          tokenId,
+          txHash: tx.hash,
+          tokenUri: uri,
+          contractAddress: address
+        };
       } catch (err) {
         console.error(err);
         alert('Onchain deck mint failed: ' + (err?.message || err));
+        return { ok: false, error: err };
       }
     }
   </script>

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Admin v1.0.7</title>
-  <!-- Version: V1.0.7 -->
+  <title>TOKEN - Admin v1.1.0</title>
+  <!-- Version: V1.1.0 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -329,9 +329,15 @@
         <h3>Test Tools (Admin Only)</h3>
         <div class="tools-row">
           <input id="deckContract" placeholder="Deck contract address">
+          <input id="deckTokenUri" placeholder="Deck Token URI (https://...json)">
+          <button class="primary" onclick="adminMintDeck()">Mint Deck</button>
+          <button onclick="fillDeckTokenUri()">Use Template</button>
+        </div>
+        <div class="tools-row">
           <input id="deckTokenId" placeholder="Deck tokenId (ERC-721)">
           <button class="danger" onclick="adminBurn('deck')">Burn Deck</button>
         </div>
+        <div class="status">Deck contract: <span class="mono" id="deckContractStatus">unknown</span></div>
         <div class="note">Decks are ERC-721 for now; admin burn only.</div>
       </div>
     </div>
@@ -565,6 +571,41 @@
       }
     }
 
+    function fillDeckTokenUri() {
+      const contract = document.getElementById('deckContract').value.trim().slice(0, 8);
+      const now = Date.now();
+      document.getElementById('deckTokenUri').value = `https://example.com/deck/${contract}-${now}.json`;
+    }
+
+    async function adminMintDeck() {
+      if (!await isOwner()) {
+        alert('Not authorized.');
+        return;
+      }
+      const address = document.getElementById('deckContract').value.trim();
+      const uri = document.getElementById('deckTokenUri').value.trim();
+      if (!address || !uri) {
+        alert('Enter deck contract address and token URI.');
+        return;
+      }
+      if (!window.ethereum) {
+        alert('No wallet provider found.');
+        return;
+      }
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const abi = ['function mint(string uri) external returns (uint256)'];
+        const contract = new ethers.Contract(address, abi, signer);
+        const tx = await contract.mint(uri);
+        await tx.wait();
+        alert('Deck mint complete.');
+      } catch (err) {
+        console.error(err);
+        alert('Deck mint failed: ' + (err?.message || err));
+      }
+    }
+
     async function adminBurn(kind) {
       if (!await isOwner()) {
         alert('Not authorized.');
@@ -619,13 +660,22 @@
     async function updateContractStatus() {
       const address = document.getElementById('cardContract')?.value?.trim();
       const statusEl = document.getElementById('contractStatus');
-      if (!address || !statusEl || !window.ethereum) return;
+      const deckAddress = document.getElementById('deckContract')?.value?.trim();
+      const deckStatusEl = document.getElementById('deckContractStatus');
+      if (!window.ethereum) return;
       try {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const code = await provider.getCode(address);
-        statusEl.textContent = code && code !== '0x' ? 'deployed' : 'not found';
+        if (address && statusEl) {
+          const code = await provider.getCode(address);
+          statusEl.textContent = code && code !== '0x' ? 'deployed' : 'not found';
+        }
+        if (deckAddress && deckStatusEl) {
+          const deckCode = await provider.getCode(deckAddress);
+          deckStatusEl.textContent = deckCode && deckCode !== '0x' ? 'deployed' : 'not found';
+        }
       } catch (_) {
-        statusEl.textContent = 'unknown';
+        if (statusEl) statusEl.textContent = 'unknown';
+        if (deckStatusEl) deckStatusEl.textContent = 'unknown';
       }
     }
   </script>

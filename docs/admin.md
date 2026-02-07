@@ -1,7 +1,7 @@
 # Admin Panel Plan
 
-Version: V1.0.5  
-Last updated: 2026-02-04
+Version: V1.1.0  
+Last updated: 2026-02-07
 
 ## Goal
 Provide a Supabase-backed admin dashboard for TOKEN with wallet-gated access (owner-only) to validate DB integration, inspect data, and perform basic admin checks during offchain testing.
@@ -38,6 +38,7 @@ Provide a Supabase-backed admin dashboard for TOKEN with wallet-gated access (ow
 - Admin burn controls for ERC-721 card and deck contracts.
 - Uses admin-only `adminBurn(uint256 tokenId)`.
 - Added in-dashboard mint test for TokenCard contract.
+- Added in-dashboard mint test for TokenDeck contract.
 - Added tokenURI template fill, last minted token display, and contract status check.
 
 ## Data Model Expectations (Supabase)

@@ -1,7 +1,7 @@
 # Project Log
 
-Version: V0.5.9
-Last updated: 2026-02-04
+Version: V0.6.2
+Last updated: 2026-02-07
 
 ## 2026-02-03
 - Added `docs/handoff.md` and `docs/decisions.md` for cross-agent continuity. (V1.0.1)
@@ -57,4 +57,15 @@ Last updated: 2026-02-04
 - Added tokenURI template, last minted token display, and contract status panel to admin tests. (admin.html V1.0.5, docs/admin.md V1.0.5)
 - Added admin wallet detection fixes and onchain mint panels for cards/decks. (admin.html V1.0.7, card-minter.html V2.1.6, deck-minter.html V1.6.5)
 - Enabled auto onchain mint from card minter and improved admin wallet gating. (card-minter.html V2.1.7, admin.html V1.0.7)
+- Added Playwright testing guidance for the agent. (docs/agent1.md V1.1.0, docs/agentroadmap2.md V1.1.0)
+- Updated Playwright CLI invocation to use playwright-mcp binary. (docs/agent1.md V1.1.1, docs/agentroadmap2.md V1.1.1)
 - Added agent roadmaps and agent summary docs. (docs/agentroadmap1.md V1.0.0, docs/agentroadmap2.md V1.0.0, docs/agentroadmap3.md V1.0.0, docs/agent1.md V1.0.0)
+
+## 2026-02-07
+- Enforced onchain-first card mint flow: card mint now requires successful Base Sepolia mint, then stores a local onchain cache entry and mirrors to Supabase best-effort for admin reporting. (card-minter.html V2.2.0)
+- Enforced onchain-first deck save flow: deck save now triggers onchain mint, stores local onchain deck cache, and mirrors to Supabase best-effort. (deck-minter.html V1.7.0)
+- Added onchain cache as primary source for collection rendering, with DB/local fallback only if onchain cache is empty. (collection.html V1.6.0)
+- Added onchain cache as primary source for deck builder card pool, with DB/local fallback only if onchain cache is empty. (deck-builder.html V1.7.0)
+- Extended admin tools with deck mint, deck token URI template helper, and separate deck contract deployment status indicator. (admin.html V1.1.0)
+- Upgraded TokenCard contract draft with XP, level, metadata update hooks, and explicit lifecycle events for testnet iteration. (contracts/TokenCard.sol V0.2.0)
+- Added TokenDeck ERC-721 contract draft for deck NFT mint/burn/URI update on Base Sepolia test loops. (contracts/TokenDeck.sol V0.1.0)
