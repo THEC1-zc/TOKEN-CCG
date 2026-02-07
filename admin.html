@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Admin v1.1.0</title>
-  <!-- Version: V1.1.0 -->
+  <title>TOKEN - Admin v1.2.0</title>
+  <!-- Version: V1.2.0 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -302,9 +302,13 @@
         <div class="tools-row">
           <input id="cardTokenId" placeholder="Card tokenId (ERC-721)">
           <button class="danger" onclick="adminBurn('card')">Burn Card</button>
+          <button onclick="readContractInfo('card')">Read Card</button>
         </div>
         <div class="status">Last minted tokenId: <span class="mono" id="lastMinted">-</span></div>
         <div class="status">Contract: <span class="mono" id="contractStatus">unknown</span></div>
+        <div class="status">nextTokenId: <span class="mono" id="cardNextTokenId">-</span></div>
+        <div class="status">ownerOf(tokenId): <span class="mono" id="cardOwnerOf">-</span></div>
+        <div class="status">tokenURI(tokenId): <span class="mono" id="cardTokenUriOut">-</span></div>
         <div class="note">Requires Base Sepolia, admin wallet, and contract deployed.</div>
       </div>
     </div>
@@ -336,8 +340,12 @@
         <div class="tools-row">
           <input id="deckTokenId" placeholder="Deck tokenId (ERC-721)">
           <button class="danger" onclick="adminBurn('deck')">Burn Deck</button>
+          <button onclick="readContractInfo('deck')">Read Deck</button>
         </div>
         <div class="status">Deck contract: <span class="mono" id="deckContractStatus">unknown</span></div>
+        <div class="status">nextTokenId: <span class="mono" id="deckNextTokenId">-</span></div>
+        <div class="status">ownerOf(tokenId): <span class="mono" id="deckOwnerOf">-</span></div>
+        <div class="status">tokenURI(tokenId): <span class="mono" id="deckTokenUriOut">-</span></div>
         <div class="note">Decks are ERC-721 for now; admin burn only.</div>
       </div>
     </div>
@@ -380,6 +388,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase/supabase-client.js"></script>
+  <script src="assets/onchain-config.js"></script>
   <script src="assets/wallet-ui.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <script>
@@ -389,6 +398,18 @@
     ].map((w) => w.toLowerCase());
     const accessEl = document.getElementById('accessStatus');
     const walletEl = document.getElementById('walletStatus');
+
+    function applyOnchainDefaults() {
+      const cfg = window.TokenOnchainConfig;
+      const cardInput = document.getElementById('cardContract');
+      const deckInput = document.getElementById('deckContract');
+      if (cfg?.contracts?.card && cardInput && !cardInput.value.trim()) {
+        cardInput.value = cfg.contracts.card;
+      }
+      if (cfg?.contracts?.deck && deckInput && !deckInput.value.trim()) {
+        deckInput.value = cfg.contracts.deck;
+      }
+    }
 
     function setAccess(isOk) {
       accessEl.textContent = isOk ? 'Authorized' : 'Not authorized';
@@ -637,6 +658,56 @@
       }
     }
 
+    async function readContractInfo(kind) {
+      const contractField = kind === 'card' ? 'cardContract' : 'deckContract';
+      const tokenField = kind === 'card' ? 'cardTokenId' : 'deckTokenId';
+      const nextOut = document.getElementById(kind === 'card' ? 'cardNextTokenId' : 'deckNextTokenId');
+      const ownerOut = document.getElementById(kind === 'card' ? 'cardOwnerOf' : 'deckOwnerOf');
+      const uriOut = document.getElementById(kind === 'card' ? 'cardTokenUriOut' : 'deckTokenUriOut');
+
+      const address = document.getElementById(contractField).value.trim();
+      const tokenId = document.getElementById(tokenField).value.trim();
+      if (!address) {
+        alert('Enter contract address first.');
+        return;
+      }
+      if (!window.ethereum) {
+        alert('No wallet provider found.');
+        return;
+      }
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const abi = [
+          'function nextTokenId() view returns (uint256)',
+          'function ownerOf(uint256 tokenId) view returns (address)',
+          'function tokenURI(uint256 tokenId) view returns (string)'
+        ];
+        const contract = new ethers.Contract(address, abi, provider);
+        const nextTokenId = await contract.nextTokenId();
+        if (nextOut) nextOut.textContent = nextTokenId.toString();
+        if (tokenId) {
+          try {
+            const owner = await contract.ownerOf(tokenId);
+            if (ownerOut) ownerOut.textContent = owner;
+          } catch (_) {
+            if (ownerOut) ownerOut.textContent = 'not found';
+          }
+          try {
+            const uri = await contract.tokenURI(tokenId);
+            if (uriOut) uriOut.textContent = uri;
+          } catch (_) {
+            if (uriOut) uriOut.textContent = 'not found';
+          }
+        } else {
+          if (ownerOut) ownerOut.textContent = '-';
+          if (uriOut) uriOut.textContent = '-';
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Read failed: ' + (err?.message || err));
+      }
+    }
+
     document.querySelectorAll('.tab').forEach((tab) => {
       tab.addEventListener('click', () => {
         document.querySelectorAll('.tab').forEach((t) => t.classList.remove('active'));
@@ -652,6 +723,7 @@
     });
 
     window.addEventListener('load', () => {
+      applyOnchainDefaults();
       loadAdminData();
       updateContractStatus();
       setTimeout(loadAdminData, 800);

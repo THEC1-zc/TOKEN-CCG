@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Card Minter v2.2.0</title>
-  <!-- Version: V2.2.0 -->
+  <title>TOKEN - Card Minter v2.2.1</title>
+  <!-- Version: V2.2.1 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -1274,6 +1274,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- TOKEN DB Client -->
   <script src="supabase/supabase-client.js"></script>
+  <script src="assets/onchain-config.js"></script>
   <script>
     // ============================================
     // PERSPECTIVE API CONFIGURATION
@@ -1536,6 +1537,7 @@
       const wallet = getConnectedWalletAddress();
       document.getElementById('walletAddress').textContent = 
         wallet.substring(0, 6) + '...' + wallet.substring(wallet.length - 4);
+      applyOnchainDefaults();
       
       // Update stats
       updateStats();
@@ -2177,6 +2179,14 @@
       if (el) el.textContent = text;
     }
 
+    function applyOnchainDefaults() {
+      const cfg = window.TokenOnchainConfig;
+      const input = document.getElementById('onchainCardContract');
+      if (cfg?.contracts?.card && input && !input.value.trim()) {
+        input.value = cfg.contracts.card;
+      }
+    }
+
     function fillOnchainUri() {
       document.getElementById('onchainCardUri').value = buildOnchainUri();
     }
@@ -2189,7 +2199,8 @@
 
     async function ensureBaseSepolia(provider) {
       const chainId = await provider.request({ method: 'eth_chainId' });
-      if (chainId !== '0x14a34') {
+      const expectedHex = window.TokenOnchainConfig?.chain?.hexId || '0x14a34';
+      if (chainId !== expectedHex) {
         alert('Please switch to Base Sepolia (chainId 84532).');
         return false;
       }

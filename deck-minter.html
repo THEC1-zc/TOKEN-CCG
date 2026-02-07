@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Deck Minter v1.7.0</title>
-  <!-- Version: V1.7.0 -->
+  <title>TOKEN - Deck Minter v1.7.1</title>
+  <!-- Version: V1.7.1 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -671,6 +671,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- TOKEN DB Client -->
   <script src="supabase/supabase-client.js"></script>
+  <script src="assets/onchain-config.js"></script>
   <script>
     // ============================================
     // CONFIGURATION
@@ -718,9 +719,18 @@
     // INITIALIZATION
     // ============================================
     function init() {
+      applyOnchainDefaults();
       populateIcons();
       loadStats();
       validateInputs();
+    }
+
+    function applyOnchainDefaults() {
+      const cfg = window.TokenOnchainConfig;
+      const input = document.getElementById('onchainDeckContract');
+      if (cfg?.contracts?.deck && input && !input.value.trim()) {
+        input.value = cfg.contracts.deck;
+      }
     }
     
     function populateIcons() {
@@ -1169,7 +1179,8 @@
 
     async function ensureBaseSepolia(provider) {
       const chainId = await provider.request({ method: 'eth_chainId' });
-      if (chainId !== '0x14a34') {
+      const expectedHex = window.TokenOnchainConfig?.chain?.hexId || '0x14a34';
+      if (chainId !== expectedHex) {
         alert('Please switch to Base Sepolia (chainId 84532).');
         return false;
       }

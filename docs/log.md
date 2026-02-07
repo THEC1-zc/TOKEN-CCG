@@ -69,3 +69,6 @@ Last updated: 2026-02-07
 - Extended admin tools with deck mint, deck token URI template helper, and separate deck contract deployment status indicator. (admin.html V1.1.0)
 - Upgraded TokenCard contract draft with XP, level, metadata update hooks, and explicit lifecycle events for testnet iteration. (contracts/TokenCard.sol V0.2.0)
 - Added TokenDeck ERC-721 contract draft for deck NFT mint/burn/URI update on Base Sepolia test loops. (contracts/TokenDeck.sol V0.1.0)
+- Added shared onchain config bootstrap (`assets/onchain-config.js`) to centralize Base Sepolia chain + contract defaults for UI pages. (assets/onchain-config.js V1.0.0)
+- Wired shared onchain config into card/deck minters and normalized chain guard to configured hex chainId. (card-minter.html V2.2.1, deck-minter.html V1.7.1)
+- Extended admin with contract read tools for `nextTokenId`, `ownerOf(tokenId)`, and `tokenURI(tokenId)` plus config-driven default contract hydration. (admin.html V1.2.0)
