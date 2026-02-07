@@ -9,7 +9,7 @@
     },
     contracts: {
       card: '0x561F84D0b4246b64dFbAb1BDf87D6842412F1A18',
-      deck: ''
+      deck: '0xc75170E7268A25CE759cEe019F1c6030F414a82d'
     }
   };
 
