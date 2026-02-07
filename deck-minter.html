@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Deck Minter v1.7.1</title>
-  <!-- Version: V1.7.1 -->
+  <title>TOKEN - Deck Minter v1.8.0</title>
+  <!-- Version: V1.8.0 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -606,26 +606,20 @@
     </div>
 
     <div class="onchain-box">
-      <div class="onchain-title">Onchain Deck Mint (Testnet)</div>
-      <div class="onchain-row">
-        <input id="onchainDeckContract" placeholder="Deck contract address">
-        <input id="onchainDeckUri" placeholder="Token URI (https://...json)">
-        <button onclick="mintOnchainDeck()">Mint Deck</button>
-        <button class="ghost" onclick="fillOnchainDeckUri()">Use Template</button>
-      </div>
-      <div class="onchain-note">Base Sepolia testnet. Provide a Deck ERC-721 contract address.</div>
+      <div class="onchain-title">Onchain Deck Mint (Automatic)</div>
+      <div class="onchain-note">The app crafts from wallet NFT cards and mints deck NFT automatically on Base Sepolia.</div>
     </div>
     
     <!-- Generate Button -->
     <div class="generate-section">
       <button class="generate-btn" id="generateBtn" onclick="generateDeck()" disabled>
-        GENERATE DECK
+        CRAFT & MINT DECK
       </button>
     </div>
     
     <!-- Progress -->
     <div class="progress-section" id="progressSection">
-      <div class="progress-text" id="progressText">Generating card 1 of 10...</div>
+      <div class="progress-text" id="progressText">Scanning wallet cards...</div>
       <div class="progress-bar">
         <div class="progress-fill" id="progressFill" style="width: 0%"></div>
       </div>
@@ -653,15 +647,12 @@
           📥 Download All (ZIP)
         </button>
         <button class="action-btn" onclick="resetConfig()">
-          🔄 Generate New
-        </button>
-        <button class="action-btn primary" onclick="saveDeck()">
-          ✓ Save Deck
+          🔄 Craft New
         </button>
       </div>
     </div>
     
-    <p class="version">Deck Minter v1.2.0</p>
+    <p class="version">Deck Minter v1.8.0</p>
   </div>
 
   <!-- JSZip Library for ZIP download -->
@@ -691,9 +682,8 @@
     const PLACEHOLDER_COLORS = ['#F7931A', '#C0C0C0', '#0052FF', '#10B981', '#FFD700', '#A855F7', '#EC4899', '#06B6D4'];
     
     const DB_KEYS = {
-      DECKS: 'token_decks',
-      STATS: 'token_stats',
-      ONCHAIN_DECKS: 'token_onchain_decks'
+      ONCHAIN_DECKS: 'token_onchain_decks',
+      ONCHAIN_CARDS: 'token_onchain_cards'
     };
 
     async function getUserId() {
@@ -714,23 +704,23 @@
     function saveOnchainDecks(decks) {
       localStorage.setItem(DB_KEYS.ONCHAIN_DECKS, JSON.stringify(decks));
     }
+
+    function getOnchainCards() {
+      const raw = localStorage.getItem(DB_KEYS.ONCHAIN_CARDS);
+      return raw ? JSON.parse(raw) : [];
+    }
+
+    function getConnectedWalletAddress() {
+      return (window.TokenWallet?.getAddress?.() || '').toLowerCase();
+    }
     
     // ============================================
     // INITIALIZATION
     // ============================================
     function init() {
-      applyOnchainDefaults();
       populateIcons();
       loadStats();
       validateInputs();
-    }
-
-    function applyOnchainDefaults() {
-      const cfg = window.TokenOnchainConfig;
-      const input = document.getElementById('onchainDeckContract');
-      if (cfg?.contracts?.deck && input && !input.value.trim()) {
-        input.value = cfg.contracts.deck;
-      }
     }
     
     function populateIcons() {
@@ -747,22 +737,15 @@
     }
     
     function loadStats() {
-      const stats = getStats();
-      document.getElementById('statDecks').textContent = stats.decks;
-      document.getElementById('statCards').textContent = stats.cards;
-    }
-    
-    function getStats() {
-      const data = localStorage.getItem(DB_KEYS.STATS);
-      return data ? JSON.parse(data) : { decks: 0, cards: 0 };
-    }
-    
-    function updateStats(decksAdd = 0, cardsAdd = 0) {
-      const stats = getStats();
-      stats.decks += decksAdd;
-      stats.cards += cardsAdd;
-      localStorage.setItem(DB_KEYS.STATS, JSON.stringify(stats));
-      loadStats();
+      const owner = getConnectedWalletAddress();
+      const onchainDecks = getOnchainDecks().filter((d) =>
+        owner ? String(d.owner || '').toLowerCase() === owner : false
+      );
+      const onchainCards = getOnchainCards().filter((c) =>
+        owner ? String(c.owner || '').toLowerCase() === owner : false
+      );
+      document.getElementById('statDecks').textContent = onchainDecks.length;
+      document.getElementById('statCards').textContent = onchainCards.length;
     }
     
     // ============================================
@@ -812,12 +795,45 @@
       
       btn.disabled = true;
       btn.classList.add('generating');
-      btn.textContent = 'GENERATING...';
+      btn.textContent = 'CRAFTING...';
       
       progressSection.classList.add('visible');
       deckSection.classList.remove('visible');
       
       const houseData = HOUSES[selectedHouse];
+      const owner = getConnectedWalletAddress();
+      if (!owner) {
+        progressSection.classList.remove('visible');
+        btn.classList.remove('generating');
+        btn.textContent = 'CRAFT & MINT DECK';
+        validateInputs();
+        alert('Connect wallet first.');
+        return;
+      }
+
+      const walletCards = getOnchainCards().filter((c) =>
+        String(c.owner || '').toLowerCase() === owner &&
+        c.house === selectedHouse &&
+        String(c.factionName || '').toUpperCase() === factionName
+      );
+
+      const byValue = new Map();
+      walletCards.forEach((card) => {
+        const normalized = String(card.value) === '11' || String(card.displayValue).toUpperCase() === 'J'
+          ? '11'
+          : String(card.value);
+        if (!byValue.has(normalized)) byValue.set(normalized, card);
+      });
+
+      const missingValues = CARD_VALUES.filter((v) => !byValue.has(v));
+      if (missingValues.length) {
+        progressSection.classList.remove('visible');
+        btn.classList.remove('generating');
+        btn.textContent = 'CRAFT & MINT DECK';
+        validateInputs();
+        alert(`Missing NFT cards for values: ${missingValues.join(', ')} in faction ${factionName}.`);
+        return;
+      }
       
       const deck = {
         id: Date.now(),
@@ -830,13 +846,14 @@
         created: Date.now()
       };
       
-      // Generate 10 cards
+      // Build 10-card deck from wallet NFTs
       for (let i = 0; i < 10; i++) {
         const value = CARD_VALUES[i];
         const displayValue = DISPLAY_VALUES[i];
-        const cardName = displayValue;
+        const nftCard = byValue.get(value);
+        const cardName = nftCard?.cardName || displayValue;
         
-        document.getElementById('progressText').textContent = `Generating card ${i + 1} of 10...`;
+        document.getElementById('progressText').textContent = `Preparing NFT card ${i + 1} of 10...`;
         document.getElementById('progressFill').style.width = `${(i + 1) * 10}%`;
         
         const imageData = await generateCardImage(selectedHouse, value, displayValue, cardName, factionName, selectedIcon);
@@ -845,7 +862,9 @@
           value: value,
           displayValue: displayValue,
           cardName: cardName,
-          image: imageData
+          image: imageData,
+          sourceTokenId: nftCard?.tokenId || null,
+          sourceTxHash: nftCard?.txHash || null
         });
         
         await new Promise(r => setTimeout(r, 100));
@@ -853,12 +872,23 @@
       
       currentDeck = deck;
       displayDeck(deck);
-      
-      btn.disabled = false;
+
+      // Onchain-only flow: mint deck automatically.
+      document.getElementById('progressText').textContent = 'Minting deck NFT on Base Sepolia...';
+      const saveResult = await saveDeck();
+      if (!saveResult?.ok) {
+        progressSection.classList.remove('visible');
+        btn.classList.remove('generating');
+        btn.textContent = 'CRAFT & MINT DECK';
+        validateInputs();
+        return;
+      }
+
       btn.classList.remove('generating');
-      btn.textContent = 'GENERATE DECK';
+      btn.textContent = 'CRAFT & MINT DECK';
       progressSection.classList.remove('visible');
       deckSection.classList.add('visible');
+      validateInputs();
     }
     
     function displayDeck(deck) {
@@ -1108,7 +1138,7 @@
     }
     
     async function saveDeck() {
-      if (!currentDeck) return;
+      if (!currentDeck) return { ok: false };
       
       const deckToSave = {
         ...currentDeck,
@@ -1120,7 +1150,7 @@
       };
       
       const onchainResult = await mintOnchainDeck();
-      if (!onchainResult?.ok) return;
+      if (!onchainResult?.ok) return { ok: false };
 
       const decks = getOnchainDecks();
       decks.push({
@@ -1146,8 +1176,9 @@
         console.warn('Admin mirror save failed (deck)', err?.message || err);
       }
 
-      updateStats(1, 10);
-      alert('Deck saved onchain and mirrored to admin backend.');
+      loadStats();
+      alert('Deck crafted from wallet NFTs and minted onchain.');
+      return { ok: true, tokenId: onchainResult.tokenId };
     }
     
     function resetConfig() {
@@ -1171,12 +1202,6 @@
   <script type="module" src="assets/wallet-ui.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <script>
-    function fillOnchainDeckUri() {
-      const contract = document.getElementById('onchainDeckContract').value.trim().slice(0, 8);
-      const now = Date.now();
-      document.getElementById('onchainDeckUri').value = `https://example.com/deck/${contract}-${now}.json`;
-    }
-
     async function ensureBaseSepolia(provider) {
       const chainId = await provider.request({ method: 'eth_chainId' });
       const expectedHex = window.TokenOnchainConfig?.chain?.hexId || '0x14a34';
@@ -1188,10 +1213,10 @@
     }
 
     async function mintOnchainDeck() {
-      const address = document.getElementById('onchainDeckContract').value.trim();
-      const uri = document.getElementById('onchainDeckUri').value.trim() || `https://example.com/deck/${Date.now()}.json`;
+      const address = window.TokenOnchainConfig?.contracts?.deck || '';
+      const uri = `https://token-ccg.vercel.app/metadata/deck/${Date.now()}.json`;
       if (!address || !uri) {
-        alert('Enter contract address and token URI.');
+        alert('Deck contract address missing in onchain config.');
         return { ok: false };
       }
       if (!window.ethereum) {

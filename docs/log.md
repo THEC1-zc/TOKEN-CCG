@@ -1,6 +1,6 @@
 # Project Log
 
-Version: V0.6.5
+Version: V0.6.6
 Last updated: 2026-02-07
 
 ## 2026-02-03
@@ -78,3 +78,4 @@ Last updated: 2026-02-07
 - Added Remix assist script to generate deploy plans and persist deployed card/deck addresses into shared onchain config. (scripts/remix-assist.mjs V1.0.0, assets/onchain-config.js V1.1.0)
 - Added Remix-agent integration guide and linked the workflow into agent rules. (docs/remix-agent-integration.md V1.0.0, docs/agent1.md V1.2.0)
 - Saved deployed Base Sepolia TokenDeck contract address `0xc75170E7268A25CE759cEe019F1c6030F414a82d` in shared config and decisions tracking.
+- Refactored deck minter to wallet-NFT-only crafting and automatic onchain deck mint (removed manual/local dual flow from UI). (deck-minter.html V1.8.0)
