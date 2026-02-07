@@ -1,6 +1,6 @@
 # Project Log
 
-Version: V0.6.2
+Version: V0.6.3
 Last updated: 2026-02-07
 
 ## 2026-02-03
@@ -72,3 +72,6 @@ Last updated: 2026-02-07
 - Added shared onchain config bootstrap (`assets/onchain-config.js`) to centralize Base Sepolia chain + contract defaults for UI pages. (assets/onchain-config.js V1.0.0)
 - Wired shared onchain config into card/deck minters and normalized chain guard to configured hex chainId. (card-minter.html V2.2.1, deck-minter.html V1.7.1)
 - Extended admin with contract read tools for `nextTokenId`, `ownerOf(tokenId)`, and `tokenURI(tokenId)` plus config-driven default contract hydration. (admin.html V1.2.0)
+- Enabled runtime contract override via `localStorage.token_onchain_config` to wire new deployments without code edits. (assets/onchain-config.js V1.1.0)
+- Added Base Sepolia TokenDeck deployment runbook with constructor args and post-deploy wiring checks. (docs/tokendeck-deploy.md V1.0.0)
+- Added Playwright smoke script for onchain pages (`index`, `card-minter`, `deck-minter`, `collection`, `deck-builder`, `admin`). (scripts/smoke-onchain.mjs V1.0.0)

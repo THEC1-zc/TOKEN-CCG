@@ -1,6 +1,6 @@
 # Decisions
 
-Version: V1.1.0
+Version: V1.1.1
 Last updated: 2026-02-07
 
 ## Compliance baseline
@@ -28,6 +28,7 @@ Last updated: 2026-02-07
 ## Testnet contracts (Base Sepolia)
 - TokenCard (ERC-721): `0x561F84D0b4246b64dFbAb1BDf87D6842412F1A18`
 - TokenDeck (ERC-721): pending deployment on `84532` (contract draft added in repo)
+- Runtime override path for contract addresses is enabled via `localStorage.token_onchain_config`.
 
 ## Game architecture (current)
 - Apps remain static HTML/CSS/JS, but mint/save flows are now onchain-first for cards and decks.

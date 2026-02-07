@@ -1,7 +1,7 @@
-// Version: V1.0.0
+// Version: V1.1.0
 (function () {
   if (typeof window === 'undefined') return;
-  window.TokenOnchainConfig = {
+  const defaults = {
     chain: {
       id: 84532,
       hexId: '0x14a34',
@@ -12,4 +12,22 @@
       deck: ''
     }
   };
+
+  // Optional runtime override (no code edit needed):
+  // localStorage.setItem('token_onchain_config', JSON.stringify({
+  //   contracts: { deck: '0xYourDeckContract' }
+  // }))
+  let runtime = {};
+  try {
+    runtime = JSON.parse(localStorage.getItem('token_onchain_config') || '{}');
+  } catch (_) {
+    runtime = {};
+  }
+
+  const merged = {
+    chain: { ...defaults.chain, ...(runtime.chain || {}) },
+    contracts: { ...defaults.contracts, ...(runtime.contracts || {}) }
+  };
+
+  window.TokenOnchainConfig = merged;
 })();

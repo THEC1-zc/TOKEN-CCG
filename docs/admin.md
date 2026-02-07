@@ -1,6 +1,6 @@
 # Admin Panel Plan
 
-Version: V1.1.0  
+Version: V1.2.0  
 Last updated: 2026-02-07
 
 ## Goal
@@ -40,6 +40,8 @@ Provide a Supabase-backed admin dashboard for TOKEN with wallet-gated access (ow
 - Added in-dashboard mint test for TokenCard contract.
 - Added in-dashboard mint test for TokenDeck contract.
 - Added tokenURI template fill, last minted token display, and contract status check.
+- Added read utilities per contract: `nextTokenId`, `ownerOf(tokenId)`, `tokenURI(tokenId)`.
+- Deployment runbook: `docs/tokendeck-deploy.md`.
 
 ## Data Model Expectations (Supabase)
 - Tables are read-only for admin MVP (no writes).
