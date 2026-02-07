@@ -1,7 +1,7 @@
 # Agent 1 Summary
 
-Version: V1.1.1  
-Last updated: 2026-02-04
+Version: V1.2.0  
+Last updated: 2026-02-07
 
 ## Purpose
 Local-only coding/testing agent operating on branch `codex/agent` with full compliance focus (Farcaster, Base, onchain).
@@ -19,6 +19,11 @@ Local-only coding/testing agent operating on branch `codex/agent` with full comp
 - Use Playwright CLI via `npx --package @playwright/mcp playwright-mcp` (binary is `playwright-mcp`).
 - Store artifacts in `output/playwright/`.
 - If `npx` is missing, report and pause until Node/npm is installed.
+
+## Remix Integration
+- Use `node scripts/remix-assist.mjs plan deck` or `plan card` to prepare constructor args for user deploy in Remix.
+- After user deploys, run `node scripts/remix-assist.mjs set-deck <address>` (or `set-card`) to persist contract defaults in `assets/onchain-config.js`.
+- Continue with smoke test `node scripts/smoke-onchain.mjs`.
 
 ## Commands
 - start: begin work

@@ -1,6 +1,6 @@
 # Project Log
 
-Version: V0.6.3
+Version: V0.6.4
 Last updated: 2026-02-07
 
 ## 2026-02-03
@@ -75,3 +75,5 @@ Last updated: 2026-02-07
 - Enabled runtime contract override via `localStorage.token_onchain_config` to wire new deployments without code edits. (assets/onchain-config.js V1.1.0)
 - Added Base Sepolia TokenDeck deployment runbook with constructor args and post-deploy wiring checks. (docs/tokendeck-deploy.md V1.0.0)
 - Added Playwright smoke script for onchain pages (`index`, `card-minter`, `deck-minter`, `collection`, `deck-builder`, `admin`). (scripts/smoke-onchain.mjs V1.0.0)
+- Added Remix assist script to generate deploy plans and persist deployed card/deck addresses into shared onchain config. (scripts/remix-assist.mjs V1.0.0, assets/onchain-config.js V1.1.0)
+- Added Remix-agent integration guide and linked the workflow into agent rules. (docs/remix-agent-integration.md V1.0.0, docs/agent1.md V1.2.0)
