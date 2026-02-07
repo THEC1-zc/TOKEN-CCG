@@ -1,12 +1,13 @@
 # TokenDeck Deploy (Base Sepolia)
 
-Version: V1.0.0  
+Version: V1.1.0  
 Last updated: 2026-02-07
 
 ## Target
 - Network: Base Sepolia
 - ChainId: `84532` (`0x14a34`)
 - Contract: `/Users/fabio/Documents/New project/TOKEN-CCG/contracts/TokenDeck.sol`
+- Deployed contract (current): `0xc75170E7268A25CE759cEe019F1c6030F414a82d`
 
 ## Constructor Args
 Deploy with:
