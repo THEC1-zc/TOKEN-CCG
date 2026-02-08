@@ -1,6 +1,6 @@
 # Project Log
 
-Version: V0.6.7
+Version: V0.6.8
 Last updated: 2026-02-08
 
 ## 2026-02-03
@@ -85,3 +85,4 @@ Last updated: 2026-02-08
 - Added Codespaces devcontainer config to auto-run bootstrap on environment creation. (`.devcontainer/devcontainer.json` V1.0.0)
 - Added CI workflow to run Playwright onchain smoke checks on every push/PR involving `codex/agent`. (`.github/workflows/agent-ci.yml` V1.0.0)
 - Upgraded agent runbook with mandatory full smoke gate and bootstrap commands. (`docs/agent1.md` V1.3.0)
+- Added automated secret/private-key guard script and CI gate before Playwright tests. (`scripts/check-no-secrets.sh` V1.0.0, `.github/workflows/agent-ci.yml` V1.1.0, `package.json` V1.2.0, `docs/agent1.md` V1.4.0)

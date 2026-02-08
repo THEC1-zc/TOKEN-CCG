@@ -1,6 +1,6 @@
 # Agent 1 Summary
 
-Version: V1.3.0  
+Version: V1.4.0  
 Last updated: 2026-02-08
 
 ## Purpose
@@ -14,7 +14,7 @@ Autonomous coding/testing agent operating on branch `codex/agent` to complete TO
 5. Ask for a new area of work when complete.
 6. Follow compliance docs and keep versions/logs updated.
 7. Run Playwright tests when available; skip wallet signing flows that require user interaction.
-8. Treat `npm run agent:test-full` as required gate before closing any task.
+8. Treat `npm run agent:secrets-check` and `npm run agent:test-full` as required gates before closing any task.
 
 ## Testing
 - Use full smoke run via `npm run agent:test-full`.
@@ -25,7 +25,7 @@ Autonomous coding/testing agent operating on branch `codex/agent` to complete TO
 ## Bootstrap
 - Run `npm run agent:bootstrap` after clone/new Codespace.
 - `.devcontainer/devcontainer.json` runs bootstrap automatically in Codespaces.
-- CI workflow `.github/workflows/agent-ci.yml` runs smoke checks on every push to `codex/agent`.
+- CI workflow `.github/workflows/agent-ci.yml` runs secret scan + smoke checks on every push to `codex/agent`.
 
 ## Remix Integration
 - Use `node scripts/remix-assist.mjs plan deck` or `plan card` to prepare constructor args for user deploy in Remix.

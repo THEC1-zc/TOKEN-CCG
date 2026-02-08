@@ -1,7 +1,8 @@
 {
-  "tokenVersion": "V1.1.0",
+  "tokenVersion": "V1.2.0",
   "scripts": {
     "agent:bootstrap": "bash scripts/agent-bootstrap.sh",
+    "agent:secrets-check": "bash scripts/check-no-secrets.sh",
     "agent:test-smoke": "node scripts/smoke-onchain.mjs",
     "agent:test-full": "bash scripts/agent-test-full.sh"
   },
