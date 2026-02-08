@@ -1,7 +1,7 @@
 # Project Log
 
-Version: V0.5.8
-Last updated: 2026-02-04
+Version: V0.6.8
+Last updated: 2026-02-08
 
 ## 2026-02-03
 - Added `docs/handoff.md` and `docs/decisions.md` for cross-agent continuity. (V1.0.1)
@@ -56,4 +56,33 @@ Last updated: 2026-02-04
 - Saved TokenCard contract address and added admin mint/burn test tools. (docs/decisions.md V1.0.4, admin.html V1.0.4, docs/admin.md V1.0.4)
 - Added tokenURI template, last minted token display, and contract status panel to admin tests. (admin.html V1.0.5, docs/admin.md V1.0.5)
 - Added admin wallet detection fixes and onchain mint panels for cards/decks. (admin.html V1.0.7, card-minter.html V2.1.6, deck-minter.html V1.6.5)
+- Enabled auto onchain mint from card minter and improved admin wallet gating. (card-minter.html V2.1.7, admin.html V1.0.7)
+- Added Playwright testing guidance for the agent. (docs/agent1.md V1.1.0, docs/agentroadmap2.md V1.1.0)
+- Updated Playwright CLI invocation to use playwright-mcp binary. (docs/agent1.md V1.1.1, docs/agentroadmap2.md V1.1.1)
 - Added agent roadmaps and agent summary docs. (docs/agentroadmap1.md V1.0.0, docs/agentroadmap2.md V1.0.0, docs/agentroadmap3.md V1.0.0, docs/agent1.md V1.0.0)
+
+## 2026-02-07
+- Enforced onchain-first card mint flow: card mint now requires successful Base Sepolia mint, then stores a local onchain cache entry and mirrors to Supabase best-effort for admin reporting. (card-minter.html V2.2.0)
+- Enforced onchain-first deck save flow: deck save now triggers onchain mint, stores local onchain deck cache, and mirrors to Supabase best-effort. (deck-minter.html V1.7.0)
+- Added onchain cache as primary source for collection rendering, with DB/local fallback only if onchain cache is empty. (collection.html V1.6.0)
+- Added onchain cache as primary source for deck builder card pool, with DB/local fallback only if onchain cache is empty. (deck-builder.html V1.7.0)
+- Extended admin tools with deck mint, deck token URI template helper, and separate deck contract deployment status indicator. (admin.html V1.1.0)
+- Upgraded TokenCard contract draft with XP, level, metadata update hooks, and explicit lifecycle events for testnet iteration. (contracts/TokenCard.sol V0.2.0)
+- Added TokenDeck ERC-721 contract draft for deck NFT mint/burn/URI update on Base Sepolia test loops. (contracts/TokenDeck.sol V0.1.0)
+- Added shared onchain config bootstrap (`assets/onchain-config.js`) to centralize Base Sepolia chain + contract defaults for UI pages. (assets/onchain-config.js V1.0.0)
+- Wired shared onchain config into card/deck minters and normalized chain guard to configured hex chainId. (card-minter.html V2.2.1, deck-minter.html V1.7.1)
+- Extended admin with contract read tools for `nextTokenId`, `ownerOf(tokenId)`, and `tokenURI(tokenId)` plus config-driven default contract hydration. (admin.html V1.2.0)
+- Enabled runtime contract override via `localStorage.token_onchain_config` to wire new deployments without code edits. (assets/onchain-config.js V1.1.0)
+- Added Base Sepolia TokenDeck deployment runbook with constructor args and post-deploy wiring checks. (docs/tokendeck-deploy.md V1.0.0)
+- Added Playwright smoke script for onchain pages (`index`, `card-minter`, `deck-minter`, `collection`, `deck-builder`, `admin`). (scripts/smoke-onchain.mjs V1.0.0)
+- Added Remix assist script to generate deploy plans and persist deployed card/deck addresses into shared onchain config. (scripts/remix-assist.mjs V1.0.0, assets/onchain-config.js V1.1.0)
+- Added Remix-agent integration guide and linked the workflow into agent rules. (docs/remix-agent-integration.md V1.0.0, docs/agent1.md V1.2.0)
+- Saved deployed Base Sepolia TokenDeck contract address `0xc75170E7268A25CE759cEe019F1c6030F414a82d` in shared config and decisions tracking.
+- Refactored deck minter to wallet-NFT-only crafting and automatic onchain deck mint (removed manual/local dual flow from UI). (deck-minter.html V1.8.0)
+
+## 2026-02-08
+- Added agent automation scripts for one-command bootstrap and full smoke testing. (`scripts/agent-bootstrap.sh` V1.0.0, `scripts/agent-test-full.sh` V1.0.0, `package.json` V1.1.0)
+- Added Codespaces devcontainer config to auto-run bootstrap on environment creation. (`.devcontainer/devcontainer.json` V1.0.0)
+- Added CI workflow to run Playwright onchain smoke checks on every push/PR involving `codex/agent`. (`.github/workflows/agent-ci.yml` V1.0.0)
+- Upgraded agent runbook with mandatory full smoke gate and bootstrap commands. (`docs/agent1.md` V1.3.0)
+- Added automated secret/private-key guard script and CI gate before Playwright tests. (`scripts/check-no-secrets.sh` V1.0.0, `.github/workflows/agent-ci.yml` V1.1.0, `package.json` V1.2.0, `docs/agent1.md` V1.4.0)

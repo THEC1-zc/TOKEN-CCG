@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Deck Builder v1.6.4</title>
-  <!-- Version: V1.6.4 -->
+  <title>TOKEN - Deck Builder v1.7.0</title>
+  <!-- Version: V1.7.0 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -781,7 +781,9 @@
     const DB_KEYS = {
       CARDS: 'token_cards',
       DECKS: 'token_decks',
-      BATTLE_DECKS: 'token_battle_decks'
+      BATTLE_DECKS: 'token_battle_decks',
+      ONCHAIN_CARDS: 'token_onchain_cards',
+      ONCHAIN_DECKS: 'token_onchain_decks'
     };
     
     // State
@@ -803,6 +805,42 @@
 
     async function loadAllCards() {
       allCards = [];
+      const connectedWallet = (window.TokenWallet?.getAddress?.() || '').toLowerCase();
+
+      const onchainCards = JSON.parse(localStorage.getItem(DB_KEYS.ONCHAIN_CARDS) || '[]');
+      const onchainDecks = JSON.parse(localStorage.getItem(DB_KEYS.ONCHAIN_DECKS) || '[]');
+      const scopedCards = connectedWallet
+        ? onchainCards.filter((c) => String(c.owner || '').toLowerCase() === connectedWallet)
+        : onchainCards;
+      const scopedDecks = connectedWallet
+        ? onchainDecks.filter((d) => String(d.owner || '').toLowerCase() === connectedWallet)
+        : onchainDecks;
+
+      scopedCards.forEach((card) => {
+        allCards.push({
+          ...card,
+          uid: `onchain-card-${card.tokenId || card.id}`,
+          source: 'onchain-card'
+        });
+      });
+
+      scopedDecks.forEach((deck) => {
+        (deck.cards || []).forEach((card) => {
+          allCards.push({
+            uid: `onchain-deck-${deck.tokenId || deck.id}-${card.value}`,
+            id: `${deck.tokenId || deck.id}-${card.value}`,
+            house: deck.house,
+            value: card.value,
+            displayValue: card.displayValue || card.value,
+            cardName: card.cardName || 'CARD',
+            factionName: deck.faction || deck.factionName,
+            factionIcon: deck.factionIcon,
+            source: 'onchain-deck'
+          });
+        });
+      });
+
+      if (allCards.length) return allCards;
       
       try {
         const userId = await getUserId();
