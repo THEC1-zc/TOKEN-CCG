@@ -1,7 +1,7 @@
 # Project Log
 
-Version: V0.6.6
-Last updated: 2026-02-07
+Version: V0.6.7
+Last updated: 2026-02-08
 
 ## 2026-02-03
 - Added `docs/handoff.md` and `docs/decisions.md` for cross-agent continuity. (V1.0.1)
@@ -79,3 +79,9 @@ Last updated: 2026-02-07
 - Added Remix-agent integration guide and linked the workflow into agent rules. (docs/remix-agent-integration.md V1.0.0, docs/agent1.md V1.2.0)
 - Saved deployed Base Sepolia TokenDeck contract address `0xc75170E7268A25CE759cEe019F1c6030F414a82d` in shared config and decisions tracking.
 - Refactored deck minter to wallet-NFT-only crafting and automatic onchain deck mint (removed manual/local dual flow from UI). (deck-minter.html V1.8.0)
+
+## 2026-02-08
+- Added agent automation scripts for one-command bootstrap and full smoke testing. (`scripts/agent-bootstrap.sh` V1.0.0, `scripts/agent-test-full.sh` V1.0.0, `package.json` V1.1.0)
+- Added Codespaces devcontainer config to auto-run bootstrap on environment creation. (`.devcontainer/devcontainer.json` V1.0.0)
+- Added CI workflow to run Playwright onchain smoke checks on every push/PR involving `codex/agent`. (`.github/workflows/agent-ci.yml` V1.0.0)
+- Upgraded agent runbook with mandatory full smoke gate and bootstrap commands. (`docs/agent1.md` V1.3.0)

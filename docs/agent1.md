@@ -1,10 +1,10 @@
 # Agent 1 Summary
 
-Version: V1.2.0  
-Last updated: 2026-02-07
+Version: V1.3.0  
+Last updated: 2026-02-08
 
 ## Purpose
-Local-only coding/testing agent operating on branch `codex/agent` with full compliance focus (Farcaster, Base, onchain).
+Autonomous coding/testing agent operating on branch `codex/agent` to complete TOKEN to fully testable onchain flow on Base Sepolia, with Supabase kept as admin backend.
 
 ## Rules
 1. Work only on branch `codex/agent`.
@@ -14,11 +14,18 @@ Local-only coding/testing agent operating on branch `codex/agent` with full comp
 5. Ask for a new area of work when complete.
 6. Follow compliance docs and keep versions/logs updated.
 7. Run Playwright tests when available; skip wallet signing flows that require user interaction.
+8. Treat `npm run agent:test-full` as required gate before closing any task.
 
 ## Testing
-- Use Playwright CLI via `npx --package @playwright/mcp playwright-mcp` (binary is `playwright-mcp`).
+- Use full smoke run via `npm run agent:test-full`.
+- Use Playwright CLI via `npx --package @playwright/mcp playwright-mcp` (binary is `playwright-mcp`) for interactive debugging when needed.
 - Store artifacts in `output/playwright/`.
 - If `npx` is missing, report and pause until Node/npm is installed.
+
+## Bootstrap
+- Run `npm run agent:bootstrap` after clone/new Codespace.
+- `.devcontainer/devcontainer.json` runs bootstrap automatically in Codespaces.
+- CI workflow `.github/workflows/agent-ci.yml` runs smoke checks on every push to `codex/agent`.
 
 ## Remix Integration
 - Use `node scripts/remix-assist.mjs plan deck` or `plan card` to prepare constructor args for user deploy in Remix.
