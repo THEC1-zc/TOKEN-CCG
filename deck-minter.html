@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Deck Minter v1.8.0</title>
-  <!-- Version: V1.8.0 -->
+  <title>TOKEN - Deck Minter v1.9.0</title>
+  <!-- Version: V1.9.0 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -606,8 +606,8 @@
     </div>
 
     <div class="onchain-box">
-      <div class="onchain-title">Onchain Deck Mint (Automatic)</div>
-      <div class="onchain-note">The app crafts from wallet NFT cards and mints deck NFT automatically on Base Sepolia.</div>
+      <div class="onchain-title">Deck Registry</div>
+      <div class="onchain-note">Decks are gameplay objects only (not NFTs). Crafted from wallet-owned card NFTs.</div>
     </div>
     
     <!-- Generate Button -->
@@ -652,16 +652,13 @@
       </div>
     </div>
     
-    <p class="version">Deck Minter v1.8.0</p>
+    <p class="version">Deck Minter v1.9.0</p>
   </div>
 
   <!-- JSZip Library for ZIP download -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   
   <!-- Supabase SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- TOKEN DB Client -->
-  <script src="supabase/supabase-client.js"></script>
   <script src="assets/onchain-config.js"></script>
   <script>
     // ============================================
@@ -686,11 +683,6 @@
       ONCHAIN_CARDS: 'token_onchain_cards'
     };
 
-    async function getUserId() {
-      TokenDB.init();
-      return await TokenDB.getOrCreateGuestUser();
-    }
-    
     // State
     let selectedHouse = null;
     let selectedIcon = null;
@@ -1149,36 +1141,18 @@
         }))
       };
       
-      const onchainResult = await mintOnchainDeck();
-      if (!onchainResult?.ok) return { ok: false };
-
       const decks = getOnchainDecks();
       decks.push({
         ...deckToSave,
         owner: window.TokenWallet?.getAddress?.() || 'guest',
-        tokenId: onchainResult.tokenId,
-        txHash: onchainResult.txHash,
-        tokenUri: onchainResult.tokenUri,
-        contractAddress: onchainResult.contractAddress,
+        deckId: 'deck-' + Date.now(),
         chainId: 84532
       });
       saveOnchainDecks(decks);
 
-      try {
-        const userId = await getUserId();
-        await TokenDB.createDeck(userId, {
-          house: deckToSave.house,
-          factionName: deckToSave.faction,
-          factionIcon: deckToSave.factionIcon,
-          cards: deckToSave.cards
-        });
-      } catch (err) {
-        console.warn('Admin mirror save failed (deck)', err?.message || err);
-      }
-
       loadStats();
-      alert('Deck crafted from wallet NFTs and minted onchain.');
-      return { ok: true, tokenId: onchainResult.tokenId };
+      alert('Deck crafted from wallet NFT cards.');
+      return { ok: true };
     }
     
     function resetConfig() {
@@ -1200,54 +1174,5 @@
     document.addEventListener('DOMContentLoaded', init);
   </script>
   <script type="module" src="assets/wallet-ui.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-  <script>
-    async function ensureBaseSepolia(provider) {
-      const chainId = await provider.request({ method: 'eth_chainId' });
-      const expectedHex = window.TokenOnchainConfig?.chain?.hexId || '0x14a34';
-      if (chainId !== expectedHex) {
-        alert('Please switch to Base Sepolia (chainId 84532).');
-        return false;
-      }
-      return true;
-    }
-
-    async function mintOnchainDeck() {
-      const address = window.TokenOnchainConfig?.contracts?.deck || '';
-      const uri = `https://token-ccg.vercel.app/metadata/deck/${Date.now()}.json`;
-      if (!address || !uri) {
-        alert('Deck contract address missing in onchain config.');
-        return { ok: false };
-      }
-      if (!window.ethereum) {
-        alert('No wallet provider found.');
-        return { ok: false };
-      }
-      try {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        if (!await ensureBaseSepolia(provider.provider)) return { ok: false };
-        const signer = provider.getSigner();
-        const abi = ['function mint(string uri) external returns (uint256)'];
-        const contract = new ethers.Contract(address, abi, signer);
-        const tx = await contract.mint(uri);
-        const receipt = await tx.wait();
-        let tokenId = null;
-        const transferEvent = receipt?.events?.find((e) => e.event === 'Transfer');
-        if (transferEvent?.args?.tokenId) tokenId = transferEvent.args.tokenId.toString();
-        alert('Onchain deck mint complete.');
-        return {
-          ok: true,
-          tokenId,
-          txHash: tx.hash,
-          tokenUri: uri,
-          contractAddress: address
-        };
-      } catch (err) {
-        console.error(err);
-        alert('Onchain deck mint failed: ' + (err?.message || err));
-        return { ok: false, error: err };
-      }
-    }
-  </script>
 </body>
 </html>

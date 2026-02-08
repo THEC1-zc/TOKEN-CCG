@@ -1,7 +1,11 @@
 {
-  "tokenVersion": "V1.2.0",
+  "tokenVersion": "V1.4.0",
   "scripts": {
     "agent:bootstrap": "bash scripts/agent-bootstrap.sh",
+    "agent:phase": "node scripts/agent-phase-runner.mjs run",
+    "agent:phase:status": "node scripts/agent-phase-runner.mjs status",
+    "agent:phase:reset": "node scripts/agent-phase-runner.mjs reset A",
+    "agent:phase:a:verify": "bash scripts/phase-a-verify.sh",
     "agent:secrets-check": "bash scripts/check-no-secrets.sh",
     "agent:test-smoke": "node scripts/smoke-onchain.mjs",
     "agent:test-full": "bash scripts/agent-test-full.sh"

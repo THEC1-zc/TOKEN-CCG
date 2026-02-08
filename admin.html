@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Admin v1.2.0</title>
-  <!-- Version: V1.2.0 -->
+  <title>TOKEN - Admin v1.2.1</title>
+  <!-- Version: V1.2.1 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -470,12 +470,27 @@
     }
 
     async function loadAdminData() {
-      TokenDB.init();
       await setWalletLabel();
       const ok = await isOwner();
       setAccess(ok);
       setToolsEnabled(ok);
       if (!ok) return;
+
+      const backendEnabled = window.TokenDB?.isEnabled?.() === true;
+      if (!backendEnabled) {
+        document.getElementById('kpiCards').textContent = '-';
+        document.getElementById('kpiDecks').textContent = '-';
+        document.getElementById('kpiBattleDecks').textContent = '-';
+        document.getElementById('kpiUsers').textContent = '-';
+        const msg = 'Supabase backend is disabled (onchain-only mode).';
+        document.getElementById('cardsError').textContent = msg;
+        document.getElementById('decksError').textContent = msg;
+        document.getElementById('battleDecksError').textContent = msg;
+        document.getElementById('usersError').textContent = msg;
+        return;
+      }
+
+      TokenDB.init();
 
       try {
         const [cards, decks, battleDecks, users] = await Promise.all([

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Deck Builder v1.7.0</title>
-  <!-- Version: V1.7.0 -->
+  <title>TOKEN - Deck Builder v1.7.2</title>
+  <!-- Version: V1.7.2 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -760,13 +760,9 @@
       </div>
     </div>
     
-      <p class="version">Deck Builder v1.5.0</p>
+      <p class="version">Deck Builder v1.7.2</p>
   </div>
 
-  <!-- Supabase SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- TOKEN DB Client -->
-  <script src="supabase/supabase-client.js"></script>
   <script>
     // ============================================
     // CONFIGURATION
@@ -779,8 +775,6 @@
     };
     
     const DB_KEYS = {
-      CARDS: 'token_cards',
-      DECKS: 'token_decks',
       BATTLE_DECKS: 'token_battle_decks',
       ONCHAIN_CARDS: 'token_onchain_cards',
       ONCHAIN_DECKS: 'token_onchain_decks'
@@ -798,11 +792,6 @@
     // ============================================
     // DATA LOADING
     // ============================================
-    async function getUserId() {
-      TokenDB.init();
-      return await TokenDB.getOrCreateGuestUser();
-    }
-
     async function loadAllCards() {
       allCards = [];
       const connectedWallet = (window.TokenWallet?.getAddress?.() || '').toLowerCase();
@@ -840,76 +829,11 @@
         });
       });
 
-      if (allCards.length) return allCards;
-      
-      try {
-        const userId = await getUserId();
-        const singleCards = await TokenDB.getUserCards(userId);
-        singleCards.forEach(card => {
-          allCards.push({
-            ...card,
-            uid: `card-${card.id}`,
-            source: 'minter',
-            factionName: card.faction_name,
-            factionIcon: card.faction_icon,
-            displayValue: card.display_value
-          });
-        });
-
-        const decks = await TokenDB.getUserDecks(userId);
-        decks.forEach(deck => {
-          (deck.cards || []).forEach(card => {
-            allCards.push({
-              uid: `deck-${deck.id}-${card.value}`,
-              id: `${deck.id}-${card.value}`,
-              house: deck.house,
-              value: card.value,
-              displayValue: card.displayValue || card.display_value || card.value,
-              cardName: card.cardName || card.card_name || 'CARD',
-              factionName: deck.faction_name || deck.faction,
-              factionIcon: deck.faction_icon || deck.factionIcon,
-              source: 'deck'
-            });
-          });
-        });
-      } catch (e) {
-        const singleCards = JSON.parse(localStorage.getItem(DB_KEYS.CARDS) || '[]');
-        singleCards.forEach(card => {
-          allCards.push({
-            ...card,
-            uid: `card-${card.id}`,
-            source: 'minter'
-          });
-        });
-
-        const decks = JSON.parse(localStorage.getItem(DB_KEYS.DECKS) || '[]');
-        decks.forEach(deck => {
-          deck.cards.forEach(card => {
-            allCards.push({
-              uid: `deck-${deck.id}-${card.value}`,
-              id: `${deck.id}-${card.value}`,
-              house: deck.house,
-              value: card.value,
-              displayValue: card.displayValue,
-              cardName: card.cardName,
-              factionName: deck.faction,
-              factionIcon: deck.factionIcon,
-              source: 'deck'
-            });
-          });
-        });
-      }
-      
       return allCards;
     }
     
     async function loadSavedBattleDecks() {
-      try {
-        const userId = await getUserId();
-        return await TokenDB.getUserBattleDecks(userId);
-      } catch (e) {
-        return JSON.parse(localStorage.getItem(DB_KEYS.BATTLE_DECKS) || '[]');
-      }
+      return JSON.parse(localStorage.getItem(DB_KEYS.BATTLE_DECKS) || '[]');
     }
     
     // ============================================
@@ -964,7 +888,7 @@
         container.innerHTML = `
           <div class="collection-empty" style="grid-column: 1/-1;">
             <div class="collection-empty-icon">🃏</div>
-            <div>No cards available. Mint some cards first!</div>
+            <div>No onchain NFT cards available. Connect wallet and mint first.</div>
           </div>
         `;
         return;
@@ -1524,20 +1448,9 @@
         created: Date.now()
       };
       
-      try {
-        const userId = await getUserId();
-        await TokenDB.createBattleDeck(userId, {
-          name: battleDeck.name,
-          deck1House: battleDeck.deck1House,
-          deck2House: battleDeck.deck2House,
-          deck1Cards: battleDeck.deck1Cards,
-          deck2Cards: battleDeck.deck2Cards
-        });
-      } catch (e) {
-        const saved = await loadSavedBattleDecks();
-        saved.push(battleDeck);
-        localStorage.setItem(DB_KEYS.BATTLE_DECKS, JSON.stringify(saved));
-      }
+      const saved = await loadSavedBattleDecks();
+      saved.push(battleDeck);
+      localStorage.setItem(DB_KEYS.BATTLE_DECKS, JSON.stringify(saved));
       
       renderSavedDecks();
       alert('Battle deck saved!');
@@ -1576,23 +1489,10 @@
     
     async function deleteBattleDeck(index) {
       if (!confirm('Delete this battle deck?')) return;
-      try {
-        const userId = await getUserId();
-        const saved = await loadSavedBattleDecks();
-        const toDelete = saved[index];
-        if (toDelete?.id) {
-          await TokenDB.deleteBattleDeck(toDelete.id);
-        } else {
-          saved.splice(index, 1);
-          localStorage.setItem(DB_KEYS.BATTLE_DECKS, JSON.stringify(saved));
-        }
-        renderSavedDecks();
-      } catch (e) {
-        const saved = await loadSavedBattleDecks();
-        saved.splice(index, 1);
-        localStorage.setItem(DB_KEYS.BATTLE_DECKS, JSON.stringify(saved));
-        renderSavedDecks();
-      }
+      const saved = await loadSavedBattleDecks();
+      saved.splice(index, 1);
+      localStorage.setItem(DB_KEYS.BATTLE_DECKS, JSON.stringify(saved));
+      renderSavedDecks();
     }
     
     // ============================================

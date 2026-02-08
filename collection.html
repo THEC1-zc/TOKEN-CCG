@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Collection Viewer v1.6.0</title>
-  <!-- Version: V1.6.0 -->
+  <title>TOKEN - Collection Viewer v1.6.2</title>
+  <!-- Version: V1.6.2 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -601,8 +601,8 @@
       <div class="empty-state-icon">🃏</div>
       <div class="empty-state-title">No Cards Yet</div>
       <p class="empty-state-text">Start building your collection by minting cards!</p>
-      <a href="card-minter_v1.7.2.html" class="empty-state-btn">Mint Single Card</a>
-      <a href="deck-minter_v1.1.0.html" class="empty-state-btn secondary">Generate Deck</a>
+      <a href="card-minter.html" class="empty-state-btn">Mint Single Card</a>
+      <a href="deck-minter.html" class="empty-state-btn secondary">Generate Deck</a>
     </div>
     
     <!-- Cards Grid -->
@@ -610,7 +610,7 @@
       <!-- Cards inserted here -->
     </div>
     
-    <p class="version">Collection Viewer v1.0.0</p>
+    <p class="version">Collection Viewer v1.6.2</p>
   </div>
   
   <!-- Card Detail Modal -->
@@ -645,10 +645,6 @@
     </div>
   </div>
 
-  <!-- Supabase SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- TOKEN DB Client -->
-  <script src="supabase/supabase-client.js"></script>
   <script>
     // ============================================
     // CONFIGURATION
@@ -661,9 +657,6 @@
     };
     
     const DB_KEYS = {
-      CARDS: 'token_cards',
-      DECKS: 'token_decks',
-      FACTIONS: 'token_factions',
       ONCHAIN_CARDS: 'token_onchain_cards',
       ONCHAIN_DECKS: 'token_onchain_decks'
     };
@@ -675,11 +668,6 @@
     // ============================================
     // DATA LOADING
     // ============================================
-    async function getUserId() {
-      TokenDB.init();
-      return await TokenDB.getOrCreateGuestUser();
-    }
-
     async function loadAllCards() {
       allCards = [];
       const connectedWallet = (window.TokenWallet?.getAddress?.() || '').toLowerCase();
@@ -719,71 +707,6 @@
           });
         });
       });
-
-      if (allCards.length) return allCards;
-
-      try {
-        const userId = await getUserId();
-        const singleCards = await TokenDB.getUserCards(userId);
-        const decks = await TokenDB.getUserDecks(userId);
-
-        singleCards.forEach(card => {
-          allCards.push({
-            ...card,
-            source: 'minter',
-            factionName: card.faction_name,
-            factionIcon: card.faction_icon,
-            displayValue: card.display_value
-          });
-        });
-
-        decks.forEach(deck => {
-          (deck.cards || []).forEach(card => {
-            allCards.push({
-              id: `${deck.id}-${card.value}`,
-              house: deck.house,
-              value: card.value,
-              displayValue: card.displayValue || card.display_value || card.value,
-              cardName: card.cardName || card.card_name || 'CARD',
-              factionName: deck.faction_name || deck.faction,
-              factionIcon: deck.faction_icon || deck.factionIcon,
-              xp: 0,
-              level: 1,
-              created: deck.created_at || deck.created,
-              source: 'deck',
-              deckId: deck.id
-            });
-          });
-        });
-      } catch (e) {
-        const singleCards = JSON.parse(localStorage.getItem(DB_KEYS.CARDS) || '[]');
-        singleCards.forEach(card => {
-          allCards.push({
-            ...card,
-            source: 'minter'
-          });
-        });
-
-        const decks = JSON.parse(localStorage.getItem(DB_KEYS.DECKS) || '[]');
-        decks.forEach(deck => {
-          deck.cards.forEach(card => {
-            allCards.push({
-              id: `${deck.id}-${card.value}`,
-              house: deck.house,
-              value: card.value,
-              displayValue: card.displayValue,
-              cardName: card.cardName,
-              factionName: deck.faction,
-              factionIcon: deck.factionIcon,
-              xp: 0,
-              level: 1,
-              created: deck.created,
-              source: 'deck',
-              deckId: deck.id
-            });
-          });
-        });
-      }
 
       return allCards;
     }
@@ -951,11 +874,15 @@
       
       document.getElementById('modalXP').textContent = card.xp || 0;
       document.getElementById('modalLevel').textContent = card.level || 1;
-      document.getElementById('modalSource').textContent = card.source === 'deck' ? 'Deck' : 'Mint';
+      document.getElementById('modalSource').textContent =
+        card.source === 'onchain-deck' ? 'Deck NFT' : 'Card NFT';
       
       // Actions
       document.getElementById('modalDownload').onclick = () => downloadCard(card);
-      document.getElementById('modalDelete').onclick = () => deleteCard(card);
+      const deleteBtn = document.getElementById('modalDelete');
+      deleteBtn.onclick = () => deleteCard(card);
+      deleteBtn.disabled = true;
+      deleteBtn.title = 'Onchain collection: use admin burn tools';
       
       document.getElementById('cardModal').classList.add('visible');
     }
@@ -981,28 +908,7 @@
     }
     
     async function deleteCard(card) {
-      if (!confirm(`Delete "${card.cardName}"? This cannot be undone.`)) return;
-      
-      try {
-        if (card.source === 'minter') {
-          await TokenDB.deleteCard(card.id);
-        } else if (card.deckId) {
-          await TokenDB.deleteDeck(card.deckId);
-        }
-      } catch (e) {
-        if (card.source === 'minter') {
-          const cards = JSON.parse(localStorage.getItem(DB_KEYS.CARDS) || '[]');
-          const updated = cards.filter(c => c.id !== card.id);
-          localStorage.setItem(DB_KEYS.CARDS, JSON.stringify(updated));
-        } else {
-          const decks = JSON.parse(localStorage.getItem(DB_KEYS.DECKS) || '[]');
-          const updated = decks.filter(d => d.id !== card.deckId);
-          localStorage.setItem(DB_KEYS.DECKS, JSON.stringify(updated));
-        }
-      }
-      
-      closeModal();
-      init();
+      alert('Onchain collection: use admin burn tools for cleanup.');
     }
     
     // ============================================

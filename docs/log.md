@@ -1,6 +1,6 @@
 # Project Log
 
-Version: V0.6.8
+Version: V0.7.3
 Last updated: 2026-02-08
 
 ## 2026-02-03
@@ -86,3 +86,12 @@ Last updated: 2026-02-08
 - Added CI workflow to run Playwright onchain smoke checks on every push/PR involving `codex/agent`. (`.github/workflows/agent-ci.yml` V1.0.0)
 - Upgraded agent runbook with mandatory full smoke gate and bootstrap commands. (`docs/agent1.md` V1.3.0)
 - Added automated secret/private-key guard script and CI gate before Playwright tests. (`scripts/check-no-secrets.sh` V1.0.0, `.github/workflows/agent-ci.yml` V1.1.0, `package.json` V1.2.0, `docs/agent1.md` V1.4.0)
+- Fixed collection page links to canonical file names and enforced onchain-only collection behavior (disabled local delete path, NFT-only source labeling). (`collection.html` V1.6.1)
+- Removed legacy DB/local fallback card sources from deck builder to keep deck crafting aligned with onchain NFT inventory only. (`deck-builder.html` V1.7.1)
+- Added formal autonomous run contract for the new step-by-step agent lifecycle. (`docs/agent-spec-v2.md` V1.0.0, `docs/agent1.md` V1.5.0)
+- Disabled Supabase runtime by default behind explicit opt-in flag (`window.TOKEN_SUPABASE_ENABLED` or `localStorage.token_supabase_enabled`) to prevent backend conflicts during onchain completion phase. (`supabase/supabase-client.js` V1.1.0)
+- Added phase-state runner with persistent state and auto-advance gates for phases A->B->C. (`scripts/agent-phase-runner.mjs` V1.0.0, `.agent/phase-state.json` V1.0.0, `package.json` V1.3.0, `docs/agent-spec-v2.md` V1.1.0, `docs/agent1.md` V1.6.0)
+- Completed Phase A runtime hardening: removed active Supabase script links from all runtime gameplay pages and switched to onchain/local-only runtime paths. (`index.html` V1.4.5, `game.html` V1.7.7, `card-minter.html` V2.2.2, `deck-minter.html` V1.9.0, `deck-builder.html` V1.7.2, `collection.html` V1.6.2)
+- Updated admin behavior to show explicit backend-disabled state in onchain-only mode while preserving onchain admin tools. (`admin.html` V1.2.1, `supabase/supabase-client.js` V1.1.0)
+- Added concrete Phase A verification gate script and wired it into phase runner/package scripts. (`scripts/phase-a-verify.sh` V1.0.0, `scripts/agent-phase-runner.mjs` V1.0.1, `package.json` V1.4.0, `docs/agent-spec-v2.md` V1.2.0, `docs/agent1.md` V1.7.0)
+- Added autonomous cloud runner workflow for `codex/agent` (hourly/manual) with bootstrap, phase execution, and conditional auto-commit/push. (`.github/workflows/agent-autonomous.yml` V1.0.0, `docs/agent-spec-v2.md` V1.3.0, `docs/agent1.md` V1.8.0)
