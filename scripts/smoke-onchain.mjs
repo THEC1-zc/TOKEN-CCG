@@ -1,5 +1,7 @@
-// Version: V1.0.0
+// Version: V1.1.0
 import { chromium } from 'playwright';
+import fs from 'fs';
+import path from 'path';
 
 const BASE_URL = process.env.TOKEN_BASE_URL || 'http://127.0.0.1:4173';
 const PAGES = [
@@ -48,7 +50,16 @@ async function run() {
   }
 
   await browser.close();
+  const outputDir = path.join(process.cwd(), 'output', 'playwright');
+  fs.mkdirSync(outputDir, { recursive: true });
+  const outPath = path.join(outputDir, 'smoke-report.json');
+  fs.writeFileSync(outPath, JSON.stringify(report, null, 2));
   console.log(JSON.stringify(report, null, 2));
+
+  if (report.length !== PAGES.length) {
+    console.error(`Smoke report incomplete: expected ${PAGES.length}, got ${report.length}`);
+    process.exit(1);
+  }
 
   const hardFail = report.some((r) => r.consoleErrors.length > 0);
   process.exit(hardFail ? 1 : 0);
