@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Crypto Card Game v1.4.6</title>
-  <!-- Version: V1.4.6 -->
+  <title>TOKEN - Crypto Card Game v1.4.7</title>
+  <!-- Version: V1.4.7 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -25,6 +25,28 @@
       opacity: 0.25;
       pointer-events: none;
       z-index: 0;
+    }
+    .release-badge {
+      position: fixed;
+      top: 76px;
+      right: 20px;
+      z-index: 150;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(10, 10, 15, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #E5E7EB;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      backdrop-filter: blur(6px);
+    }
+    @media (max-width: 768px) {
+      .release-badge {
+        top: 64px;
+        right: 12px;
+        font-size: 9px;
+      }
     }
     .container, .hero, .menu-grid, .stats-bar { position: relative; z-index: 1; }
     
@@ -295,6 +317,7 @@
 </head>
 <body>
   <div class="bg-icon" aria-hidden="true"></div>
+  <div class="release-badge">Release V1.0.1</div>
   <header class="app-header">
     <div class="header-left">
       <a class="header-brand" href="index.html">
@@ -448,7 +471,7 @@
     <div class="footer">
       <p>TOKEN - Offchain Testing Suite</p>
       <p style="margin-top: 8px;"></p>
-      <div class="version-badge">v1.0.0 • Offchain Testing</div>
+      <div class="version-badge">Release V1.0.1</div>
     </div>
   </div>
 

@@ -99,3 +99,4 @@ Last updated: 2026-02-08
 ## 2026-02-09
 - Simplified card mint UI to a single onchain flow: removed manual onchain inputs and enforced automatic Base Sepolia NFT mint on the main Mint button. (`card-minter.html` V2.3.0)
 - Reworked deck minter to mint a batch of 10 card NFTs on Base Sepolia for a selected faction and use those minted cards to build the deck preview. (`deck-minter.html` V2.0.0)
+- Added global release badge across all pages and bumped page versions to latest. (`index.html` V1.4.7, `game.html` V1.7.9, `card-minter.html` V2.3.1, `deck-minter.html` V2.0.1, `deck-builder.html` V1.7.4, `collection.html` V1.6.4, `admin.html` V1.2.2, `generate-cardback.html` V1.1.7)
