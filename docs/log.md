@@ -95,3 +95,7 @@ Last updated: 2026-02-08
 - Updated admin behavior to show explicit backend-disabled state in onchain-only mode while preserving onchain admin tools. (`admin.html` V1.2.1, `supabase/supabase-client.js` V1.1.0)
 - Added concrete Phase A verification gate script and wired it into phase runner/package scripts. (`scripts/phase-a-verify.sh` V1.0.0, `scripts/agent-phase-runner.mjs` V1.0.1, `package.json` V1.4.0, `docs/agent-spec-v2.md` V1.2.0, `docs/agent1.md` V1.7.0)
 - Added autonomous cloud runner workflow for `codex/agent` (hourly/manual) with bootstrap, phase execution, and conditional auto-commit/push. (`.github/workflows/agent-autonomous.yml` V1.0.0, `docs/agent-spec-v2.md` V1.3.0, `docs/agent1.md` V1.8.0)
+
+## 2026-02-09
+- Simplified card mint UI to a single onchain flow: removed manual onchain inputs and enforced automatic Base Sepolia NFT mint on the main Mint button. (`card-minter.html` V2.3.0)
+- Reworked deck minter to mint a batch of 10 card NFTs on Base Sepolia for a selected faction and use those minted cards to build the deck preview. (`deck-minter.html` V2.0.0)

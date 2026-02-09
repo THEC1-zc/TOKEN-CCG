@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Card Minter v2.2.2</title>
+  <title>TOKEN - Card Minter v2.3.0</title>
   <!-- Version: V2.2.2 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
@@ -1195,23 +1195,7 @@
           FILL ALL FIELDS
         </button>
 
-        <div class="onchain-box">
-          <div class="onchain-title">Onchain Mint (Testnet)</div>
-          <div class="onchain-row">
-            <input id="onchainCardContract" placeholder="Card contract address" value="0x561F84D0b4246b64dFbAb1BDf87D6842412F1A18">
-            <input id="onchainCardUri" placeholder="Token URI (https://...json)">
-            <button onclick="mintOnchainCard()">Mint Onchain</button>
-            <button class="ghost" onclick="fillOnchainUri()">Use Template</button>
-          </div>
-          <div class="onchain-row">
-            <label class="onchain-toggle">
-              <input type="checkbox" id="onchainAutoMint">
-              Mint onchain when card is minted
-            </label>
-            <span class="onchain-status" id="onchainStatus">idle</span>
-          </div>
-          <div class="onchain-note">Base Sepolia testnet. Mint is public; admin can burn in Admin panel.</div>
-        </div>
+        <div class="onchain-note" style="margin-top: 14px;">Base Sepolia testnet. Mint is public; admin can burn in Admin panel.</div>
       </div>
       
       <!-- Preview -->
@@ -1251,7 +1235,7 @@
       </div>
     </div>
     
-    <p class="version">Card Minter v2.2.2 - Onchain Only</p>
+    <p class="version">Card Minter v2.3.0 - Onchain Only</p>
   </div>
   
   <!-- Success Modal -->
@@ -1259,7 +1243,7 @@
     <div class="modal">
       <div class="modal-icon">🎉</div>
       <h2 class="modal-title">CARD MINTED!</h2>
-      <p class="modal-text">Your card has been created and saved locally.</p>
+      <p class="modal-text">Your card has been minted onchain (Base Sepolia).</p>
       <div class="modal-card-preview">
         <img id="modalCardImage" src="" alt="Minted card">
       </div>
@@ -1508,7 +1492,6 @@
       const wallet = getConnectedWalletAddress();
       document.getElementById('walletAddress').textContent = 
         wallet.substring(0, 6) + '...' + wallet.substring(wallet.length - 4);
-      applyOnchainDefaults();
       
       // Update stats
       updateStats();
@@ -1839,12 +1822,6 @@
         created: Date.now()
       };
 
-      // Onchain-first path: enforce chain mint in test mode.
-      if (!document.getElementById('onchainAutoMint')?.checked) {
-        alert('Enable "Mint onchain when card is minted" to continue.');
-        return;
-      }
-
       const onchainResult = await mintOnchainCard();
       if (!onchainResult?.ok) return;
 
@@ -2145,25 +2122,8 @@
   <script type="module" src="assets/wallet-ui.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <script>
-    function setOnchainStatus(text) {
-      const el = document.getElementById('onchainStatus');
-      if (el) el.textContent = text;
-    }
-
-    function applyOnchainDefaults() {
-      const cfg = window.TokenOnchainConfig;
-      const input = document.getElementById('onchainCardContract');
-      if (cfg?.contracts?.card && input && !input.value.trim()) {
-        input.value = cfg.contracts.card;
-      }
-    }
-
-    function fillOnchainUri() {
-      document.getElementById('onchainCardUri').value = buildOnchainUri();
-    }
-
     function buildOnchainUri() {
-      const contract = document.getElementById('onchainCardContract').value.trim().slice(0, 8);
+      const contract = (window.TokenOnchainConfig?.contracts?.card || 'card').slice(0, 8);
       const now = Date.now();
       return `https://example.com/token/${contract}-${now}.json`;
     }
@@ -2179,14 +2139,10 @@
     }
 
     async function mintOnchainCard(uriOverride) {
-      const address = document.getElementById('onchainCardContract').value.trim();
-      const uriInput = document.getElementById('onchainCardUri').value.trim();
-      const uri = uriOverride || uriInput || buildOnchainUri();
-      if (!uriInput && !uriOverride) {
-        document.getElementById('onchainCardUri').value = uri;
-      }
+      const address = (window.TokenOnchainConfig?.contracts?.card || '').trim();
+      const uri = uriOverride || buildOnchainUri();
       if (!address || !uri) {
-        alert('Enter contract address and token URI.');
+        alert('Onchain config missing contract address or token URI.');
         return;
       }
       if (!window.ethereum) {
@@ -2199,7 +2155,6 @@
         const signer = provider.getSigner();
         const abi = ['function mint(string uri) external returns (uint256)'];
         const contract = new ethers.Contract(address, abi, signer);
-        setOnchainStatus('minting...');
         const tx = await contract.mint(uri);
         const receipt = await tx.wait();
         let tokenId = null;
@@ -2207,7 +2162,6 @@
         if (transferEvent?.args?.tokenId) {
           tokenId = transferEvent.args.tokenId.toString();
         }
-        setOnchainStatus(tokenId ? `minted #${tokenId}` : 'minted');
         alert('Onchain mint complete.');
         return {
           ok: true,
