@@ -1,0 +1,110 @@
+[
+  {
+    "page": "index.html",
+    "url": "http://127.0.0.1:4173/index.html",
+    "walletApi": true,
+    "onchainCfg": {
+      "chain": {
+        "id": 84532,
+        "hexId": "0x14a34",
+        "name": "Base Sepolia"
+      },
+      "contracts": {
+        "card": "0x561F84D0b4246b64dFbAb1BDf87D6842412F1A18",
+        "deck": "0xc75170E7268A25CE759cEe019F1c6030F414a82d"
+      }
+    },
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "page": "card-minter.html",
+    "url": "http://127.0.0.1:4173/card-minter.html",
+    "walletApi": true,
+    "onchainCfg": {
+      "chain": {
+        "id": 84532,
+        "hexId": "0x14a34",
+        "name": "Base Sepolia"
+      },
+      "contracts": {
+        "card": "0x561F84D0b4246b64dFbAb1BDf87D6842412F1A18",
+        "deck": "0xc75170E7268A25CE759cEe019F1c6030F414a82d"
+      }
+    },
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "page": "deck-minter.html",
+    "url": "http://127.0.0.1:4173/deck-minter.html",
+    "walletApi": true,
+    "onchainCfg": {
+      "chain": {
+        "id": 84532,
+        "hexId": "0x14a34",
+        "name": "Base Sepolia"
+      },
+      "contracts": {
+        "card": "0x561F84D0b4246b64dFbAb1BDf87D6842412F1A18",
+        "deck": "0xc75170E7268A25CE759cEe019F1c6030F414a82d"
+      }
+    },
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "page": "collection.html",
+    "url": "http://127.0.0.1:4173/collection.html",
+    "walletApi": true,
+    "onchainCfg": {
+      "chain": {
+        "id": 84532,
+        "hexId": "0x14a34",
+        "name": "Base Sepolia"
+      },
+      "contracts": {
+        "card": "0x561F84D0b4246b64dFbAb1BDf87D6842412F1A18",
+        "deck": "0xc75170E7268A25CE759cEe019F1c6030F414a82d"
+      }
+    },
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "page": "deck-builder.html",
+    "url": "http://127.0.0.1:4173/deck-builder.html",
+    "walletApi": true,
+    "onchainCfg": {
+      "chain": {
+        "id": 84532,
+        "hexId": "0x14a34",
+        "name": "Base Sepolia"
+      },
+      "contracts": {
+        "card": "0x561F84D0b4246b64dFbAb1BDf87D6842412F1A18",
+        "deck": "0xc75170E7268A25CE759cEe019F1c6030F414a82d"
+      }
+    },
+    "consoleErrors": [],
+    "failedRequests": []
+  },
+  {
+    "page": "admin.html",
+    "url": "http://127.0.0.1:4173/admin.html",
+    "walletApi": true,
+    "onchainCfg": {
+      "chain": {
+        "id": 84532,
+        "hexId": "0x14a34",
+        "name": "Base Sepolia"
+      },
+      "contracts": {
+        "card": "0x561F84D0b4246b64dFbAb1BDf87D6842412F1A18",
+        "deck": "0xc75170E7268A25CE759cEe019F1c6030F414a82d"
+      }
+    },
+    "consoleErrors": [],
+    "failedRequests": []
+  }
+]
