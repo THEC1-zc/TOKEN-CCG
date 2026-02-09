@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Card Minter v2.3.1</title>
-  <!-- Version: V2.3.1 -->
+  <title>TOKEN - Card Minter v2.3.3</title>
+  <!-- Version: V2.3.3 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -88,21 +88,6 @@
       color: #71717A;
       font-size: 12px;
       margin-bottom: 24px;
-    }
-    
-    .wallet-info {
-      text-align: center;
-      background: #141419;
-      border: 1px solid #27272A;
-      border-radius: 8px;
-      padding: 8px 12px;
-      margin-bottom: 20px;
-      font-size: 11px;
-      color: #A1A1AA;
-    }
-    
-    .wallet-info strong {
-      color: #F7931A;
     }
     
     .minter-layout {
@@ -1063,11 +1048,6 @@
     <h1>CARD MINTER</h1>
     <p class="subtitle">Create your unique Crypto Scopa card</p>
     
-    <!-- Simulated Wallet Info -->
-    <div class="wallet-info">
-      Wallet: <strong id="walletAddress">0x1234...5678</strong> (simulated)
-    </div>
-    
     <!-- Stats -->
     <div class="stats-bar">
       <div class="stat-item">
@@ -1254,7 +1234,7 @@
       </div>
     </div>
     
-    <p class="version">Card Minter v2.3.1 - Onchain Only</p>
+    <p class="version">Card Minter v2.3.3 - Onchain Only</p>
   </div>
   
   <!-- Success Modal -->
@@ -1507,11 +1487,6 @@
     // UI FUNCTIONS
     // ============================================
     function initUI() {
-      // Set wallet display
-      const wallet = getConnectedWalletAddress();
-      document.getElementById('walletAddress').textContent = 
-        wallet.substring(0, 6) + '...' + wallet.substring(wallet.length - 4);
-      
       // Update stats
       updateStats();
       
@@ -2150,11 +2125,38 @@
     async function ensureBaseSepolia(provider) {
       const chainId = await provider.request({ method: 'eth_chainId' });
       const expectedHex = window.TokenOnchainConfig?.chain?.hexId || '0x14a34';
-      if (chainId !== expectedHex) {
-        alert('Please switch to Base Sepolia (chainId 84532).');
+      if (chainId === expectedHex) return true;
+
+      const chain = window.TokenOnchainConfig?.chain || {
+        id: 84532,
+        hexId: '0x14a34',
+        name: 'Base Sepolia'
+      };
+
+      try {
+        await provider.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: expectedHex }]
+        });
+        return true;
+      } catch (err) {
+        if (err?.code === 4902) {
+          await provider.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: chain.hexId,
+              chainName: chain.name,
+              nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+              rpcUrls: ['https://sepolia.base.org'],
+              blockExplorerUrls: ['https://sepolia.basescan.org']
+            }]
+          });
+          return true;
+        }
+        console.error(err);
+        alert('Wallet rejected network switch to Base Sepolia.');
         return false;
       }
-      return true;
     }
 
     async function mintOnchainCard(uriOverride) {

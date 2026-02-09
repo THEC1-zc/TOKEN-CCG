@@ -1,7 +1,8 @@
-// Version: V1.1.0
+// Version: V1.1.4
 import { chromium } from 'playwright';
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 
 const BASE_URL = process.env.TOKEN_BASE_URL || 'http://127.0.0.1:4173';
 const PAGES = [
@@ -13,8 +14,62 @@ const PAGES = [
   'admin.html'
 ];
 
+function findChromiumExecutable() {
+  if (process.env.PLAYWRIGHT_CHROMIUM_PATH) {
+    return process.env.PLAYWRIGHT_CHROMIUM_PATH;
+  }
+  if (process.platform !== 'darwin') return null;
+
+  const cacheRoot = path.join(os.homedir(), 'Library', 'Caches', 'ms-playwright');
+  if (!fs.existsSync(cacheRoot)) return null;
+
+  const entries = fs.readdirSync(cacheRoot).filter((name) => name.startsWith('chromium-'));
+  for (const entry of entries) {
+    const base = path.join(cacheRoot, entry);
+    const candidates = [
+      path.join(base, 'chrome-mac-arm64', 'Google Chrome for Testing.app', 'Contents', 'MacOS', 'Google Chrome for Testing'),
+      path.join(base, 'chrome-mac-x64', 'Google Chrome for Testing.app', 'Contents', 'MacOS', 'Google Chrome for Testing')
+    ];
+    for (const candidate of candidates) {
+      if (fs.existsSync(candidate)) return candidate;
+    }
+  }
+  return null;
+}
+
+async function launchBrowser() {
+  const errors = [];
+  const commonArgs = ['--disable-crashpad'];
+  if (process.platform === 'darwin') {
+    try {
+      return await chromium.launch({ headless: true, channel: 'chrome', args: commonArgs });
+    } catch (err) {
+      errors.push(`channel=chrome failed: ${err?.message || err}`);
+    }
+    try {
+      return await chromium.launch({ headless: false, channel: 'chrome', args: commonArgs });
+    } catch (err) {
+      errors.push(`channel=chrome headful failed: ${err?.message || err}`);
+    }
+  }
+  const executablePath = findChromiumExecutable();
+  if (executablePath) {
+    try {
+      return await chromium.launch({ headless: true, executablePath, args: commonArgs });
+    } catch (err) {
+      errors.push(`executablePath failed: ${err?.message || err}`);
+    }
+  }
+  try {
+    return await chromium.launch({ headless: true, args: commonArgs });
+  } catch (err) {
+    errors.push(`default launch failed: ${err?.message || err}`);
+  }
+  throw new Error(`Playwright launch failed. ${errors.join(' | ')}`);
+}
+
 async function run() {
-  const browser = await chromium.launch({ headless: true });
+  const browser = await launchBrowser();
   const context = await browser.newContext();
   const report = [];
 
