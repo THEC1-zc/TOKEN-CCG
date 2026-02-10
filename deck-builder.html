@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Deck Builder v1.7.5</title>
-  <!-- Version: V1.7.5 -->
+  <title>TOKEN - Deck Builder v1.8.0</title>
+  <!-- Version: V1.8.0 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -800,7 +800,7 @@
       </div>
     </div>
     
-      <p class="version">Deck Builder v1.7.5</p>
+      <p class="version">Deck Builder v1.8.0</p>
   </div>
 
   <script src="assets/onchain-config.js"></script>
@@ -817,13 +817,12 @@
     };
     
     const DB_KEYS = {
-      BATTLE_DECKS: 'token_battle_decks',
-      ONCHAIN_CARDS: 'token_onchain_cards',
-      ONCHAIN_DECKS: 'token_onchain_decks'
+      BATTLE_DECKS: 'token_battle_decks'
     };
 
     const WALLET_SCAN_TTL_MS = 5 * 60 * 1000;
     let lastWalletScanAt = 0;
+    let onchainCardsCache = [];
 
     async function ensureBaseSepolia(provider) {
       const chainId = await provider.request({ method: 'eth_chainId' });
@@ -936,9 +935,7 @@
         } catch (_) {}
       }
 
-      const existing = JSON.parse(localStorage.getItem(DB_KEYS.ONCHAIN_CARDS) || '[]');
-      const filtered = existing.filter((c) => String(c.owner || '').toLowerCase() !== owner);
-      localStorage.setItem(DB_KEYS.ONCHAIN_CARDS, JSON.stringify([...filtered, ...collected]));
+      onchainCardsCache = collected;
       lastWalletScanAt = now;
     }
     
@@ -958,36 +955,15 @@
       allCards = [];
       const connectedWallet = (window.TokenWallet?.getAddress?.() || '').toLowerCase();
 
-      const onchainCards = JSON.parse(localStorage.getItem(DB_KEYS.ONCHAIN_CARDS) || '[]');
-      const onchainDecks = JSON.parse(localStorage.getItem(DB_KEYS.ONCHAIN_DECKS) || '[]');
       const scopedCards = connectedWallet
-        ? onchainCards.filter((c) => String(c.owner || '').toLowerCase() === connectedWallet)
-        : onchainCards;
-      const scopedDecks = connectedWallet
-        ? onchainDecks.filter((d) => String(d.owner || '').toLowerCase() === connectedWallet)
-        : onchainDecks;
+        ? onchainCardsCache.filter((c) => String(c.owner || '').toLowerCase() === connectedWallet)
+        : onchainCardsCache;
 
       scopedCards.forEach((card) => {
         allCards.push({
           ...card,
           uid: `onchain-card-${card.tokenId || card.id}`,
           source: 'onchain-card'
-        });
-      });
-
-      scopedDecks.forEach((deck) => {
-        (deck.cards || []).forEach((card) => {
-          allCards.push({
-            uid: `onchain-deck-${deck.tokenId || deck.id}-${card.value}`,
-            id: `${deck.tokenId || deck.id}-${card.value}`,
-            house: deck.house,
-            value: card.value,
-            displayValue: card.displayValue || card.value,
-            cardName: card.cardName || 'CARD',
-            factionName: deck.faction || deck.factionName,
-            factionIcon: deck.factionIcon,
-            source: 'onchain-deck'
-          });
         });
       });
 

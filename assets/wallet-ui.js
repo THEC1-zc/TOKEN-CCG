@@ -1,4 +1,4 @@
-// Version: V1.3.3
+// Version: V1.3.4
 
 const state = {
   sdk: null,
@@ -382,9 +382,9 @@ function updateUI() {
 }
 
 async function boot() {
-  buildHeader();
-  await initSdk();
   try {
+    buildHeader();
+    await initSdk();
     if (window.ethereum?.request && safeGet(DISCONNECT_KEY) !== '1') {
       const accounts = await window.ethereum.request({ method: 'eth_accounts' });
       if (accounts?.[0]) {
@@ -392,13 +392,15 @@ async function boot() {
         state.providerType = 'browser';
       }
     }
-  } catch (_) {}
-  updateUI();
-  try {
     if (state.sdk?.actions?.ready) {
       await state.sdk.actions.ready();
     }
-  } catch (_) {}
+  } catch (err) {
+    console.error('Wallet UI boot failed', err);
+  } finally {
+    buildHeader();
+    updateUI();
+  }
 }
 
 if (document.readyState === 'loading') {

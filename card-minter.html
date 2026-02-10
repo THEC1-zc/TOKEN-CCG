@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Card Minter v2.3.5</title>
-  <!-- Version: V2.3.5 -->
+  <title>TOKEN - Card Minter v2.3.6</title>
+  <!-- Version: V2.3.6 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -1234,7 +1234,7 @@
       </div>
     </div>
     
-    <p class="version">Card Minter v2.3.5 - Onchain Only</p>
+    <p class="version">Card Minter v2.3.6 - Onchain Only</p>
   </div>
   
   <!-- Success Modal -->
@@ -1301,7 +1301,6 @@
     // LOCAL DATABASE (LocalStorage)
     // ============================================
     const DB_KEYS = {
-      WALLET: 'cryptoscopa_wallet',
       FACTIONS: 'cryptoscopa_factions',
       CARDS: 'cryptoscopa_cards',
       ONCHAIN_CARDS: 'token_onchain_cards'
@@ -1317,7 +1316,7 @@
     }
 
     function getConnectedWalletAddress() {
-      return window.TokenWallet?.getAddress?.() || getWallet();
+      return window.TokenWallet?.getAddress?.() || '';
     }
 
     const WALLET_SCAN_TTL_MS = 5 * 60 * 1000;
@@ -1341,17 +1340,9 @@
       return !inCache && !inChain;
     }
     
-    // Initialize or get wallet
+    // Wallet is required for onchain minting
     function getWallet() {
-      let wallet = localStorage.getItem(DB_KEYS.WALLET);
-      if (!wallet) {
-        // Generate fake wallet address
-        wallet = '0x' + Array.from({length: 40}, () => 
-          '0123456789abcdef'[Math.floor(Math.random() * 16)]
-        ).join('');
-        localStorage.setItem(DB_KEYS.WALLET, wallet);
-      }
-      return wallet;
+      return getConnectedWalletAddress();
     }
     
     // Get all factions
@@ -1363,6 +1354,7 @@
     // Get user's factions
     function getMyFactions() {
       const wallet = getWallet();
+      if (!wallet) return [];
       return getAllFactions().filter(f => f.owner === wallet);
     }
     
@@ -1383,9 +1375,14 @@
         savedIcon = await compressImage(icon, 50, 0.6);
       }
       
+      const owner = getWallet();
+      if (!owner) {
+        alert('Connect wallet first.');
+        return null;
+      }
       const newFaction = {
         name: normalized,
-        owner: getWallet(),
+        owner: owner,
         icon: savedIcon,
         iconType: iconType || 'emoji',
         created: Date.now(),
@@ -1798,7 +1795,12 @@
         await createFaction(state.factionName, state.factionIcon, state.factionIconType);
       }
       
-      // Duplicate check in Supabase
+      const owner = getConnectedWalletAddress();
+      if (!owner) {
+        alert('Connect wallet first.');
+        return;
+      }
+
       if (!await canMintCard(state.factionName, state.value, state.house)) {
         alert(`Card ${displayValue} for ${state.house.toUpperCase()} / ${state.factionName} already exists!`);
         return;
@@ -1824,7 +1826,7 @@
         image: state.image,
         xp: 0,
         level: 1,
-        owner: getConnectedWalletAddress(),
+        owner: owner,
         created: Date.now()
       };
 

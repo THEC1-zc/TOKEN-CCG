@@ -105,5 +105,6 @@ Last updated: 2026-02-08
 - Enforced unique card minting by owner + house + faction + value. (`card-minter.html` V2.3.4)
 - Added onchain wallet scan to detect existing NFTs before minting new cards. (`card-minter.html` V2.3.5)
 - Fixed logout persistence and enabled deck builder to read wallet NFTs with image previews. (`assets/wallet-ui.js` V1.3.2, `deck-builder.html` V1.7.5)
-- Added safe localStorage access to prevent wallet header from failing to render in strict contexts. (`assets/wallet-ui.js` V1.3.3)
+- Added safe localStorage access and robust boot to prevent wallet header from failing to render in strict contexts. (`assets/wallet-ui.js` V1.3.4)
+- Deck builder now reads cards from chain scan only, no local onchain fallback. (`deck-builder.html` V1.8.0)
 - Added `--disable-crashpad` to Playwright launch args to avoid macOS permission crash during smoke tests. (`scripts/smoke-onchain.mjs` V1.1.4)
