@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Card Minter v2.3.3</title>
-  <!-- Version: V2.3.3 -->
+  <title>TOKEN - Card Minter v2.3.5</title>
+  <!-- Version: V2.3.5 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -1234,7 +1234,7 @@
       </div>
     </div>
     
-    <p class="version">Card Minter v2.3.3 - Onchain Only</p>
+    <p class="version">Card Minter v2.3.5 - Onchain Only</p>
   </div>
   
   <!-- Success Modal -->
@@ -1320,14 +1320,25 @@
       return window.TokenWallet?.getAddress?.() || getWallet();
     }
 
-    async function canMintCard(factionName, value) {
+    const WALLET_SCAN_TTL_MS = 5 * 60 * 1000;
+    let walletIndex = { byKey: new Set(), lastScanAt: 0 };
+
+    function buildCardKey(house, factionName, value) {
+      return `${String(house).toLowerCase()}|${String(factionName).toUpperCase()}|${String(value)}`;
+    }
+
+    async function canMintCard(factionName, value, house) {
+      await refreshWalletIndex();
       const owner = getConnectedWalletAddress().toLowerCase();
       const cards = getOnchainCards();
-      return !cards.some((c) =>
+      const inCache = cards.some((c) =>
         c.owner?.toLowerCase() === owner &&
+        c.house === house &&
         c.factionName === factionName &&
         String(c.value) === String(value)
       );
+      const inChain = walletIndex.byKey.has(buildCardKey(house, factionName, value));
+      return !inCache && !inChain;
     }
     
     // Initialize or get wallet
@@ -1495,6 +1506,7 @@
       
       // Populate emoji grid
       populateEmojiGrid();
+      refreshWalletIndex(true);
     }
     
     function populateEmojiGrid() {
@@ -1787,8 +1799,8 @@
       }
       
       // Duplicate check in Supabase
-      if (!await canMintCard(state.factionName, state.value)) {
-        alert(`Card with value ${displayValue} already exists in ${state.factionName}!`);
+      if (!await canMintCard(state.factionName, state.value, state.house)) {
+        alert(`Card ${displayValue} for ${state.house.toUpperCase()} / ${state.factionName} already exists!`);
         return;
       }
 
@@ -2118,8 +2130,89 @@
   <script>
     function buildOnchainUri() {
       const contract = (window.TokenOnchainConfig?.contracts?.card || 'card').slice(0, 8);
+      const house = String(state.house || '').toLowerCase();
+      const faction = encodeURIComponent(String(state.factionName || '').toLowerCase());
+      const value = String(state.value || '').toLowerCase();
       const now = Date.now();
-      return `https://example.com/token/${contract}-${now}.json`;
+      return `https://example.com/token/${contract}-${house}-${faction}-${value}-${now}.json`;
+    }
+
+    function getWalletScanCacheKey() {
+      const owner = getConnectedWalletAddress().toLowerCase();
+      const contract = (window.TokenOnchainConfig?.contracts?.card || '').toLowerCase();
+      return `token_wallet_scan_${owner}_${contract}`;
+    }
+
+    async function refreshWalletIndex(force) {
+      const now = Date.now();
+      if (!force && now - walletIndex.lastScanAt < WALLET_SCAN_TTL_MS) return;
+
+      const cached = localStorage.getItem(getWalletScanCacheKey());
+      if (!force && cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (now - parsed.lastScanAt < WALLET_SCAN_TTL_MS) {
+            walletIndex = { byKey: new Set(parsed.keys || []), lastScanAt: parsed.lastScanAt };
+            return;
+          }
+        } catch (_) {}
+      }
+
+      if (!window.ethereum) return;
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      if (!await ensureBaseSepolia(provider.provider)) return;
+      const signer = provider.getSigner();
+      const contractAddress = (window.TokenOnchainConfig?.contracts?.card || '').trim();
+      if (!contractAddress) return;
+
+      const abi = [
+        'function ownerOf(uint256 tokenId) view returns (address)',
+        'function tokenURI(uint256 tokenId) view returns (string)',
+        'function totalSupply() view returns (uint256)',
+        'function nextTokenId() view returns (uint256)'
+      ];
+      const contract = new ethers.Contract(contractAddress, abi, signer);
+      let maxId = 0;
+      try {
+        maxId = (await contract.nextTokenId()).toNumber() - 1;
+      } catch (_) {
+        try {
+          maxId = (await contract.totalSupply()).toNumber();
+        } catch (_) {
+          return;
+        }
+      }
+
+      const owner = getConnectedWalletAddress().toLowerCase();
+      const keys = new Set();
+      const maxScan = Math.min(maxId, 500);
+      for (let tokenId = 1; tokenId <= maxScan; tokenId++) {
+        let tokenOwner;
+        try {
+          tokenOwner = (await contract.ownerOf(tokenId)).toLowerCase();
+        } catch (_) {
+          continue;
+        }
+        if (tokenOwner !== owner) continue;
+        try {
+          const uri = await contract.tokenURI(tokenId);
+          const meta = await fetch(uri).then((r) => r.json()).catch(() => null);
+          const attrs = Array.isArray(meta?.attributes) ? meta.attributes : [];
+          const getAttr = (key) => attrs.find((a) => String(a.trait_type || '').toLowerCase() === key)?.value;
+          const value = getAttr('value') || meta?.value || meta?.cardValue;
+          const house = (getAttr('house') || meta?.house || '').toString().toLowerCase();
+          const faction = (getAttr('faction') || meta?.factionName || '').toString().toUpperCase();
+          if (value && house && faction) {
+            keys.add(buildCardKey(house, faction, value));
+          }
+        } catch (_) {}
+      }
+
+      walletIndex = { byKey: keys, lastScanAt: now };
+      localStorage.setItem(getWalletScanCacheKey(), JSON.stringify({
+        lastScanAt: now,
+        keys: Array.from(keys)
+      }));
     }
 
     async function ensureBaseSepolia(provider) {
