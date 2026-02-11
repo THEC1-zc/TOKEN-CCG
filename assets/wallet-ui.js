@@ -24,7 +24,6 @@ function safeSet(key, value) {
     localStorage.setItem(key, value);
   } catch (_) {}
 }
-const DISCONNECT_KEY = 'token_wallet_disconnected';
 
 const LABELS = {
   disconnected: 'Login',
