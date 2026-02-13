@@ -108,3 +108,6 @@ Last updated: 2026-02-08
 - Added safe localStorage access and robust boot to prevent wallet header from failing to render in strict contexts. (`assets/wallet-ui.js` V1.3.4)
 - Deck builder now reads cards from chain scan only, no local onchain fallback. (`deck-builder.html` V1.8.0)
 - Added `--disable-crashpad` to Playwright launch args to avoid macOS permission crash during smoke tests. (`scripts/smoke-onchain.mjs` V1.1.4)
+
+## 2026-02-13
+- Collection now reads NFT cards directly from connected wallet on Base Sepolia via onchain scan (`ownerOf` + `tokenURI`) and no longer depends on localStorage card/deck fallback for displayed inventory. Added ethers import, wallet refresh hooks, and image preview rendering from metadata when available. (`collection.html` V1.7.0)
