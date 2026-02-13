@@ -2,7 +2,7 @@
   {
     "page": "index.html",
     "url": "http://127.0.0.1:4173/index.html",
-    "walletApi": false,
+    "walletApi": true,
     "onchainCfg": {
       "chain": {
         "id": 84532,
@@ -20,7 +20,7 @@
   {
     "page": "card-minter.html",
     "url": "http://127.0.0.1:4173/card-minter.html",
-    "walletApi": false,
+    "walletApi": true,
     "onchainCfg": {
       "chain": {
         "id": 84532,
@@ -38,7 +38,7 @@
   {
     "page": "deck-minter.html",
     "url": "http://127.0.0.1:4173/deck-minter.html",
-    "walletApi": false,
+    "walletApi": true,
     "onchainCfg": {
       "chain": {
         "id": 84532,
@@ -56,7 +56,7 @@
   {
     "page": "collection.html",
     "url": "http://127.0.0.1:4173/collection.html",
-    "walletApi": false,
+    "walletApi": true,
     "onchainCfg": {
       "chain": {
         "id": 84532,
@@ -74,7 +74,7 @@
   {
     "page": "deck-builder.html",
     "url": "http://127.0.0.1:4173/deck-builder.html",
-    "walletApi": false,
+    "walletApi": true,
     "onchainCfg": {
       "chain": {
         "id": 84532,
@@ -92,7 +92,7 @@
   {
     "page": "admin.html",
     "url": "http://127.0.0.1:4173/admin.html",
-    "walletApi": false,
+    "walletApi": true,
     "onchainCfg": {
       "chain": {
         "id": 84532,
