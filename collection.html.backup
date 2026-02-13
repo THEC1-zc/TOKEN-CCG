@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TOKEN - Collection Viewer v1.6.4</title>
+  <!-- Version: V1.6.4 -->
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/wallet-ui.css">
+  <link rel="stylesheet" href="assets/header.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    .back-btn {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: #27272A;
+      border: 1px solid #3f3f46;
+      border-radius: 8px;
+      color: #FFFFFF;
+      text-decoration: none;
+      font-size: 13px;
+      line-height: 1;
+      z-index: 100;
+      transition: all 0.2s;
+    }
+    .back-btn:hover {
+      background: #3f3f46;
+      border-color: #F7931A;
+    }
+    
+    body {
+      min-height: 100vh;
+      background: linear-gradient(180deg, #0a0a0f 0%, #12121f 50%, #0a0a0f 100%);
+      padding: 20px;
+      font-family: 'Inter', system-ui, sans-serif;
+      color: #FFFFFF;
+    }
+    .bg-icon {
+      position: fixed;
+      inset: 0;
+      background: url("assets/main%20icon.png") center/360px auto no-repeat;
+      opacity: 0.25;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .release-badge {
+      position: fixed;
+      top: 76px;
+      right: 20px;
+      z-index: 150;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(10, 10, 15, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #E5E7EB;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      backdrop-filter: blur(6px);
+    }
+    @media (max-width: 768px) {
+      .release-badge { top: 64px; right: 12px; font-size: 9px; }
+    }
+    .container { position: relative; z-index: 1; }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      font-size: 28px;
+      font-family: 'Bebas Neue', sans-serif;
+      color: #FFFFFF;
+      letter-spacing: 4px;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    
+    .subtitle {
+      text-align: center;
+      color: #71717A;
+      font-size: 12px;
+      margin-bottom: 24px;
+    }
+    
+    /* Stats Bar */
+    .stats-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .stat-item {
+      background: #141419;
+      border: 1px solid #27272A;
+      border-radius: 8px;
+      padding: 10px 16px;
+      text-align: center;
+      min-width: 80px;
+    }
+    
+    .stat-value {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 24px;
+    }
+    
+    .stat-label {
+      font-size: 9px;
+      color: #71717A;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .stat-bitcoin .stat-value { color: #F7931A; }
+    .stat-ethereum .stat-value { color: #C0C0C0; }
+    .stat-base .stat-value { color: #0052FF; }
+    .stat-tysm .stat-value { color: #10B981; }
+    .stat-total .stat-value { color: #FFFFFF; }
+    .stat-factions .stat-value { color: #A855F7; }
+    
+    /* Filters */
+    .filters-bar {
+      background: #141419;
+      border: 1px solid #27272A;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+    
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .filter-label {
+      font-size: 9px;
+      color: #71717A;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .filter-select {
+      padding: 8px 12px;
+      background: #0a0a0f;
+      border: 1px solid #27272A;
+      border-radius: 6px;
+      color: #FFFFFF;
+      font-size: 13px;
+      min-width: 140px;
+      cursor: pointer;
+    }
+    
+    .filter-select:focus {
+      outline: none;
+      border-color: #F7931A;
+    }
+    
+    .filters-spacer {
+      flex: 1;
+    }
+    
+    .search-box {
+      padding: 8px 12px;
+      background: #0a0a0f;
+      border: 1px solid #27272A;
+      border-radius: 6px;
+      color: #FFFFFF;
+      font-size: 13px;
+      width: 200px;
+    }
+    
+    .search-box:focus {
+      outline: none;
+      border-color: #F7931A;
+    }
+    
+    .search-box::placeholder {
+      color: #52525B;
+    }
+    
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #52525B;
+    }
+    
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    
+    .empty-state-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 24px;
+      color: #71717A;
+      margin-bottom: 8px;
+    }
+    
+    .empty-state-text {
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+    
+    .empty-state-btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #F7931A 0%, #FFD93D 100%);
+      border: none;
+      border-radius: 8px;
+      color: #000000;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 16px;
+      letter-spacing: 2px;
+      text-decoration: none;
+      cursor: pointer;
+      margin: 0 8px;
+    }
+    
+    .empty-state-btn:hover {
+      opacity: 0.9;
+    }
+    
+    .empty-state-btn.secondary {
+      background: #27272A;
+      color: #FFFFFF;
+    }
+    
+    /* Cards Grid */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .card-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    
+    .card-item:hover {
+      transform: translateY(-4px);
+    }
+    
+    .card-image {
+      width: 120px;
+      height: 180px;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      position: relative;
+    }
+    
+    .card-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .card-source {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: rgba(0,0,0,0.7);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 8px;
+      color: #A1A1AA;
+    }
+    
+    .card-info {
+      text-align: center;
+    }
+    
+    .card-name {
+      font-size: 11px;
+      color: #FFFFFF;
+      font-weight: 600;
+    }
+    
+    .card-faction {
+      font-size: 9px;
+      color: #71717A;
+    }
+    
+    /* Card placeholder (no image stored) */
+    .card-placeholder {
+      width: 120px;
+      height: 180px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .card-placeholder.bitcoin {
+      background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%);
+      border: 2px solid #F7931A;
+    }
+    .card-placeholder.ethereum {
+      background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%);
+      border: 2px solid #C0C0C0;
+    }
+    .card-placeholder.base {
+      background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%);
+      border: 2px solid #0052FF;
+    }
+    .card-placeholder.tysm {
+      background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%);
+      border: 2px solid #10B981;
+    }
+    
+    .card-placeholder-symbol {
+      font-size: 28px;
+      margin-bottom: 4px;
+    }
+    
+    .card-placeholder-value {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 36px;
+      color: #FFFFFF;
+    }
+    
+    .card-placeholder-name {
+      font-size: 10px;
+      color: #A1A1AA;
+      margin-top: 8px;
+    }
+    
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    
+    .modal-overlay.visible {
+      display: flex;
+    }
+    
+    .modal-content {
+      background: #141419;
+      border: 1px solid #27272A;
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+    }
+    
+    .modal-card-image {
+      width: 180px;
+      height: 270px;
+      margin: 0 auto 16px;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    
+    .modal-card-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .modal-card-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 24px;
+      margin-bottom: 4px;
+    }
+    
+    .modal-card-details {
+      font-size: 12px;
+      color: #A1A1AA;
+      margin-bottom: 16px;
+    }
+    
+    .modal-card-stats {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    
+    .modal-stat {
+      text-align: center;
+    }
+    
+    .modal-stat-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px;
+      color: #FFFFFF;
+    }
+    
+    .modal-stat-label {
+      font-size: 9px;
+      color: #71717A;
+      text-transform: uppercase;
+    }
+    
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .modal-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .modal-btn.primary {
+      background: linear-gradient(135deg, #10B981 0%, #6EE7B7 100%);
+      color: #000000;
+      font-weight: 600;
+    }
+    
+    .modal-btn.secondary {
+      background: #27272A;
+      color: #FFFFFF;
+    }
+    
+    .modal-btn.danger {
+      background: #DC2626;
+      color: #FFFFFF;
+    }
+    
+    .modal-btn:hover {
+      opacity: 0.9;
+    }
+    
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: none;
+      border: none;
+      color: #71717A;
+      font-size: 24px;
+      cursor: pointer;
+    }
+    
+    /* Results count */
+    .results-count {
+      text-align: center;
+      color: #52525B;
+      font-size: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .version {
+      text-align: center;
+      color: #3f3f46;
+      font-size: 9px;
+      margin-top: 24px;
+    }
+    
+    /* House colors for text */
+    .house-bitcoin { color: #F7931A; }
+    .house-ethereum { color: #C0C0C0; }
+    .house-base { color: #0052FF; }
+    .house-tysm {
+      background: linear-gradient(90deg, #FACC15, #3B82F6);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-icon" aria-hidden="true"></div>
+  <div class="release-badge">Release V1.0.1</div>
+  <header class="app-header">
+    <div class="header-left">
+      <a class="header-brand" href="index.html">
+        <img src="assets/main%20icon.png" alt="TOKEN">
+        <span class="header-title token-brand">TOKEN</span>
+      </a>
+      <span class="header-sep">/</span>
+      <span class="header-page">Collection</span>
+    </div>
+    <nav class="header-nav">
+      <a href="index.html">Home</a>
+      <a href="index.html#how-to-play">How to Play</a>
+      <a href="docs/rules.md">Rules</a>
+    </nav>
+    <div class="header-right">
+      <span class="status-pill">Test Mode</span>
+      <div id="walletHeaderMount"></div>
+    </div>
+  </header>
+  <a href="index.html" class="back-btn">← <img class="token-back" src="assets/token_icon.png" alt="TOKEN"> Home</a>
+  <div class="container">
+    <h1>🖼️ MY COLLECTION</h1>
+    <p class="subtitle">View and manage all your TOKEN cards</p>
+    
+    <!-- Stats -->
+    <div class="stats-bar">
+      <div class="stat-item stat-total">
+        <div class="stat-value" id="statTotal">0</div>
+        <div class="stat-label">Total</div>
+      </div>
+      <div class="stat-item stat-bitcoin">
+        <div class="stat-value" id="statBitcoin">0</div>
+        <div class="stat-label">₿ Bitcoin</div>
+      </div>
+      <div class="stat-item stat-ethereum">
+        <div class="stat-value" id="statEthereum">0</div>
+        <div class="stat-label">◊ Ethereum</div>
+      </div>
+      <div class="stat-item stat-base">
+        <div class="stat-value" id="statBase">0</div>
+        <div class="stat-label">■ Base</div>
+      </div>
+      <div class="stat-item stat-tysm">
+        <div class="stat-value" id="statTysm">0</div>
+        <div class="stat-label">🙏 Tysm</div>
+      </div>
+      <div class="stat-item stat-factions">
+        <div class="stat-value" id="statFactions">0</div>
+        <div class="stat-label">Factions</div>
+      </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="filters-bar">
+      <div class="filter-group">
+        <span class="filter-label">House</span>
+        <select class="filter-select" id="filterHouse" onchange="applyFilters()">
+          <option value="all">All Houses</option>
+          <option value="bitcoin">₿ Bitcoin</option>
+          <option value="ethereum">◊ Ethereum</option>
+          <option value="base">■ Base</option>
+          <option value="tysm">🙏 Tysm</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <span class="filter-label">Faction</span>
+        <select class="filter-select" id="filterFaction" onchange="applyFilters()">
+          <option value="all">All Factions</option>
+          <!-- Populated dynamically -->
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <span class="filter-label">Value</span>
+        <select class="filter-select" id="filterValue" onchange="applyFilters()">
+          <option value="all">All Values</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+          <option value="11">J</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <span class="filter-label">Sort By</span>
+        <select class="filter-select" id="filterSort" onchange="applyFilters()">
+          <option value="date-desc">Newest First</option>
+          <option value="date-asc">Oldest First</option>
+          <option value="value-asc">Value (Low-High)</option>
+          <option value="value-desc">Value (High-Low)</option>
+          <option value="house">House</option>
+          <option value="faction">Faction</option>
+        </select>
+      </div>
+      
+      <div class="filters-spacer"></div>
+      
+      <input type="text" class="search-box" id="searchBox" placeholder="Search cards..." oninput="applyFilters()">
+    </div>
+    
+    <!-- Results count -->
+    <p class="results-count" id="resultsCount">Showing 0 cards</p>
+    
+    <!-- Empty State -->
+    <div class="empty-state" id="emptyState">
+      <div class="empty-state-icon">🃏</div>
+      <div class="empty-state-title">No Cards Yet</div>
+      <p class="empty-state-text">Start building your collection by minting cards!</p>
+      <a href="card-minter.html" class="empty-state-btn">Mint Single Card</a>
+      <a href="deck-minter.html" class="empty-state-btn secondary">Generate Deck</a>
+    </div>
+    
+    <!-- Cards Grid -->
+    <div class="cards-grid" id="cardsGrid">
+      <!-- Cards inserted here -->
+    </div>
+    
+    <p class="version">Collection Viewer v1.6.4</p>
+  </div>
+  
+  <!-- Card Detail Modal -->
+  <div class="modal-overlay" id="cardModal">
+    <div class="modal-content">
+      <div class="modal-card-image" id="modalCardImage">
+        <!-- Card image or placeholder -->
+      </div>
+      <div class="modal-card-name" id="modalCardName">CARD NAME</div>
+      <div class="modal-card-details" id="modalCardDetails">
+        <span class="house-bitcoin">₿ Bitcoin</span> • Value 7 • FACTION NAME
+      </div>
+      <div class="modal-card-stats">
+        <div class="modal-stat">
+          <div class="modal-stat-value" id="modalXP">0</div>
+          <div class="modal-stat-label">XP</div>
+        </div>
+        <div class="modal-stat">
+          <div class="modal-stat-value" id="modalLevel">1</div>
+          <div class="modal-stat-label">Level</div>
+        </div>
+        <div class="modal-stat">
+          <div class="modal-stat-value" id="modalSource">-</div>
+          <div class="modal-stat-label">Source</div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn primary" id="modalDownload">📥 Download PNG</button>
+        <button class="modal-btn danger" id="modalDelete">🗑️ Delete</button>
+        <button class="modal-btn secondary" onclick="closeModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/onchain-config.js"></script>
+  <script>
+    // ============================================
+    // CONFIGURATION
+    // ============================================
+    const HOUSES = {
+      bitcoin: { name: 'Bitcoin', symbol: '₿', primary: '#F7931A' },
+      ethereum: { name: 'Ethereum', symbol: '◊', primary: '#C0C0C0' },
+      base: { name: 'Base', symbol: '■', primary: '#0052FF' },
+      tysm: { name: 'Tysm', symbol: '🙏', primary: '#3B82F6' }
+    };
+    
+    const DB_KEYS = {
+      ONCHAIN_CARDS: 'token_onchain_cards',
+      ONCHAIN_DECKS: 'token_onchain_decks'
+    };
+    
+    let allCards = [];
+    let filteredCards = [];
+    let selectedCard = null;
+    
+    // ============================================
+    // DATA LOADING
+    // ============================================
+    async function loadAllCards() {
+      allCards = [];
+      const connectedWallet = (window.TokenWallet?.getAddress?.() || '').toLowerCase();
+
+      const onchainCards = JSON.parse(localStorage.getItem(DB_KEYS.ONCHAIN_CARDS) || '[]');
+      const onchainDecks = JSON.parse(localStorage.getItem(DB_KEYS.ONCHAIN_DECKS) || '[]');
+      const scopedCards = connectedWallet
+        ? onchainCards.filter((c) => String(c.owner || '').toLowerCase() === connectedWallet)
+        : onchainCards;
+      const scopedDecks = connectedWallet
+        ? onchainDecks.filter((d) => String(d.owner || '').toLowerCase() === connectedWallet)
+        : onchainDecks;
+
+      scopedCards.forEach((card) => {
+        allCards.push({
+          ...card,
+          id: card.tokenId ? `onchain-card-${card.tokenId}` : `onchain-card-${card.id}`,
+          source: 'onchain-card'
+        });
+      });
+
+      scopedDecks.forEach((deck) => {
+        (deck.cards || []).forEach((card) => {
+          allCards.push({
+            id: `onchain-deck-${deck.tokenId || deck.id}-${card.value}`,
+            house: deck.house,
+            value: card.value,
+            displayValue: card.displayValue || card.value,
+            cardName: card.cardName || 'CARD',
+            factionName: deck.faction || deck.factionName,
+            factionIcon: deck.factionIcon,
+            xp: 0,
+            level: 1,
+            created: deck.created || Date.now(),
+            source: 'onchain-deck',
+            deckId: deck.tokenId || deck.id
+          });
+        });
+      });
+
+      return allCards;
+    }
+    
+    function getUniqueFactions() {
+      const factions = new Set();
+      allCards.forEach(card => {
+        if (card.factionName) {
+          factions.add(card.factionName);
+        }
+      });
+      return Array.from(factions).sort();
+    }
+    
+    function updateStats() {
+      const stats = {
+        total: allCards.length,
+        bitcoin: allCards.filter(c => c.house === 'bitcoin').length,
+        ethereum: allCards.filter(c => c.house === 'ethereum').length,
+        base: allCards.filter(c => c.house === 'base').length,
+        tysm: allCards.filter(c => c.house === 'tysm').length,
+        factions: getUniqueFactions().length
+      };
+      
+      document.getElementById('statTotal').textContent = stats.total;
+      document.getElementById('statBitcoin').textContent = stats.bitcoin;
+      document.getElementById('statEthereum').textContent = stats.ethereum;
+      document.getElementById('statBase').textContent = stats.base;
+      document.getElementById('statTysm').textContent = stats.tysm;
+      document.getElementById('statFactions').textContent = stats.factions;
+    }
+    
+    function populateFactionFilter() {
+      const select = document.getElementById('filterFaction');
+      const factions = getUniqueFactions();
+      
+      // Keep "All Factions" option
+      select.innerHTML = '<option value="all">All Factions</option>';
+      
+      factions.forEach(faction => {
+        const option = document.createElement('option');
+        option.value = faction;
+        option.textContent = faction;
+        select.appendChild(option);
+      });
+    }
+    
+    // ============================================
+    // FILTERING & SORTING
+    // ============================================
+    function applyFilters() {
+      const houseFilter = document.getElementById('filterHouse').value;
+      const factionFilter = document.getElementById('filterFaction').value;
+      const valueFilter = document.getElementById('filterValue').value;
+      const sortBy = document.getElementById('filterSort').value;
+      const search = document.getElementById('searchBox').value.toLowerCase().trim();
+      
+      // Filter
+      filteredCards = allCards.filter(card => {
+        if (houseFilter !== 'all' && card.house !== houseFilter) return false;
+        if (factionFilter !== 'all' && card.factionName !== factionFilter) return false;
+        if (valueFilter !== 'all' && card.value !== valueFilter) return false;
+        if (search) {
+          const searchStr = `${card.cardName} ${card.factionName} ${card.displayValue}`.toLowerCase();
+          if (!searchStr.includes(search)) return false;
+        }
+        return true;
+      });
+      
+      // Sort
+      filteredCards.sort((a, b) => {
+        switch (sortBy) {
+          case 'date-desc':
+            return (b.created || 0) - (a.created || 0);
+          case 'date-asc':
+            return (a.created || 0) - (b.created || 0);
+          case 'value-asc':
+            return parseInt(a.value) - parseInt(b.value);
+          case 'value-desc':
+            return parseInt(b.value) - parseInt(a.value);
+          case 'house':
+            return a.house.localeCompare(b.house);
+          case 'faction':
+            return (a.factionName || '').localeCompare(b.factionName || '');
+          default:
+            return 0;
+        }
+      });
+      
+      renderCards();
+    }
+    
+    // ============================================
+    // RENDERING
+    // ============================================
+    function renderCards() {
+      const grid = document.getElementById('cardsGrid');
+      const emptyState = document.getElementById('emptyState');
+      const resultsCount = document.getElementById('resultsCount');
+      
+      if (allCards.length === 0) {
+        grid.style.display = 'none';
+        emptyState.style.display = 'block';
+        resultsCount.textContent = '';
+        return;
+      }
+      
+      emptyState.style.display = 'none';
+      grid.style.display = 'grid';
+      resultsCount.textContent = `Showing ${filteredCards.length} of ${allCards.length} cards`;
+      
+      grid.innerHTML = '';
+      
+      filteredCards.forEach((card, index) => {
+        const item = document.createElement('div');
+        item.className = 'card-item';
+        item.onclick = () => openCardModal(card);
+        
+        const house = HOUSES[card.house];
+        
+        item.innerHTML = `
+          <div class="card-placeholder ${card.house}">
+            <span class="card-source">${card.source === 'deck' ? 'DECK' : 'MINT'}</span>
+            <span class="card-placeholder-symbol house-${card.house}">${house.symbol}</span>
+            <span class="card-placeholder-value">${card.displayValue}</span>
+            <span class="card-placeholder-name">${card.cardName}</span>
+          </div>
+          <div class="card-info">
+            <div class="card-name house-${card.house}">${card.cardName}</div>
+            <div class="card-faction">${card.factionIcon || ''} ${card.factionName}</div>
+          </div>
+        `;
+        
+        grid.appendChild(item);
+      });
+    }
+    
+    // ============================================
+    // MODAL
+    // ============================================
+    function openCardModal(card) {
+      selectedCard = card;
+      
+      const house = HOUSES[card.house];
+      
+      // Card image/placeholder
+      const imageContainer = document.getElementById('modalCardImage');
+      imageContainer.innerHTML = `
+        <div class="card-placeholder ${card.house}" style="width: 100%; height: 100%;">
+          <span class="card-placeholder-symbol house-${card.house}" style="font-size: 36px;">${house.symbol}</span>
+          <span class="card-placeholder-value" style="font-size: 48px;">${card.displayValue}</span>
+          <span class="card-placeholder-name" style="font-size: 14px;">${card.cardName}</span>
+        </div>
+      `;
+      
+      // Details
+      document.getElementById('modalCardName').textContent = card.cardName;
+      document.getElementById('modalCardName').className = `modal-card-name house-${card.house}`;
+      
+      document.getElementById('modalCardDetails').innerHTML = `
+        <span class="house-${card.house}">${house.symbol} ${house.name}</span> • 
+        Value ${card.displayValue} • 
+        ${card.factionIcon || ''} ${card.factionName}
+      `;
+      
+      document.getElementById('modalXP').textContent = card.xp || 0;
+      document.getElementById('modalLevel').textContent = card.level || 1;
+      document.getElementById('modalSource').textContent =
+        card.source === 'onchain-deck' ? 'Deck NFT' : 'Card NFT';
+      
+      // Actions
+      document.getElementById('modalDownload').onclick = () => downloadCard(card);
+      const deleteBtn = document.getElementById('modalDelete');
+      deleteBtn.onclick = () => deleteCard(card);
+      deleteBtn.disabled = true;
+      deleteBtn.title = 'Onchain collection: use admin burn tools';
+      
+      document.getElementById('cardModal').classList.add('visible');
+    }
+    
+    function closeModal() {
+      document.getElementById('cardModal').classList.remove('visible');
+      selectedCard = null;
+    }
+    
+    // ============================================
+    // ACTIONS
+    // ============================================
+    async function downloadCard(card) {
+      // Generate card image (simplified version)
+      const imageData = await generateCardImage(card);
+      
+      const link = document.createElement('a');
+      link.href = imageData;
+      link.download = `token_${card.house}_${card.displayValue}_${card.cardName.toLowerCase().replace(/\s+/g, '_')}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+    
+    async function deleteCard(card) {
+      alert('Onchain collection: use admin burn tools for cleanup.');
+    }
+    
+    // ============================================
+    // CARD IMAGE GENERATION (simplified)
+    // ============================================
+    async function generateCardImage(card) {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      const scale = 3;
+      const width = 180 * scale;
+      const height = 270 * scale;
+      
+      canvas.width = width;
+      canvas.height = height;
+      
+      const houseColors = {
+        bitcoin: { primary: '#F7931A', secondary: '#FFD93D' },
+        ethereum: { primary: '#C0C0C0', secondary: '#E8E8E8' },
+        base: { primary: '#0052FF', secondary: '#5C9DFF' },
+        tysm: { primary: '#FACC15', secondary: '#3B82F6' }
+      };
+      
+      const colors = houseColors[card.house];
+      const house = HOUSES[card.house];
+      
+      // Layout
+      const borderWidth = Math.round(width * 0.012);
+      const borderRadius = Math.round(width * 0.067);
+      const headerHeight = Math.round(height * 0.15);
+      const centerHeight = Math.round(height * 0.55);
+      const footerHeight = Math.round(height * 0.30);
+      
+      // Background
+      const bgGradient = ctx.createLinearGradient(0, 0, 0, height);
+      bgGradient.addColorStop(0, '#1a1a2e');
+      bgGradient.addColorStop(1, '#0f0f1a');
+      
+      const borderGradient = ctx.createLinearGradient(0, 0, width, height);
+      borderGradient.addColorStop(0, colors.primary);
+      borderGradient.addColorStop(1, colors.secondary);
+      
+      // Draw border
+      ctx.fillStyle = borderGradient;
+      roundRect(ctx, 0, 0, width, height, borderRadius);
+      ctx.fill();
+      
+      // Draw inner
+      ctx.fillStyle = bgGradient;
+      roundRect(ctx, borderWidth, borderWidth, width - borderWidth * 2, height - borderWidth * 2, borderRadius - 2);
+      ctx.fill();
+      
+      // Header
+      const headerTop = borderWidth;
+      ctx.fillStyle = 'rgba(0,0,0,0.2)';
+      ctx.fillRect(borderWidth, headerTop, width - borderWidth * 2, headerHeight);
+      
+      ctx.strokeStyle = colors.primary + '44';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(borderWidth, headerTop + headerHeight);
+      ctx.lineTo(width - borderWidth, headerTop + headerHeight);
+      ctx.stroke();
+      
+      // House symbol
+      if (card.house === 'tysm') {
+        const symGrad = ctx.createLinearGradient(
+          borderWidth + Math.round(width * 0.08),
+          headerTop,
+          borderWidth + Math.round(width * 0.28),
+          headerTop + headerHeight
+        );
+        symGrad.addColorStop(0, '#FACC15');
+        symGrad.addColorStop(1, '#3B82F6');
+        ctx.fillStyle = symGrad;
+      } else {
+        ctx.fillStyle = colors.primary;
+      }
+      ctx.font = `bold ${Math.round(height * 0.08)}px Arial`;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(house.symbol, borderWidth + Math.round(width * 0.08), headerTop + headerHeight / 2);
+      
+      // Value
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = `bold ${Math.round(height * 0.11)}px Arial`;
+      ctx.textAlign = 'right';
+      ctx.fillText(card.displayValue, width - borderWidth - Math.round(width * 0.08), headerTop + headerHeight / 2);
+      
+      // Center
+      const centerTop = headerTop + headerHeight;
+      const imagePadding = Math.round(width * 0.075);
+      const imageAreaSize = Math.min(width - imagePadding * 2, centerHeight - imagePadding * 2);
+      const imageAreaLeft = (width - imageAreaSize) / 2;
+      const imageAreaTop = centerTop + (centerHeight - imageAreaSize) / 2;
+      
+      const imageGradient = ctx.createLinearGradient(imageAreaLeft, imageAreaTop, imageAreaLeft + imageAreaSize, imageAreaTop + imageAreaSize);
+      imageGradient.addColorStop(0, '#1f1f35');
+      imageGradient.addColorStop(1, '#12121f');
+      
+      ctx.fillStyle = imageGradient;
+      roundRect(ctx, imageAreaLeft, imageAreaTop, imageAreaSize, imageAreaSize, Math.round(width * 0.055));
+      ctx.fill();
+      
+      ctx.strokeStyle = colors.primary + '66';
+      ctx.lineWidth = 2;
+      roundRect(ctx, imageAreaLeft, imageAreaTop, imageAreaSize, imageAreaSize, Math.round(width * 0.055));
+      ctx.stroke();
+      
+      // Placeholder value
+      ctx.fillStyle = colors.primary;
+      ctx.globalAlpha = 0.6;
+      ctx.font = `bold ${Math.round(imageAreaSize * 0.5)}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(card.displayValue, width / 2, imageAreaTop + imageAreaSize / 2);
+      ctx.globalAlpha = 1;
+      
+      // Footer
+      const footerTop = centerTop + centerHeight;
+      const footerPadding = Math.round(width * 0.067);
+      
+      ctx.fillStyle = 'rgba(0,0,0,0.4)';
+      ctx.fillRect(borderWidth, footerTop, width - borderWidth * 2, footerHeight - borderWidth);
+      
+      // Card name
+      ctx.fillStyle = colors.primary;
+      ctx.font = `bold ${Math.round(height * 0.055)}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(card.cardName, width / 2, footerTop + Math.round(footerHeight * 0.18));
+      
+      // Faction frame
+      const factionFrameTop = footerTop + Math.round(footerHeight * 0.35);
+      const factionFrameHeight = Math.round(footerHeight * 0.28);
+      
+      ctx.fillStyle = borderGradient;
+      roundRect(ctx, footerPadding, factionFrameTop, width - footerPadding * 2, factionFrameHeight, 6);
+      ctx.fill();
+      
+      ctx.fillStyle = '#1a1a2e';
+      roundRect(ctx, footerPadding + 2, factionFrameTop + 2, width - footerPadding * 2 - 4, factionFrameHeight - 4, 4);
+      ctx.fill();
+      
+      // Faction icon + name
+      const iconSize = Math.round(factionFrameHeight * 0.6);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = `${Math.round(iconSize * 0.8)}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(card.factionIcon || '❓', footerPadding + Math.round(width * 0.05) + iconSize / 2, factionFrameTop + factionFrameHeight / 2);
+      
+      ctx.fillStyle = colors.primary;
+      ctx.font = `bold ${Math.round(height * 0.033)}px Arial`;
+      ctx.fillText(card.factionName, width / 2, factionFrameTop + factionFrameHeight / 2);
+      
+      // XP bar
+      const xpBarTop = factionFrameTop + factionFrameHeight + Math.round(footerHeight * 0.08);
+      const xpBarHeight = Math.round(footerHeight * 0.20);
+      
+      ctx.fillStyle = '#1a1a24';
+      roundRect(ctx, footerPadding, xpBarTop, width - footerPadding * 2, xpBarHeight, Math.round(xpBarHeight / 2));
+      ctx.fill();
+      
+      ctx.strokeStyle = '#3f3f46';
+      ctx.lineWidth = 1;
+      roundRect(ctx, footerPadding, xpBarTop, width - footerPadding * 2, xpBarHeight, Math.round(xpBarHeight / 2));
+      ctx.stroke();
+      
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = `bold ${Math.round(height * 0.028)}px monospace`;
+      ctx.fillText(`${card.xp || 0} XP • LV${card.level || 1}`, width / 2, xpBarTop + xpBarHeight / 2);
+      
+      return canvas.toDataURL('image/png');
+    }
+    
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+    }
+    
+    // ============================================
+    // INIT
+    // ============================================
+    async function init() {
+      await loadAllCards();
+      updateStats();
+      populateFactionFilter();
+      applyFilters();
+    }
+    
+    // Close modal on outside click
+    document.getElementById('cardModal').addEventListener('click', (e) => {
+      if (e.target.id === 'cardModal') closeModal();
+    });
+    
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+  <script type="module" src="assets/wallet-ui.js"></script>
+</body>
+</html>

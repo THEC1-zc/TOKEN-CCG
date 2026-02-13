@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Deck Minter v2.0.2</title>
-  <!-- Version: V2.0.2 -->
+  <title>TOKEN - Deck Minter v2.0.3</title>
+  <!-- Version: V2.0.3 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -671,7 +671,7 @@
       </div>
     </div>
     
-    <p class="version">Deck Minter v2.0.2</p>
+    <p class="version">Deck Minter v2.0.3</p>
   </div>
 
   <!-- JSZip Library for ZIP download -->
@@ -700,29 +700,13 @@
     
     const PLACEHOLDER_COLORS = ['#F7931A', '#C0C0C0', '#0052FF', '#10B981', '#FFD700', '#A855F7', '#EC4899', '#06B6D4'];
     
-    const DB_KEYS = {
-      ONCHAIN_DECKS: 'token_onchain_decks',
-      ONCHAIN_CARDS: 'token_onchain_cards'
-    };
+    let sessionDecks = 0;
+    let sessionCards = 0;
 
     // State
     let selectedHouse = null;
     let selectedIcon = null;
     let currentDeck = null;
-
-    function getOnchainDecks() {
-      const raw = localStorage.getItem(DB_KEYS.ONCHAIN_DECKS);
-      return raw ? JSON.parse(raw) : [];
-    }
-
-    function saveOnchainDecks(decks) {
-      localStorage.setItem(DB_KEYS.ONCHAIN_DECKS, JSON.stringify(decks));
-    }
-
-    function getOnchainCards() {
-      const raw = localStorage.getItem(DB_KEYS.ONCHAIN_CARDS);
-      return raw ? JSON.parse(raw) : [];
-    }
 
     function getConnectedWalletAddress() {
       return (window.TokenWallet?.getAddress?.() || '').toLowerCase();
