@@ -1,0 +1,6 @@
+[
+  {
+    "type": "pageerror",
+    "text": "SyntaxError: Identifier 'OWNER_WALLETS' has already been declared"
+  }
+]

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Crypto Card Game v1.4.4</title>
-  <!-- Version: V1.4.4 -->
+  <title>TOKEN - Crypto Card Game v1.4.7</title>
+  <!-- Version: V1.4.7 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -25,6 +25,28 @@
       opacity: 0.25;
       pointer-events: none;
       z-index: 0;
+    }
+    .release-badge {
+      position: fixed;
+      top: 76px;
+      right: 20px;
+      z-index: 150;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(10, 10, 15, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #E5E7EB;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      backdrop-filter: blur(6px);
+    }
+    @media (max-width: 768px) {
+      .release-badge {
+        top: 64px;
+        right: 12px;
+        font-size: 9px;
+      }
     }
     .container, .hero, .menu-grid, .stats-bar { position: relative; z-index: 1; }
     
@@ -295,6 +317,7 @@
 </head>
 <body>
   <div class="bg-icon" aria-hidden="true"></div>
+  <div class="release-badge">Release V1.0.1</div>
   <header class="app-header">
     <div class="header-left">
       <a class="header-brand" href="index.html">
@@ -448,65 +471,38 @@
     <div class="footer">
       <p>TOKEN - Offchain Testing Suite</p>
       <p style="margin-top: 8px;"></p>
-      <div class="version-badge">v1.0.0 • Offchain Testing</div>
+      <div class="version-badge">Release V1.0.1</div>
     </div>
   </div>
 
-  <!-- Supabase SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- TOKEN DB Client -->
-  <script src="supabase/supabase-client.js"></script>
   <script>
-    async function getUserId() {
-      return await TokenDB.getOrCreateGuestUser();
-    }
-
     // Load stats
     async function loadStats() {
-      try {
-        TokenDB.init();
-        const userId = await getUserId();
-        const cards = await TokenDB.getUserCards(userId);
-        const decks = await TokenDB.getUserDecks(userId);
-        const battleDecks = await TokenDB.getUserBattleDecks(userId);
-        const games = await TokenDB.getUserGames(userId, 100);
+      const connectedWallet = (window.TokenWallet?.getAddress?.() || '').toLowerCase();
+      const onchainCards = JSON.parse(localStorage.getItem('token_onchain_cards') || '[]');
+      const onchainDecks = JSON.parse(localStorage.getItem('token_onchain_decks') || '[]');
+      const battleDecks = JSON.parse(localStorage.getItem('token_battle_decks') || '[]');
+      const gameStats = JSON.parse(localStorage.getItem('token_game_stats') || '{}');
 
-        const totalCards = cards.length + decks.reduce((acc, d) => acc + (d.cards?.length || 0), 0);
-        document.getElementById('statCards').textContent = totalCards;
-        document.getElementById('statDecks').textContent = decks.length;
-        document.getElementById('statBattleDecks').textContent = battleDecks.length;
-        document.getElementById('statGames').textContent = games.length;
-      } catch (e) {
-        // Fallback to localStorage if Supabase is unavailable
-        const singleCards = JSON.parse(localStorage.getItem('token_cards') || '[]');
-        const decks = JSON.parse(localStorage.getItem('token_decks') || '[]');
-        let totalCards = singleCards.length;
-        decks.forEach(d => totalCards += d.cards?.length || 0);
+      const scopedCards = connectedWallet
+        ? onchainCards.filter((c) => String(c.owner || '').toLowerCase() === connectedWallet)
+        : [];
+      const scopedDeckCards = connectedWallet
+        ? onchainDecks
+            .filter((d) => String(d.owner || '').toLowerCase() === connectedWallet)
+            .reduce((acc, d) => acc + (d.cards?.length || 0), 0)
+        : 0;
 
-        const battleDecks = JSON.parse(localStorage.getItem('token_battle_decks') || '[]');
-        const gameStats = JSON.parse(localStorage.getItem('token_game_stats') || '{}');
-        const gamesPlayed = gameStats.gamesPlayed || 0;
-
-        document.getElementById('statCards').textContent = totalCards;
-        document.getElementById('statDecks').textContent = decks.length;
-        document.getElementById('statBattleDecks').textContent = battleDecks.length;
-        document.getElementById('statGames').textContent = gamesPlayed;
-      }
+      document.getElementById('statCards').textContent = scopedCards.length + scopedDeckCards;
+      document.getElementById('statDecks').textContent = connectedWallet
+        ? onchainDecks.filter((d) => String(d.owner || '').toLowerCase() === connectedWallet).length
+        : 0;
+      document.getElementById('statBattleDecks').textContent = battleDecks.length;
+      document.getElementById('statGames').textContent = gameStats.gamesPlayed || 0;
     }
     
     async function migrateData() {
-      try {
-        TokenDB.init();
-        const userId = await getUserId();
-        const result = await TokenDB.migrateFromLocalStorage(userId);
-        alert(`Migration complete!\nCards: ${result.cards}\nDecks: ${result.decks}\nBattle Decks: ${result.battleDecks}\nErrors: ${result.errors.length}`);
-        if (result.errors.length > 0) {
-          console.log('Migration errors:', result.errors);
-        }
-      } catch (e) {
-        alert('Migration failed. See console.');
-        console.error(e);
-      }
+      alert('Backend migration is disabled in onchain-only mode.');
     }
 
     function clearAllData() {
@@ -526,6 +522,7 @@
     
     document.addEventListener('DOMContentLoaded', loadStats);
   </script>
+  <script src="assets/onchain-config.js"></script>
   <script type="module" src="assets/wallet-ui.js"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 # Project Log
 
-Version: V0.5.8
-Last updated: 2026-02-04
+Version: V0.7.3
+Last updated: 2026-02-08
 
 ## 2026-02-03
 - Added `docs/handoff.md` and `docs/decisions.md` for cross-agent continuity. (V1.0.1)
@@ -56,4 +56,58 @@ Last updated: 2026-02-04
 - Saved TokenCard contract address and added admin mint/burn test tools. (docs/decisions.md V1.0.4, admin.html V1.0.4, docs/admin.md V1.0.4)
 - Added tokenURI template, last minted token display, and contract status panel to admin tests. (admin.html V1.0.5, docs/admin.md V1.0.5)
 - Added admin wallet detection fixes and onchain mint panels for cards/decks. (admin.html V1.0.7, card-minter.html V2.1.6, deck-minter.html V1.6.5)
+- Enabled auto onchain mint from card minter and improved admin wallet gating. (card-minter.html V2.1.7, admin.html V1.0.7)
+- Added Playwright testing guidance for the agent. (docs/agent1.md V1.1.0, docs/agentroadmap2.md V1.1.0)
+- Updated Playwright CLI invocation to use playwright-mcp binary. (docs/agent1.md V1.1.1, docs/agentroadmap2.md V1.1.1)
 - Added agent roadmaps and agent summary docs. (docs/agentroadmap1.md V1.0.0, docs/agentroadmap2.md V1.0.0, docs/agentroadmap3.md V1.0.0, docs/agent1.md V1.0.0)
+
+## 2026-02-07
+- Enforced onchain-first card mint flow: card mint now requires successful Base Sepolia mint, then stores a local onchain cache entry and mirrors to Supabase best-effort for admin reporting. (card-minter.html V2.2.0)
+- Enforced onchain-first deck save flow: deck save now triggers onchain mint, stores local onchain deck cache, and mirrors to Supabase best-effort. (deck-minter.html V1.7.0)
+- Added onchain cache as primary source for collection rendering, with DB/local fallback only if onchain cache is empty. (collection.html V1.6.0)
+- Added onchain cache as primary source for deck builder card pool, with DB/local fallback only if onchain cache is empty. (deck-builder.html V1.7.0)
+- Extended admin tools with deck mint, deck token URI template helper, and separate deck contract deployment status indicator. (admin.html V1.1.0)
+- Upgraded TokenCard contract draft with XP, level, metadata update hooks, and explicit lifecycle events for testnet iteration. (contracts/TokenCard.sol V0.2.0)
+- Added TokenDeck ERC-721 contract draft for deck NFT mint/burn/URI update on Base Sepolia test loops. (contracts/TokenDeck.sol V0.1.0)
+- Added shared onchain config bootstrap (`assets/onchain-config.js`) to centralize Base Sepolia chain + contract defaults for UI pages. (assets/onchain-config.js V1.0.0)
+- Wired shared onchain config into card/deck minters and normalized chain guard to configured hex chainId. (card-minter.html V2.2.1, deck-minter.html V1.7.1)
+- Extended admin with contract read tools for `nextTokenId`, `ownerOf(tokenId)`, and `tokenURI(tokenId)` plus config-driven default contract hydration. (admin.html V1.2.0)
+- Enabled runtime contract override via `localStorage.token_onchain_config` to wire new deployments without code edits. (assets/onchain-config.js V1.1.0)
+- Added Base Sepolia TokenDeck deployment runbook with constructor args and post-deploy wiring checks. (docs/tokendeck-deploy.md V1.0.0)
+- Added Playwright smoke script for onchain pages (`index`, `card-minter`, `deck-minter`, `collection`, `deck-builder`, `admin`). (scripts/smoke-onchain.mjs V1.0.0)
+- Added Remix assist script to generate deploy plans and persist deployed card/deck addresses into shared onchain config. (scripts/remix-assist.mjs V1.0.0, assets/onchain-config.js V1.1.0)
+- Added Remix-agent integration guide and linked the workflow into agent rules. (docs/remix-agent-integration.md V1.0.0, docs/agent1.md V1.2.0)
+- Saved deployed Base Sepolia TokenDeck contract address `0xc75170E7268A25CE759cEe019F1c6030F414a82d` in shared config and decisions tracking.
+- Refactored deck minter to wallet-NFT-only crafting and automatic onchain deck mint (removed manual/local dual flow from UI). (deck-minter.html V1.8.0)
+
+## 2026-02-08
+- Added agent automation scripts for one-command bootstrap and full smoke testing. (`scripts/agent-bootstrap.sh` V1.0.0, `scripts/agent-test-full.sh` V1.0.0, `package.json` V1.1.0)
+- Added Codespaces devcontainer config to auto-run bootstrap on environment creation. (`.devcontainer/devcontainer.json` V1.0.0)
+- Added CI workflow to run Playwright onchain smoke checks on every push/PR involving `codex/agent`. (`.github/workflows/agent-ci.yml` V1.0.0)
+- Upgraded agent runbook with mandatory full smoke gate and bootstrap commands. (`docs/agent1.md` V1.3.0)
+- Added automated secret/private-key guard script and CI gate before Playwright tests. (`scripts/check-no-secrets.sh` V1.0.0, `.github/workflows/agent-ci.yml` V1.1.0, `package.json` V1.2.0, `docs/agent1.md` V1.4.0)
+- Fixed collection page links to canonical file names and enforced onchain-only collection behavior (disabled local delete path, NFT-only source labeling). (`collection.html` V1.6.1)
+- Removed legacy DB/local fallback card sources from deck builder to keep deck crafting aligned with onchain NFT inventory only. (`deck-builder.html` V1.7.1)
+- Added formal autonomous run contract for the new step-by-step agent lifecycle. (`docs/agent-spec-v2.md` V1.0.0, `docs/agent1.md` V1.5.0)
+- Disabled Supabase runtime by default behind explicit opt-in flag (`window.TOKEN_SUPABASE_ENABLED` or `localStorage.token_supabase_enabled`) to prevent backend conflicts during onchain completion phase. (`supabase/supabase-client.js` V1.1.0)
+- Added phase-state runner with persistent state and auto-advance gates for phases A->B->C. (`scripts/agent-phase-runner.mjs` V1.0.0, `.agent/phase-state.json` V1.0.0, `package.json` V1.3.0, `docs/agent-spec-v2.md` V1.1.0, `docs/agent1.md` V1.6.0)
+- Completed Phase A runtime hardening: removed active Supabase script links from all runtime gameplay pages and switched to onchain/local-only runtime paths. (`index.html` V1.4.5, `game.html` V1.7.7, `card-minter.html` V2.2.2, `deck-minter.html` V1.9.0, `deck-builder.html` V1.7.2, `collection.html` V1.6.2)
+- Updated admin behavior to show explicit backend-disabled state in onchain-only mode while preserving onchain admin tools. (`admin.html` V1.2.1, `supabase/supabase-client.js` V1.1.0)
+- Added concrete Phase A verification gate script and wired it into phase runner/package scripts. (`scripts/phase-a-verify.sh` V1.0.0, `scripts/agent-phase-runner.mjs` V1.0.1, `package.json` V1.4.0, `docs/agent-spec-v2.md` V1.2.0, `docs/agent1.md` V1.7.0)
+- Added autonomous cloud runner workflow for `codex/agent` (hourly/manual) with bootstrap, phase execution, and conditional auto-commit/push. (`.github/workflows/agent-autonomous.yml` V1.0.0, `docs/agent-spec-v2.md` V1.3.0, `docs/agent1.md` V1.8.0)
+
+## 2026-02-09
+- Simplified card mint UI to a single onchain flow: removed manual onchain inputs and enforced automatic Base Sepolia NFT mint on the main Mint button. (`card-minter.html` V2.3.0)
+- Reworked deck minter to mint a batch of 10 card NFTs on Base Sepolia for a selected faction and use those minted cards to build the deck preview. (`deck-minter.html` V2.0.0)
+- Added global release badge across all pages and bumped page versions to latest. (`index.html` V1.4.7, `game.html` V1.7.9, `card-minter.html` V2.3.1, `deck-minter.html` V2.0.1, `deck-builder.html` V1.7.4, `collection.html` V1.6.4, `admin.html` V1.2.2, `generate-cardback.html` V1.1.7)
+- Added wallet-driven Base Sepolia network switch in card and deck minters to avoid manual user switching. (`card-minter.html` V2.3.2, `deck-minter.html` V2.0.2)
+- Removed simulated wallet display from card minter. (`card-minter.html` V2.3.3)
+- Enforced unique card minting by owner + house + faction + value. (`card-minter.html` V2.3.4)
+- Added onchain wallet scan to detect existing NFTs before minting new cards. (`card-minter.html` V2.3.5)
+- Fixed logout persistence and enabled deck builder to read wallet NFTs with image previews. (`assets/wallet-ui.js` V1.3.2, `deck-builder.html` V1.7.5)
+- Added safe localStorage access and robust boot to prevent wallet header from failing to render in strict contexts. (`assets/wallet-ui.js` V1.3.4)
+- Deck builder now reads cards from chain scan only, no local onchain fallback. (`deck-builder.html` V1.8.0)
+- Added `--disable-crashpad` to Playwright launch args to avoid macOS permission crash during smoke tests. (`scripts/smoke-onchain.mjs` V1.1.4)
+
+## 2026-02-13
+- Collection now reads NFT cards directly from connected wallet on Base Sepolia via onchain scan (`ownerOf` + `tokenURI`) and no longer depends on localStorage card/deck fallback for displayed inventory. Added ethers import, wallet refresh hooks, and image preview rendering from metadata when available. (`collection.html` V1.7.0)

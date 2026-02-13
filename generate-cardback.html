@@ -3,11 +3,32 @@
 <head>
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
-  <title>Generate Cardback v1.1.6</title>
-  <!-- Version: V1.1.6 -->
+  <title>Generate Cardback v1.1.7</title>
+  <!-- Version: V1.1.7 -->
+  <style>
+    .release-badge {
+      position: fixed;
+      top: 76px;
+      right: 20px;
+      z-index: 150;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(10, 10, 15, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #E5E7EB;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      backdrop-filter: blur(6px);
+    }
+    @media (max-width: 768px) {
+      .release-badge { top: 64px; right: 12px; font-size: 9px; }
+    }
+  </style>
 </head>
 <body style="background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;">
   <div style="position:fixed;inset:0;background:url(&quot;assets/main%20icon.png&quot;) center/360px auto no-repeat;opacity:0.25;pointer-events:none;z-index:0;" aria-hidden="true"></div>
+  <div class="release-badge">Release V1.0.1</div>
   <header class="app-header">
     <div class="header-left">
       <a class="header-brand" href="index.html">

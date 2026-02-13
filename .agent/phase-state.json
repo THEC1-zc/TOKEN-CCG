@@ -1,0 +1,48 @@
+{
+  "version": "V1.0.0",
+  "currentPhase": "C",
+  "history": [
+    {
+      "at": "2026-02-08T22:07:37.732Z",
+      "action": "run",
+      "phase": "A",
+      "ok": true
+    },
+    {
+      "at": "2026-02-08T22:07:50.522Z",
+      "action": "run",
+      "phase": "B",
+      "ok": true
+    },
+    {
+      "at": "2026-02-08T22:08:03.299Z",
+      "action": "run",
+      "phase": "C",
+      "ok": true
+    },
+    {
+      "at": "2026-02-09T13:19:23.247Z",
+      "action": "run",
+      "phase": "C",
+      "ok": true
+    },
+    {
+      "at": "2026-02-10T20:33:54.195Z",
+      "action": "run",
+      "phase": "C",
+      "ok": true
+    },
+    {
+      "at": "2026-02-11T21:35:27.767Z",
+      "action": "run",
+      "phase": "C",
+      "ok": true
+    },
+    {
+      "at": "2026-02-13T10:09:07.801Z",
+      "action": "run",
+      "phase": "C",
+      "ok": true
+    }
+  ]
+}
