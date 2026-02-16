@@ -1,147 +1,148 @@
-# coordination.md v1.3.0 - TokenCard V0.4.0 ready for deploy, player-controlled XP
+# coordination.md v1.4.0 - TokenCard V0.4.0 DEPLOYED, audit passed
 
 # AI Integration - Coordination File
 
 **Branch**: `main`  
-**Last Updated**: 2025-02-16 (Claude session)
+**Last Updated**: 2025-02-16 (Claude)  
+**Contract**: TokenCard V0.4.0 @ `0xDA0bab807633f07f013f94DD0E6A4F96F8742B53`
 
 ---
 
-## 🎯 Current Status
+## ✅ AUDIT PASSED
 
-**TokenCard V0.4.0** ready for deployment - waiting for Fabio to deploy via Remix.
+Security and coherence audit completed. See `docs/SECURITY_AUDIT.md` for full report.
 
-### What Changed
-- Players can now claim their own XP after games (no admin needed)
-- Single transaction for all cards used in a game
-- Anti-cheat: max 50 XP per game
+| Check | Status |
+|-------|--------|
+| Contract deployed | ✅ V0.4.0 on Base Sepolia |
+| Config updated | ✅ onchain-config.js |
+| ABI consistent | ✅ claimGameXp in game.html |
+| XP reading | ✅ collection + deck-builder |
+| No secrets in code | ✅ |
+| No eval/dangerous | ✅ |
 
 ---
 
-## 🔄 Flusso Gioco Completo
+## 🎮 FLUSSO COMPLETO
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│  1. MINT DECK                                           │
-│     Giocatore → batchMint() → paga gas → ha 10 carte   │
-├─────────────────────────────────────────────────────────┤
-│  2. GIOCA PARTITA                                       │
-│     Offchain, gratis                                    │
-├─────────────────────────────────────────────────────────┤
-│  3. FINE PARTITA → CLAIM XP                            │
-│     Popup: "Claim XX XP for your cards?"               │
-│     Giocatore firma 1 transazione                       │
-│     claimGameXp([tokenIds], xpAmount)                  │
-├─────────────────────────────────────────────────────────┤
-│  4. CARTE AGGIORNATE                                    │
-│     XP onchain → Level aumenta → Valore aumenta        │
-├─────────────────────────────────────────────────────────┤
-│  5. MARKETPLACE (futuro)                                │
-│     Giocatore può vendere carte con XP alto            │
-└─────────────────────────────────────────────────────────┘
+MINT → PLAY → CLAIM XP → SELL
+  │       │        │        │
+  │       │        │        └── Marketplace (futuro)
+  │       │        │
+  │       │        └── 1 firma wallet, tutte le carte
+  │       │
+  │       └── Offchain, gratis
+  │
+  └── batchMint(), paga gas
 ```
 
 ---
 
-## 📋 Per Codex
+## 📋 STATO PER CODEX
 
-### Stato Attuale
-- ✅ Contratto V0.4.0 pronto (`contracts/TokenCard.sol`)
-- ✅ Frontend aggiornato (`game.html` usa `claimGameXp`)
-- ✅ XP letto da contratto (`collection.html`, `deck-builder.html`)
-- 🔄 **TU**: Cloudflare image storage
-- ⏳ Deploy contratto (Fabio sta facendo)
+### ✅ Completato (Claude)
+- TokenCard V0.4.0 deployed
+- `claimGameXp()` per players
+- Frontend aggiornato (game.html)
+- XP letto da contratto
+- Audit sicurezza passato
 
-### Cosa NON Toccare
-- `contracts/TokenCard.sol` - pronto per deploy
-- `game.html` funzione `updateXpOnchain` - già aggiornata
-- `assets/onchain-config.js` - Fabio aggiornerà dopo deploy
+### 🔄 In Progress (Codex)
+- Cloudflare image storage
+- Sostituire `example.com` URLs con Cloudflare
 
-### Cosa Puoi Fare
-1. Completare Cloudflare image storage
-2. Aggiornare card-minter/deck-minter per usare Cloudflare
-3. UI improvements
-4. Bug fixes
+### ⏳ Da Fare
+- Test completo flusso
+- UI per claim XP (popup a fine partita?)
 
 ---
 
-## 🧾 Smart Contract V0.4.0
+## 🔧 CONTRATTI
 
-### Funzioni Pubbliche (chiunque)
+| Contract | Version | Address | Chain |
+|----------|---------|---------|-------|
+| **TokenCard** | **V0.4.0** | `0xDA0bab807633f07f013f94DD0E6A4F96F8742B53` | Base Sepolia |
+| TokenDeck | V0.1.0 | `0xc75170E7268A25CE759cEe019F1c6030F414a82d` | Base Sepolia |
+
+### TokenCard V0.4.0 ABI
 ```solidity
-// Minting
-mint(string uri) → uint256 tokenId
-batchMint(string[] uris) → uint256[] tokenIds
-
-// XP (solo per proprie carte)
+// PLAYER FUNCTIONS
+mint(string uri) → uint256
+batchMint(string[] uris) → uint256[]
 claimGameXp(uint256[] tokenIds, uint256 xpEach)  // max 50 XP
 getXp(uint256 tokenId) → uint256
-levelOf(uint256 tokenId) → uint256  // 1 + xp/100
-```
+levelOf(uint256 tokenId) → uint256
 
-### Funzioni Admin (solo backend)
-```solidity
+// ADMIN ONLY (backend)
 adminBurn(uint256 tokenId)
 adminSetXp(uint256 tokenId, uint256 xp)
 setTokenUri(uint256 tokenId, string uri)
 ```
 
-### XP Formula (game.html)
+---
+
+## 🎯 XP SYSTEM
+
+### Formula (game.html)
 ```javascript
-const baseXp = 10;                    // ogni partita
-const tokenBonus = gs.playerTokens * 5;  // +5 per TOKEN
-const winBonus = win ? 20 : (tie ? 10 : 0);
-const totalXp = Math.min(baseXp + tokenBonus + winBonus, 50);
+baseXp = 10                      // per game
+tokenBonus = playerTokens * 5    // per TOKEN/scopa
+winBonus = win ? 20 : tie ? 10 : 0
+totalXp = min(base + token + win, 50)
 ```
 
----
-
-## 📁 File Modificati Oggi
-
-| File | Versione | Cosa |
-|------|----------|------|
-| `contracts/TokenCard.sol` | V0.4.0 | claimGameXp per players |
-| `game.html` | - | usa claimGameXp batch |
-| `collection.html` | - | legge XP da contratto |
-| `deck-builder.html` | - | legge XP da contratto |
+### Esempio
+| Risultato | TOKENs | XP Totale |
+|-----------|--------|-----------|
+| Vittoria, 2 TOKEN | 2 | 10 + 10 + 20 = 40 |
+| Sconfitta, 1 TOKEN | 1 | 10 + 5 + 0 = 15 |
+| Pareggio, 0 TOKEN | 0 | 10 + 0 + 10 = 20 |
 
 ---
 
-## 🚨 Regole
+## 📁 FILE CHIAVE
 
-1. **TUTTO ONCHAIN** - cards, decks, XP
-2. **NO SUPABASE** per dati di gioco
-3. **Admin = solo backend** (analytics, moderation)
-4. **XP viaggia con NFT** - è il valore della carta
+| File | Scopo |
+|------|-------|
+| `contracts/TokenCard.sol` | Contratto V0.4.0 |
+| `assets/onchain-config.js` | Indirizzi contratti |
+| `game.html` | Logica XP claim |
+| `collection.html` | Lettura XP da chain |
+| `deck-builder.html` | Lettura XP da chain |
+| `docs/SECURITY_AUDIT.md` | Report audit |
 
 ---
 
-## 📝 Session Log
+## 🚨 REGOLE
 
-### 2025-02-16 - Claude (sessione corrente)
-- Creato TokenCard V0.4.0 con `claimGameXp`
-- Aggiornato game.html per batch XP claim
-- Merge codex/agent → main
-- In attesa deploy contratto
+1. **ONCHAIN** = cards, decks, XP
+2. **NO SUPABASE** per game data
+3. **Admin** = solo backend/moderation
+4. **Pull prima di lavorare**
+5. **Aggiorna questo file dopo modifiche**
+
+---
+
+## 📝 SESSION LOG
+
+### 2025-02-16 - Claude
+- TokenCard V0.4.0 creato e deployed
+- Config aggiornata con nuovo CA
+- Audit sicurezza e coerenza completato
+- Documentazione aggiornata
 
 ### 2025-02-16 - Codex
-- Working on Cloudflare image storage
+- Cloudflare image storage (in progress)
 
 ---
 
-## 🔗 Links
+## 🔗 LINKS
 
 - **Repo**: https://github.com/THEC1-zc/TOKEN-CCG
 - **Live**: https://token-ccg.vercel.app
-- **Base Sepolia**: https://sepolia.basescan.org
-
-### Contratti (da aggiornare dopo deploy V0.4.0)
-| Contract | Version | Address |
-|----------|---------|---------|
-| TokenCard | V0.3.0 | `0x561F84D0b4246b64dFbAb1BDf87D6842412F1A18` |
-| TokenCard | **V0.4.0** | **PENDING DEPLOY** |
-| TokenDeck | V0.1.0 | `0xc75170E7268A25CE759cEe019F1c6030F414a82d` |
+- **TokenCard V0.4.0**: https://sepolia.basescan.org/address/0xDA0bab807633f07f013f94DD0E6A4F96F8742B53
 
 ---
 
-end of coordination.md v1.3.0
+end of coordination.md v1.4.0
