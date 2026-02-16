@@ -1,4 +1,4 @@
-coordination.md v1.1.0 - Claude session: batch mint implementation + smart contract upgrade
+coordination.md v1.1.1 added execution rule: apply changes directly, ask input only if essential
 # AI Integration - Coordination File
 
 **Branch**: `codex/agent`  
@@ -244,6 +244,7 @@ When switching between AI assistants:
 6. **Compliance:** Ensure compatibility with Neynar/Farcaster/Base/Vercel and desktop/mobile browsers.
 7. **Credit safety:** If nearing credit, warn and add "we will start back here …".
 8. **Scope:** Onchain only for game data until backend re-enabled; admin page can exist but do not activate Supabase links yet.
+9. **Execution mode:** Apply code changes directly by default and ask for user input only when essential to unblock a decision.
 
 ---
 
@@ -290,4 +291,4 @@ When switching between AI assistants:
 3. Update `assets/onchain-config.js` with new contract address
 4. Test and commit changes
 
-end of modify v1.1.0.
+end of modify v1.1.1.
