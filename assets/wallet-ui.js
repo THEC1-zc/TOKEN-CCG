@@ -1,4 +1,4 @@
-// Version: V1.3.1
+// Version: V1.3.4
 
 const state = {
   sdk: null,
@@ -7,7 +7,23 @@ const state = {
   address: null,
   chainId: null,
   fcUser: null,
+  fcSignIn: null,
 };
+const DISCONNECT_KEY = 'token_wallet_disconnected';
+
+function safeGet(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch (_) {
+    return null;
+  }
+}
+
+function safeSet(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch (_) {}
+}
 
 const LABELS = {
   disconnected: 'Login',
@@ -149,6 +165,7 @@ async function connectBaseWallet() {
     state.address = accounts?.[0] || null;
     state.chainId = await provider.request({ method: 'eth_chainId' });
     attachProviderEvents(provider);
+    safeSet(DISCONNECT_KEY, '0');
   } catch (err) {
     console.error('Base wallet connect failed', err);
   }
@@ -167,6 +184,7 @@ async function connectBrowserWallet() {
     state.address = accounts?.[0] || provider.selectedAddress || null;
     state.chainId = await provider.request({ method: 'eth_chainId' });
     attachProviderEvents(provider);
+    safeSet(DISCONNECT_KEY, '0');
   } catch (err) {
     console.error('Browser wallet connect failed', err);
     alert('Wallet connect failed. Check if MetaMask is unlocked and connected.');
@@ -187,6 +205,7 @@ async function connectWallet() {
     state.chainId = await provider.request({ method: 'eth_chainId' });
     if (isBaseChain(state.chainId)) state.providerType = 'base';
     attachProviderEvents(provider);
+    safeSet(DISCONNECT_KEY, '0');
   } catch (err) {
     console.error('Wallet connect failed', err);
   }
@@ -198,6 +217,9 @@ function disconnectWallet() {
   state.chainId = null;
   state.provider = null;
   state.providerType = null;
+  state.fcUser = null;
+  state.fcSignIn = null;
+  safeSet(DISCONNECT_KEY, '1');
   updateUI();
 }
 
@@ -226,6 +248,7 @@ async function farcasterSignin() {
     const result = await state.sdk.actions.signIn({ nonce, acceptAuthAddress: true });
     state.fcSignIn = result || null;
     if (state.sdk?.context?.user) state.fcUser = state.sdk.context.user;
+    safeSet(DISCONNECT_KEY, '0');
   } catch (err) {
     console.warn('Farcaster sign-in failed', err);
   }
@@ -358,23 +381,25 @@ function updateUI() {
 }
 
 async function boot() {
-  buildHeader();
-  await initSdk();
   try {
-    if (window.ethereum?.request) {
+    buildHeader();
+    await initSdk();
+    if (window.ethereum?.request && safeGet(DISCONNECT_KEY) !== '1') {
       const accounts = await window.ethereum.request({ method: 'eth_accounts' });
       if (accounts?.[0]) {
         state.address = accounts[0];
         state.providerType = 'browser';
       }
     }
-  } catch (_) {}
-  updateUI();
-  try {
     if (state.sdk?.actions?.ready) {
       await state.sdk.actions.ready();
     }
-  } catch (_) {}
+  } catch (err) {
+    console.error('Wallet UI boot failed', err);
+  } finally {
+    buildHeader();
+    updateUI();
+  }
 }
 
 if (document.readyState === 'loading') {

@@ -4,14 +4,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>TOKEN - Game v1.7.6</title>
-  <!-- Version: V1.7.6 -->
+  <title>TOKEN - Game v1.7.9</title>
+  <!-- Version: V1.7.9 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { height: 100%; overflow: hidden; background: #000; font-family: 'Inter', sans-serif; color: #FFF; -webkit-tap-highlight-color: transparent; }
+    .release-badge {
+      position: fixed;
+      top: 76px;
+      right: 20px;
+      z-index: 150;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(10, 10, 15, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #E5E7EB;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      backdrop-filter: blur(6px);
+    }
+    @media (max-width: 768px) {
+      .release-badge { top: 64px; right: 12px; font-size: 9px; }
+    }
 
 ```
 /* Setup */
@@ -216,6 +234,7 @@
   </style>
 </head>
 <body>
+  <div class="release-badge">Release V1.0.1</div>
   <header class="app-header">
     <div class="header-left">
       <a class="header-brand" href="index.html">
@@ -366,10 +385,6 @@
     </div>
   </div>
 
-  <!-- Supabase SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- TOKEN DB Client -->
-  <script src="supabase/supabase-client.js"></script>
 <script>
 const HOUSES = { bitcoin: { symbol: '₿', primary: '#F7931A' }, ethereum: { symbol: '◊', primary: '#C0C0C0' }, base: { symbol: '■', primary: '#0052FF' }, tysm: { symbol: '🙏', primary: '#3B82F6' } };
 const TURN_TIME = 15;
@@ -377,19 +392,8 @@ let timer = null, timeLeft = TURN_TIME, logOpen = false;
 let gs = { phase: 'setup', turn: 'player', deck: [], table: [], playerHand: [], aiHand: [], playerCaptures: [], aiCaptures: [], playerJD: [], aiJD: [], playerTokens: 0, aiTokens: 0, selected: null, useJD: false, lastCap: null, hand: 1, lastHand: false, turnNum: 0, log: [] };
 let battleDeck = null, allCards = [], jdSel = { d1: null, d2: null }, pDeck1 = [], pDeck2 = [];
 
-async function getUserId() {
-  TokenDB.init();
-  return await TokenDB.getOrCreateGuestUser();
-}
-
 async function loadDecks() {
-  let saved = [];
-  try {
-    const userId = await getUserId();
-    saved = await TokenDB.getUserBattleDecks(userId);
-  } catch (e) {
-    saved = JSON.parse(localStorage.getItem('token_battle_decks') || '[]');
-  }
+  const saved = JSON.parse(localStorage.getItem('token_battle_decks') || '[]');
   if (!saved.length) { document.getElementById('noDecksMsg').style.display = 'block'; return; }
   const sel = document.getElementById('deckSelect');
   saved.forEach((d, i) => { const o = document.createElement('option'); o.value = i; o.textContent = d.name; sel.appendChild(o); });
@@ -398,20 +402,17 @@ function loadCards() {}
 function onDeckSelect() { document.getElementById('startBtn').disabled = !document.getElementById('deckSelect').value; }
 
 async function startJD() {
-  let saved = [];
-  try {
-    const userId = await getUserId();
-    saved = await TokenDB.getUserBattleDecks(userId);
-    const singleCards = await TokenDB.getUserCards(userId);
-    const decks = await TokenDB.getUserDecks(userId);
-    allCards = [];
-    singleCards.forEach(c => allCards.push({ ...c, uid: 'card-' + c.id, displayValue: c.display_value }));
-    decks.forEach(d => d.cards.forEach(c => allCards.push({ uid: 'deck-' + d.id + '-' + c.value, house: d.house, value: c.value, displayValue: c.displayValue || c.display_value || c.value })));
-  } catch (e) {
-    saved = JSON.parse(localStorage.getItem('token_battle_decks') || '[]');
-    JSON.parse(localStorage.getItem('token_cards') || '[]').forEach(c => allCards.push({ ...c, uid: 'card-' + c.id }));
-    JSON.parse(localStorage.getItem('token_decks') || '[]').forEach(d => d.cards.forEach(c => allCards.push({ uid: 'deck-' + d.id + '-' + c.value, house: d.house, value: c.value, displayValue: c.displayValue })));
-  }
+  const saved = JSON.parse(localStorage.getItem('token_battle_decks') || '[]');
+  const onchainCards = JSON.parse(localStorage.getItem('token_onchain_cards') || '[]');
+  const onchainDecks = JSON.parse(localStorage.getItem('token_onchain_decks') || '[]');
+  allCards = [];
+  onchainCards.forEach((c) => allCards.push({ ...c, uid: 'onchain-card-' + (c.tokenId || c.id), displayValue: c.displayValue || c.value }));
+  onchainDecks.forEach((d) => d.cards.forEach((c) => allCards.push({
+    uid: 'onchain-deck-' + (d.tokenId || d.id) + '-' + c.value,
+    house: d.house,
+    value: c.value,
+    displayValue: c.displayValue || c.value
+  })));
   battleDeck = saved[+document.getElementById('deckSelect').value];
   loadCards();
   pDeck1 = []; pDeck2 = [];
@@ -610,22 +611,32 @@ async function endGame(surr = false) {
   document.getElementById('gameoverDetails').innerHTML = '<div class="gameover-detail"><span>Cards</span><span>' + gs.playerCaptures.length + ' vs ' + gs.aiCaptures.length + '</span></div><div class="gameover-detail"><span>TOKENs</span><span>' + gs.playerTokens + ' vs ' + gs.aiTokens + '</span></div>';
   document.getElementById('gameoverOverlay').classList.add('visible');
 
-  try {
-    const userId = await getUserId();
-    await TokenDB.recordGame({
-      player1Id: userId,
-      player2Id: null,
-      winnerId: win ? userId : null,
-      player1Score: ps,
-      player2Score: as,
-      player1Tokens: gs.playerTokens,
-      player2Tokens: gs.aiTokens,
-      isSurrender: surr,
-      isAiGame: true,
-      gameLog: gs.log
+  const gameStats = JSON.parse(localStorage.getItem('token_game_stats') || '{"gamesPlayed":0,"wins":0}');
+  gameStats.gamesPlayed++;
+  if (win) gameStats.wins++;
+  localStorage.setItem('token_game_stats', JSON.stringify(gameStats));
+
+  // Calculate and update XP onchain for player's cards
+  if (!surr) {
+    // XP formula: base 10 + 5 per TOKEN + 20 for win
+    const baseXp = 10;
+    const tokenBonus = gs.playerTokens * 5;
+    const winBonus = win ? 20 : (tie ? 10 : 0);
+    const totalXp = baseXp + tokenBonus + winBonus;
+
+    // Get all cards the player used (from both decks)
+    const playerCards = [...pDeck1, ...pDeck2, ...(gs.playerJD || [])];
+    
+    console.log(`Game ended. XP to award: ${totalXp} (base:${baseXp} + tokens:${tokenBonus} + win:${winBonus})`);
+    
+    // Update XP onchain (non-blocking)
+    updateXpOnchain(playerCards, totalXp).then(result => {
+      if (result.success) {
+        console.log('XP updated onchain:', result.updates);
+      } else {
+        console.log('XP update skipped:', result.reason);
+      }
     });
-  } catch (e) {
-    // noop
   }
 }
 function calcScore(p) { let s = 0; const caps = p === 'player' ? gs.playerCaptures : gs.aiCaptures, toks = p === 'player' ? gs.playerTokens : gs.aiTokens, other = p === 'player' ? gs.aiCaptures : gs.playerCaptures; if (caps.length > other.length) s++; s += toks; const myA = countAces(p), theirA = countAces(p === 'player' ? 'ai' : 'player'); if (myA > theirA) s++; return s; }
@@ -659,6 +670,59 @@ function confirmSurrender() { hideSurrender(); sysLog('🏳️ Surrendered'); en
 document.addEventListener('DOMContentLoaded', loadDecks);
 </script>
 
+  <script src="assets/onchain-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <script>
+    // Update XP onchain after game
+    async function updateXpOnchain(cardsUsed, xpGained) {
+      if (!window.ethereum || typeof ethers === 'undefined') {
+        console.log('No wallet connected, skipping onchain XP update');
+        return { success: false, reason: 'no-wallet' };
+      }
+
+      const contractAddress = (window.TokenOnchainConfig?.contracts?.card || '').trim();
+      if (!contractAddress) {
+        console.log('No contract address configured');
+        return { success: false, reason: 'no-contract' };
+      }
+
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const abi = [
+          'function xpByToken(uint256 tokenId) view returns (uint256)',
+          'function setXp(uint256 tokenId, uint256 xp) external'
+        ];
+        const contract = new ethers.Contract(contractAddress, abi, signer);
+
+        const updates = [];
+        for (const card of cardsUsed) {
+          if (!card.tokenId) continue; // Skip non-NFT cards
+          
+          const tokenId = parseInt(card.tokenId);
+          try {
+            const currentXp = (await contract.xpByToken(tokenId)).toNumber();
+            const newXp = currentXp + xpGained;
+            
+            console.log(`Updating card #${tokenId}: ${currentXp} → ${newXp} XP`);
+            const tx = await contract.setXp(tokenId, newXp);
+            await tx.wait();
+            
+            updates.push({ tokenId, oldXp: currentXp, newXp });
+          } catch (err) {
+            console.error(`Failed to update XP for token ${tokenId}:`, err.message);
+            // Continue with other cards even if one fails
+          }
+        }
+
+        console.log('XP updates completed:', updates);
+        return { success: true, updates };
+      } catch (err) {
+        console.error('XP update failed:', err);
+        return { success: false, reason: err.message };
+      }
+    }
+  </script>
   <script type="module" src="assets/wallet-ui.js"></script>
 </body>
 </html>

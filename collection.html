@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Collection Viewer v1.5.4</title>
-  <!-- Version: V1.5.4 -->
+  <title>TOKEN - Collection Viewer v1.8.0</title>
+  <!-- Version: V1.8.0 - Direct Wallet NFT Reading -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -48,6 +48,24 @@
       opacity: 0.25;
       pointer-events: none;
       z-index: 0;
+    }
+    .release-badge {
+      position: fixed;
+      top: 76px;
+      right: 20px;
+      z-index: 150;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(10, 10, 15, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #E5E7EB;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      backdrop-filter: blur(6px);
+    }
+    @media (max-width: 768px) {
+      .release-badge { top: 64px; right: 12px; font-size: 9px; }
     }
     .container { position: relative; z-index: 1; }
     
@@ -486,6 +504,7 @@
 </head>
 <body>
   <div class="bg-icon" aria-hidden="true"></div>
+  <div class="release-badge">Release V1.0.1</div>
   <header class="app-header">
     <div class="header-left">
       <a class="header-brand" href="index.html">
@@ -601,8 +620,8 @@
       <div class="empty-state-icon">🃏</div>
       <div class="empty-state-title">No Cards Yet</div>
       <p class="empty-state-text">Start building your collection by minting cards!</p>
-      <a href="card-minter_v1.7.2.html" class="empty-state-btn">Mint Single Card</a>
-      <a href="deck-minter_v1.1.0.html" class="empty-state-btn secondary">Generate Deck</a>
+      <a href="card-minter.html" class="empty-state-btn">Mint Single Card</a>
+      <a href="deck-minter.html" class="empty-state-btn secondary">Generate Deck</a>
     </div>
     
     <!-- Cards Grid -->
@@ -610,7 +629,7 @@
       <!-- Cards inserted here -->
     </div>
     
-    <p class="version">Collection Viewer v1.0.0</p>
+    <p class="version">Collection Viewer v1.7.0</p>
   </div>
   
   <!-- Card Detail Modal -->
@@ -645,10 +664,8 @@
     </div>
   </div>
 
-  <!-- Supabase SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- TOKEN DB Client -->
-  <script src="supabase/supabase-client.js"></script>
+  <script src="assets/onchain-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <script>
     // ============================================
     // CONFIGURATION
@@ -660,11 +677,9 @@
       tysm: { name: 'Tysm', symbol: '🙏', primary: '#3B82F6' }
     };
     
-    const DB_KEYS = {
-      CARDS: 'token_cards',
-      DECKS: 'token_decks',
-      FACTIONS: 'token_factions'
-    };
+    const WALLET_SCAN_TTL_MS = 5 * 60 * 1000;
+    let lastWalletScanAt = 0;
+    let onchainCardsCache = [];
     
     let allCards = [];
     let filteredCards = [];
@@ -673,76 +688,145 @@
     // ============================================
     // DATA LOADING
     // ============================================
-    async function getUserId() {
-      TokenDB.init();
-      return await TokenDB.getOrCreateGuestUser();
+    async function ensureBaseSepolia(provider) {
+      const chainId = await provider.request({ method: 'eth_chainId' });
+      const expectedHex = window.TokenOnchainConfig?.chain?.hexId || '0x14a34';
+      if (chainId === expectedHex) return true;
+
+      const chain = window.TokenOnchainConfig?.chain || {
+        id: 84532,
+        hexId: '0x14a34',
+        name: 'Base Sepolia'
+      };
+
+      try {
+        await provider.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: expectedHex }]
+        });
+        return true;
+      } catch (err) {
+        if (err?.code === 4902) {
+          await provider.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: chain.hexId,
+              chainName: chain.name,
+              nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+              rpcUrls: ['https://sepolia.base.org'],
+              blockExplorerUrls: ['https://sepolia.basescan.org']
+            }]
+          });
+          return true;
+        }
+        console.error(err);
+        return false;
+      }
+    }
+
+    async function refreshWalletOnchainCards(force) {
+      const now = Date.now();
+      if (!force && now - lastWalletScanAt < WALLET_SCAN_TTL_MS) return;
+      if (!window.ethereum || typeof ethers === 'undefined') return;
+
+      const contractAddress = (window.TokenOnchainConfig?.contracts?.card || '').trim();
+      if (!contractAddress) return;
+
+      const owner = (window.TokenWallet?.getAddress?.() || '').toLowerCase();
+      if (!owner) {
+        onchainCardsCache = [];
+        lastWalletScanAt = now;
+        return;
+      }
+
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      if (!await ensureBaseSepolia(provider.provider)) return;
+      const signer = provider.getSigner();
+      const abi = [
+        'function ownerOf(uint256 tokenId) view returns (address)',
+        'function tokenURI(uint256 tokenId) view returns (string)',
+        'function totalSupply() view returns (uint256)',
+        'function nextTokenId() view returns (uint256)',
+        'function xpByToken(uint256 tokenId) view returns (uint256)',
+        'function levelOf(uint256 tokenId) view returns (uint256)'
+      ];
+      const contract = new ethers.Contract(contractAddress, abi, signer);
+
+      let maxId = 0;
+      try {
+        maxId = (await contract.nextTokenId()).toNumber() - 1;
+      } catch (_) {
+        try {
+          maxId = (await contract.totalSupply()).toNumber();
+        } catch (_) {
+          return;
+        }
+      }
+
+      const collected = [];
+      const maxScan = Math.min(maxId, 500);
+      for (let tokenId = 1; tokenId <= maxScan; tokenId++) {
+        let tokenOwner;
+        try {
+          tokenOwner = (await contract.ownerOf(tokenId)).toLowerCase();
+        } catch (_) {
+          continue;
+        }
+        if (tokenOwner !== owner) continue;
+
+        try {
+          const uri = await contract.tokenURI(tokenId);
+          const meta = await fetch(uri).then((r) => r.json()).catch(() => null);
+          const attrs = Array.isArray(meta?.attributes) ? meta.attributes : [];
+          const getAttr = (key) =>
+            attrs.find((a) => String(a.trait_type || '').toLowerCase() === key)?.value;
+          const valueRaw = getAttr('value') || meta?.value || meta?.cardValue;
+          const value = String(valueRaw || '').toUpperCase();
+          const normalizedValue = value === 'J' ? '11' : value;
+          const house = String(getAttr('house') || meta?.house || '').toLowerCase();
+          const faction = String(getAttr('faction') || meta?.factionName || '').toUpperCase();
+          if (!value || !house || !faction) continue;
+
+          // Read XP and Level directly from contract (onchain truth)
+          let onchainXp = 0;
+          let onchainLevel = 1;
+          try {
+            onchainXp = (await contract.xpByToken(tokenId)).toNumber();
+            onchainLevel = (await contract.levelOf(tokenId)).toNumber();
+          } catch (_) {
+            // Fallback to metadata if contract call fails
+            onchainXp = Number(getAttr('xp') || meta?.xp || 0);
+            onchainLevel = Number(getAttr('level') || meta?.level || 1);
+          }
+
+          collected.push({
+            id: `onchain-card-${tokenId}`,
+            house,
+            value: normalizedValue,
+            displayValue: normalizedValue === '11' ? 'J' : normalizedValue,
+            cardName: String(meta?.name || meta?.cardName || `${faction} ${value}`),
+            factionName: faction,
+            factionIcon: String(getAttr('factionIcon') || meta?.factionIcon || '❓'),
+            image: meta?.image || null,
+            xp: onchainXp,
+            level: onchainLevel,
+            owner,
+            created: now,
+            source: 'onchain-card',
+            tokenId: String(tokenId),
+            tokenUri: uri,
+            contractAddress,
+            chainId: 84532
+          });
+        } catch (_) {}
+      }
+
+      onchainCardsCache = collected;
+      lastWalletScanAt = now;
     }
 
     async function loadAllCards() {
-      allCards = [];
-      try {
-        const userId = await getUserId();
-        const singleCards = await TokenDB.getUserCards(userId);
-        const decks = await TokenDB.getUserDecks(userId);
-
-        singleCards.forEach(card => {
-          allCards.push({
-            ...card,
-            source: 'minter',
-            factionName: card.faction_name,
-            factionIcon: card.faction_icon,
-            displayValue: card.display_value
-          });
-        });
-
-        decks.forEach(deck => {
-          (deck.cards || []).forEach(card => {
-            allCards.push({
-              id: `${deck.id}-${card.value}`,
-              house: deck.house,
-              value: card.value,
-              displayValue: card.displayValue || card.display_value || card.value,
-              cardName: card.cardName || card.card_name || 'CARD',
-              factionName: deck.faction_name || deck.faction,
-              factionIcon: deck.faction_icon || deck.factionIcon,
-              xp: 0,
-              level: 1,
-              created: deck.created_at || deck.created,
-              source: 'deck',
-              deckId: deck.id
-            });
-          });
-        });
-      } catch (e) {
-        const singleCards = JSON.parse(localStorage.getItem(DB_KEYS.CARDS) || '[]');
-        singleCards.forEach(card => {
-          allCards.push({
-            ...card,
-            source: 'minter'
-          });
-        });
-
-        const decks = JSON.parse(localStorage.getItem(DB_KEYS.DECKS) || '[]');
-        decks.forEach(deck => {
-          deck.cards.forEach(card => {
-            allCards.push({
-              id: `${deck.id}-${card.value}`,
-              house: deck.house,
-              value: card.value,
-              displayValue: card.displayValue,
-              cardName: card.cardName,
-              factionName: deck.faction,
-              factionIcon: deck.factionIcon,
-              xp: 0,
-              level: 1,
-              created: deck.created,
-              source: 'deck',
-              deckId: deck.id
-            });
-          });
-        });
-      }
-
+      allCards = [...onchainCardsCache];
       return allCards;
     }
     
@@ -862,12 +946,20 @@
         
         const house = HOUSES[card.house];
         
-        item.innerHTML = `
+        const cardVisual = card.image
+          ? `<img src="${card.image}" alt="${card.cardName}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;" />`
+          : `
           <div class="card-placeholder ${card.house}">
-            <span class="card-source">${card.source === 'deck' ? 'DECK' : 'MINT'}</span>
+            <span class="card-source">MINT</span>
             <span class="card-placeholder-symbol house-${card.house}">${house.symbol}</span>
             <span class="card-placeholder-value">${card.displayValue}</span>
             <span class="card-placeholder-name">${card.cardName}</span>
+          </div>
+          `;
+
+        item.innerHTML = `
+          <div style="width:100%;height:180px;">
+            ${cardVisual}
           </div>
           <div class="card-info">
             <div class="card-name house-${card.house}">${card.cardName}</div>
@@ -889,13 +981,17 @@
       
       // Card image/placeholder
       const imageContainer = document.getElementById('modalCardImage');
-      imageContainer.innerHTML = `
-        <div class="card-placeholder ${card.house}" style="width: 100%; height: 100%;">
-          <span class="card-placeholder-symbol house-${card.house}" style="font-size: 36px;">${house.symbol}</span>
-          <span class="card-placeholder-value" style="font-size: 48px;">${card.displayValue}</span>
-          <span class="card-placeholder-name" style="font-size: 14px;">${card.cardName}</span>
-        </div>
-      `;
+      if (card.image) {
+        imageContainer.innerHTML = `<img src="${card.image}" alt="${card.cardName}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" />`;
+      } else {
+        imageContainer.innerHTML = `
+          <div class="card-placeholder ${card.house}" style="width: 100%; height: 100%;">
+            <span class="card-placeholder-symbol house-${card.house}" style="font-size: 36px;">${house.symbol}</span>
+            <span class="card-placeholder-value" style="font-size: 48px;">${card.displayValue}</span>
+            <span class="card-placeholder-name" style="font-size: 14px;">${card.cardName}</span>
+          </div>
+        `;
+      }
       
       // Details
       document.getElementById('modalCardName').textContent = card.cardName;
@@ -909,11 +1005,14 @@
       
       document.getElementById('modalXP').textContent = card.xp || 0;
       document.getElementById('modalLevel').textContent = card.level || 1;
-      document.getElementById('modalSource').textContent = card.source === 'deck' ? 'Deck' : 'Mint';
+      document.getElementById('modalSource').textContent = 'Card NFT';
       
       // Actions
       document.getElementById('modalDownload').onclick = () => downloadCard(card);
-      document.getElementById('modalDelete').onclick = () => deleteCard(card);
+      const deleteBtn = document.getElementById('modalDelete');
+      deleteBtn.onclick = () => deleteCard(card);
+      deleteBtn.disabled = true;
+      deleteBtn.title = 'Onchain collection: use admin burn tools';
       
       document.getElementById('cardModal').classList.add('visible');
     }
@@ -927,6 +1026,16 @@
     // ACTIONS
     // ============================================
     async function downloadCard(card) {
+      if (card.image) {
+        const link = document.createElement('a');
+        link.href = card.image;
+        link.download = `token_${card.house}_${card.displayValue}_${card.cardName.toLowerCase().replace(/\s+/g, '_')}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        return;
+      }
+
       // Generate card image (simplified version)
       const imageData = await generateCardImage(card);
       
@@ -939,28 +1048,7 @@
     }
     
     async function deleteCard(card) {
-      if (!confirm(`Delete "${card.cardName}"? This cannot be undone.`)) return;
-      
-      try {
-        if (card.source === 'minter') {
-          await TokenDB.deleteCard(card.id);
-        } else if (card.deckId) {
-          await TokenDB.deleteDeck(card.deckId);
-        }
-      } catch (e) {
-        if (card.source === 'minter') {
-          const cards = JSON.parse(localStorage.getItem(DB_KEYS.CARDS) || '[]');
-          const updated = cards.filter(c => c.id !== card.id);
-          localStorage.setItem(DB_KEYS.CARDS, JSON.stringify(updated));
-        } else {
-          const decks = JSON.parse(localStorage.getItem(DB_KEYS.DECKS) || '[]');
-          const updated = decks.filter(d => d.id !== card.deckId);
-          localStorage.setItem(DB_KEYS.DECKS, JSON.stringify(updated));
-        }
-      }
-      
-      closeModal();
-      init();
+      alert('Onchain collection: use admin burn tools for cleanup.');
     }
     
     // ============================================
@@ -1155,6 +1243,15 @@
     // INIT
     // ============================================
     async function init() {
+      await refreshWalletOnchainCards(true);
+      await loadAllCards();
+      updateStats();
+      populateFactionFilter();
+      applyFilters();
+    }
+
+    async function refreshCollectionFromWallet(force) {
+      await refreshWalletOnchainCards(force);
       await loadAllCards();
       updateStats();
       populateFactionFilter();
@@ -1166,6 +1263,19 @@
       if (e.target.id === 'cardModal') closeModal();
     });
     
+    document.addEventListener('token:wallet-updated', async () => {
+      await refreshCollectionFromWallet(true);
+    });
+
+    if (window.ethereum?.on) {
+      window.ethereum.on('accountsChanged', async () => {
+        await refreshCollectionFromWallet(true);
+      });
+      window.ethereum.on('chainChanged', async () => {
+        await refreshCollectionFromWallet(true);
+      });
+    }
+
     document.addEventListener('DOMContentLoaded', init);
   </script>
   <script type="module" src="assets/wallet-ui.js"></script>

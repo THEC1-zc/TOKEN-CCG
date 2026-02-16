@@ -1,0 +1,67 @@
+name: Agent Autonomous
+
+on:
+  push:
+    branches:
+      - codex/agent
+  workflow_dispatch:
+  schedule:
+    - cron: "17 * * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: token-agent-autonomous
+  cancel-in-progress: false
+
+jobs:
+  run-agent:
+    if: github.ref == 'refs/heads/codex/agent'
+    runs-on: ubuntu-latest
+    env:
+      BASE_SEPOLIA_RPC_URL: ${{ secrets.BASE_SEPOLIA_RPC_URL }}
+      BASE_SEPOLIA_PRIVATE_KEY: ${{ secrets.BASE_SEPOLIA_PRIVATE_KEY }}
+      BASESCAN_API_KEY: ${{ secrets.BASESCAN_API_KEY }}
+      TOKEN_CARD_CA: ${{ secrets.TOKEN_CARD_CA }}
+      TOKEN_DECK_CA: ${{ secrets.TOKEN_DECK_CA }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: codex/agent
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Bootstrap
+        run: npm run agent:bootstrap
+
+      - name: Phase Status (Before)
+        run: npm run agent:phase:status
+
+      - name: Run Phase Pipeline
+        run: npm run agent:phase
+
+      - name: Phase Status (After)
+        run: npm run agent:phase:status
+
+      - name: Commit and Push Agent Changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          NON_STATE_CHANGES="$(git status --porcelain | awk '{print $2}' | grep -v '^.agent/phase-state.json$' || true)"
+          if [ -z "${NON_STATE_CHANGES}" ]; then
+            echo "No code/doc changes to commit."
+            exit 0
+          fi
+
+          git add -A
+          git commit -m "chore(agent): autonomous phase run"
+          git push origin codex/agent

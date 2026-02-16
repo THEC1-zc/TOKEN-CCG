@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Card Minter v2.1.6</title>
-  <!-- Version: V2.1.6 -->
+  <title>TOKEN - Card Minter v2.3.6</title>
+  <!-- Version: V2.3.6 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -49,6 +49,24 @@
       pointer-events: none;
       z-index: 0;
     }
+    .release-badge {
+      position: fixed;
+      top: 76px;
+      right: 20px;
+      z-index: 150;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(10, 10, 15, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #E5E7EB;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      backdrop-filter: blur(6px);
+    }
+    @media (max-width: 768px) {
+      .release-badge { top: 64px; right: 12px; font-size: 9px; }
+    }
     .container, .minter-layout { position: relative; z-index: 1; }
     
     .container {
@@ -70,21 +88,6 @@
       color: #71717A;
       font-size: 12px;
       margin-bottom: 24px;
-    }
-    
-    .wallet-info {
-      text-align: center;
-      background: #141419;
-      border: 1px solid #27272A;
-      border-radius: 8px;
-      padding: 8px 12px;
-      margin-bottom: 20px;
-      font-size: 11px;
-      color: #A1A1AA;
-    }
-    
-    .wallet-info strong {
-      color: #F7931A;
     }
     
     .minter-layout {
@@ -1004,10 +1007,23 @@
       font-size: 11px;
       color: #71717A;
     }
+    .onchain-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: #A1A1AA;
+    }
+    .onchain-status {
+      font-size: 11px;
+      color: #93c5fd;
+      margin-left: auto;
+    }
   </style>
 </head>
 <body>
   <div class="bg-icon" aria-hidden="true"></div>
+  <div class="release-badge">Release V1.0.1</div>
   <header class="app-header">
     <div class="header-left">
       <a class="header-brand" href="index.html">
@@ -1031,11 +1047,6 @@
   <div class="container">
     <h1>CARD MINTER</h1>
     <p class="subtitle">Create your unique Crypto Scopa card</p>
-    
-    <!-- Simulated Wallet Info -->
-    <div class="wallet-info">
-      Wallet: <strong id="walletAddress">0x1234...5678</strong> (simulated)
-    </div>
     
     <!-- Stats -->
     <div class="stats-bar">
@@ -1183,16 +1194,7 @@
           FILL ALL FIELDS
         </button>
 
-        <div class="onchain-box">
-          <div class="onchain-title">Onchain Mint (Testnet)</div>
-          <div class="onchain-row">
-            <input id="onchainCardContract" placeholder="Card contract address" value="0x561F84D0b4246b64dFbAb1BDf87D6842412F1A18">
-            <input id="onchainCardUri" placeholder="Token URI (https://...json)">
-            <button onclick="mintOnchainCard()">Mint Onchain</button>
-            <button class="ghost" onclick="fillOnchainUri()">Use Template</button>
-          </div>
-          <div class="onchain-note">Base Sepolia testnet. Mint is public; admin can burn in Admin panel.</div>
-        </div>
+        <div class="onchain-note" style="margin-top: 14px;">Base Sepolia testnet. Mint is public; admin can burn in Admin panel.</div>
       </div>
       
       <!-- Preview -->
@@ -1232,7 +1234,7 @@
       </div>
     </div>
     
-    <p class="version">Card Minter v1.7.2 - Card Name Color + 16 Char Limit</p>
+    <p class="version">Card Minter v2.3.6 - Onchain Only</p>
   </div>
   
   <!-- Success Modal -->
@@ -1240,7 +1242,7 @@
     <div class="modal">
       <div class="modal-icon">🎉</div>
       <h2 class="modal-title">CARD MINTED!</h2>
-      <p class="modal-text">Your card has been created and saved locally.</p>
+      <p class="modal-text">Your card has been minted onchain (Base Sepolia).</p>
       <div class="modal-card-preview">
         <img id="modalCardImage" src="" alt="Minted card">
       </div>
@@ -1251,10 +1253,7 @@
     </div>
   </div>
   
-  <!-- Supabase SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- TOKEN DB Client -->
-  <script src="supabase/supabase-client.js"></script>
+  <script src="assets/onchain-config.js"></script>
   <script>
     // ============================================
     // PERSPECTIVE API CONFIGURATION
@@ -1302,33 +1301,48 @@
     // LOCAL DATABASE (LocalStorage)
     // ============================================
     const DB_KEYS = {
-      WALLET: 'cryptoscopa_wallet',
       FACTIONS: 'cryptoscopa_factions',
-      CARDS: 'cryptoscopa_cards'
+      CARDS: 'cryptoscopa_cards',
+      ONCHAIN_CARDS: 'token_onchain_cards'
     };
 
-    async function getUserId() {
-      TokenDB.init();
-      return await TokenDB.getOrCreateGuestUser();
+    function getOnchainCards() {
+      const raw = localStorage.getItem(DB_KEYS.ONCHAIN_CARDS);
+      return raw ? JSON.parse(raw) : [];
     }
 
-    async function canMintCard(factionName, value) {
-      const userId = await getUserId();
-      const cards = await TokenDB.getUserCards(userId);
-      return !cards.some(c => c.faction_name === factionName && String(c.value) === String(value));
+    function saveOnchainCards(cards) {
+      localStorage.setItem(DB_KEYS.ONCHAIN_CARDS, JSON.stringify(cards));
+    }
+
+    function getConnectedWalletAddress() {
+      return window.TokenWallet?.getAddress?.() || '';
+    }
+
+    const WALLET_SCAN_TTL_MS = 5 * 60 * 1000;
+    let walletIndex = { byKey: new Set(), lastScanAt: 0 };
+
+    function buildCardKey(house, factionName, value) {
+      return `${String(house).toLowerCase()}|${String(factionName).toUpperCase()}|${String(value)}`;
+    }
+
+    async function canMintCard(factionName, value, house) {
+      await refreshWalletIndex();
+      const owner = getConnectedWalletAddress().toLowerCase();
+      const cards = getOnchainCards();
+      const inCache = cards.some((c) =>
+        c.owner?.toLowerCase() === owner &&
+        c.house === house &&
+        c.factionName === factionName &&
+        String(c.value) === String(value)
+      );
+      const inChain = walletIndex.byKey.has(buildCardKey(house, factionName, value));
+      return !inCache && !inChain;
     }
     
-    // Initialize or get wallet
+    // Wallet is required for onchain minting
     function getWallet() {
-      let wallet = localStorage.getItem(DB_KEYS.WALLET);
-      if (!wallet) {
-        // Generate fake wallet address
-        wallet = '0x' + Array.from({length: 40}, () => 
-          '0123456789abcdef'[Math.floor(Math.random() * 16)]
-        ).join('');
-        localStorage.setItem(DB_KEYS.WALLET, wallet);
-      }
-      return wallet;
+      return getConnectedWalletAddress();
     }
     
     // Get all factions
@@ -1340,6 +1354,7 @@
     // Get user's factions
     function getMyFactions() {
       const wallet = getWallet();
+      if (!wallet) return [];
       return getAllFactions().filter(f => f.owner === wallet);
     }
     
@@ -1360,9 +1375,14 @@
         savedIcon = await compressImage(icon, 50, 0.6);
       }
       
+      const owner = getWallet();
+      if (!owner) {
+        alert('Connect wallet first.');
+        return null;
+      }
       const newFaction = {
         name: normalized,
-        owner: getWallet(),
+        owner: owner,
         icon: savedIcon,
         iconType: iconType || 'emoji',
         created: Date.now(),
@@ -1396,25 +1416,9 @@
       return data ? JSON.parse(data) : [];
     }
     
-    // Save card (Supabase)
+    // Save card (backend postponed; onchain-only mode)
     async function saveCard(card) {
-      const userId = await getUserId();
-
-      const cardToSave = { ...card };
-      cardToSave.image = card.image ? '[IMAGE_STORED_SEPARATELY]' : null;
-
-      if (card.factionIconType === 'image' && card.factionIcon && card.factionIcon.startsWith('data:')) {
-        cardToSave.factionIcon = await compressImage(card.factionIcon, 50, 0.6);
-      }
-
-      await TokenDB.createCard(userId, {
-        house: cardToSave.house,
-        factionName: cardToSave.factionName,
-        factionIcon: cardToSave.factionIcon,
-        value: parseInt(cardToSave.value),
-        displayValue: cardToSave.displayValue,
-        cardName: cardToSave.cardName
-      });
+      return card;
     }
     
     // ============================================
@@ -1491,11 +1495,6 @@
     // UI FUNCTIONS
     // ============================================
     function initUI() {
-      // Set wallet display
-      const wallet = getWallet();
-      document.getElementById('walletAddress').textContent = 
-        wallet.substring(0, 6) + '...' + wallet.substring(wallet.length - 4);
-      
       // Update stats
       updateStats();
       
@@ -1504,6 +1503,7 @@
       
       // Populate emoji grid
       populateEmojiGrid();
+      refreshWalletIndex(true);
     }
     
     function populateEmojiGrid() {
@@ -1584,7 +1584,9 @@
     }
     
     function updateStats() {
-      const cards = getAllCards();
+      const cards = getOnchainCards().filter(
+        (c) => c.owner?.toLowerCase() === getConnectedWalletAddress().toLowerCase()
+      );
       const factions = getMyFactions();
       
       document.getElementById('statCards').textContent = cards.length;
@@ -1793,9 +1795,14 @@
         await createFaction(state.factionName, state.factionIcon, state.factionIconType);
       }
       
-      // Duplicate check in Supabase
-      if (!await canMintCard(state.factionName, state.value)) {
-        alert(`Card with value ${displayValue} already exists in ${state.factionName}!`);
+      const owner = getConnectedWalletAddress();
+      if (!owner) {
+        alert('Connect wallet first.');
+        return;
+      }
+
+      if (!await canMintCard(state.factionName, state.value, state.house)) {
+        alert(`Card ${displayValue} for ${state.house.toUpperCase()} / ${state.factionName} already exists!`);
         return;
       }
 
@@ -1806,7 +1813,7 @@
       const imageDataUrl = await generateCardImage();
       state.lastGeneratedImage = imageDataUrl;
       
-      // Save card to local DB (without full image to save space)
+      // Build card payload
       const card = {
         id: Date.now(),
         house: state.house,
@@ -1819,16 +1826,28 @@
         image: state.image,
         xp: 0,
         level: 1,
-        owner: getWallet(),
+        owner: owner,
         created: Date.now()
       };
-      
+
+      const onchainResult = await mintOnchainCard();
+      if (!onchainResult?.ok) return;
+
+      const cards = getOnchainCards();
+      cards.push({
+        ...card,
+        tokenId: onchainResult.tokenId,
+        txHash: onchainResult.txHash,
+        tokenUri: onchainResult.tokenUri,
+        contractAddress: onchainResult.contractAddress,
+        chainId: 84532
+      });
+      saveOnchainCards(cards);
+
       await saveCard(card);
-      
-      // Update stats
       updateStats();
       updateFactionDropdown();
-      
+
       // Show modal with image
       document.getElementById('modalCardImage').src = imageDataUrl;
       document.getElementById('successModal').classList.add('visible');
@@ -2111,17 +2130,135 @@
   <script type="module" src="assets/wallet-ui.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <script>
-    function fillOnchainUri() {
-      const contract = document.getElementById('onchainCardContract').value.trim().slice(0, 8);
+    function buildOnchainUri() {
+      const contract = (window.TokenOnchainConfig?.contracts?.card || 'card').slice(0, 8);
+      const house = String(state.house || '').toLowerCase();
+      const faction = encodeURIComponent(String(state.factionName || '').toLowerCase());
+      const value = String(state.value || '').toLowerCase();
       const now = Date.now();
-      document.getElementById('onchainCardUri').value = `https://example.com/token/${contract}-${now}.json`;
+      return `https://example.com/token/${contract}-${house}-${faction}-${value}-${now}.json`;
     }
 
-    async function mintOnchainCard() {
-      const address = document.getElementById('onchainCardContract').value.trim();
-      const uri = document.getElementById('onchainCardUri').value.trim();
+    function getWalletScanCacheKey() {
+      const owner = getConnectedWalletAddress().toLowerCase();
+      const contract = (window.TokenOnchainConfig?.contracts?.card || '').toLowerCase();
+      return `token_wallet_scan_${owner}_${contract}`;
+    }
+
+    async function refreshWalletIndex(force) {
+      const now = Date.now();
+      if (!force && now - walletIndex.lastScanAt < WALLET_SCAN_TTL_MS) return;
+
+      const cached = localStorage.getItem(getWalletScanCacheKey());
+      if (!force && cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (now - parsed.lastScanAt < WALLET_SCAN_TTL_MS) {
+            walletIndex = { byKey: new Set(parsed.keys || []), lastScanAt: parsed.lastScanAt };
+            return;
+          }
+        } catch (_) {}
+      }
+
+      if (!window.ethereum) return;
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      if (!await ensureBaseSepolia(provider.provider)) return;
+      const signer = provider.getSigner();
+      const contractAddress = (window.TokenOnchainConfig?.contracts?.card || '').trim();
+      if (!contractAddress) return;
+
+      const abi = [
+        'function ownerOf(uint256 tokenId) view returns (address)',
+        'function tokenURI(uint256 tokenId) view returns (string)',
+        'function totalSupply() view returns (uint256)',
+        'function nextTokenId() view returns (uint256)'
+      ];
+      const contract = new ethers.Contract(contractAddress, abi, signer);
+      let maxId = 0;
+      try {
+        maxId = (await contract.nextTokenId()).toNumber() - 1;
+      } catch (_) {
+        try {
+          maxId = (await contract.totalSupply()).toNumber();
+        } catch (_) {
+          return;
+        }
+      }
+
+      const owner = getConnectedWalletAddress().toLowerCase();
+      const keys = new Set();
+      const maxScan = Math.min(maxId, 500);
+      for (let tokenId = 1; tokenId <= maxScan; tokenId++) {
+        let tokenOwner;
+        try {
+          tokenOwner = (await contract.ownerOf(tokenId)).toLowerCase();
+        } catch (_) {
+          continue;
+        }
+        if (tokenOwner !== owner) continue;
+        try {
+          const uri = await contract.tokenURI(tokenId);
+          const meta = await fetch(uri).then((r) => r.json()).catch(() => null);
+          const attrs = Array.isArray(meta?.attributes) ? meta.attributes : [];
+          const getAttr = (key) => attrs.find((a) => String(a.trait_type || '').toLowerCase() === key)?.value;
+          const value = getAttr('value') || meta?.value || meta?.cardValue;
+          const house = (getAttr('house') || meta?.house || '').toString().toLowerCase();
+          const faction = (getAttr('faction') || meta?.factionName || '').toString().toUpperCase();
+          if (value && house && faction) {
+            keys.add(buildCardKey(house, faction, value));
+          }
+        } catch (_) {}
+      }
+
+      walletIndex = { byKey: keys, lastScanAt: now };
+      localStorage.setItem(getWalletScanCacheKey(), JSON.stringify({
+        lastScanAt: now,
+        keys: Array.from(keys)
+      }));
+    }
+
+    async function ensureBaseSepolia(provider) {
+      const chainId = await provider.request({ method: 'eth_chainId' });
+      const expectedHex = window.TokenOnchainConfig?.chain?.hexId || '0x14a34';
+      if (chainId === expectedHex) return true;
+
+      const chain = window.TokenOnchainConfig?.chain || {
+        id: 84532,
+        hexId: '0x14a34',
+        name: 'Base Sepolia'
+      };
+
+      try {
+        await provider.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: expectedHex }]
+        });
+        return true;
+      } catch (err) {
+        if (err?.code === 4902) {
+          await provider.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: chain.hexId,
+              chainName: chain.name,
+              nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+              rpcUrls: ['https://sepolia.base.org'],
+              blockExplorerUrls: ['https://sepolia.basescan.org']
+            }]
+          });
+          return true;
+        }
+        console.error(err);
+        alert('Wallet rejected network switch to Base Sepolia.');
+        return false;
+      }
+    }
+
+    async function mintOnchainCard(uriOverride) {
+      const address = (window.TokenOnchainConfig?.contracts?.card || '').trim();
+      const uri = uriOverride || buildOnchainUri();
       if (!address || !uri) {
-        alert('Enter contract address and token URI.');
+        alert('Onchain config missing contract address or token URI.');
         return;
       }
       if (!window.ethereum) {
@@ -2130,15 +2267,30 @@
       }
       try {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
+        if (!await ensureBaseSepolia(provider.provider)) return;
         const signer = provider.getSigner();
         const abi = ['function mint(string uri) external returns (uint256)'];
         const contract = new ethers.Contract(address, abi, signer);
         const tx = await contract.mint(uri);
-        await tx.wait();
+        const receipt = await tx.wait();
+        let tokenId = null;
+        const transferEvent = receipt?.events?.find((e) => e.event === 'Transfer');
+        if (transferEvent?.args?.tokenId) {
+          tokenId = transferEvent.args.tokenId.toString();
+        }
         alert('Onchain mint complete.');
+        return {
+          ok: true,
+          tokenId,
+          txHash: tx.hash,
+          tokenUri: uri,
+          contractAddress: address
+        };
       } catch (err) {
         console.error(err);
+        setOnchainStatus('error');
         alert('Onchain mint failed: ' + (err?.message || err));
+        return { ok: false, error: err };
       }
     }
   </script>

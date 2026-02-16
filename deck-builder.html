@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Deck Builder v1.6.4</title>
-  <!-- Version: V1.6.4 -->
+  <title>TOKEN - Deck Builder v1.8.0</title>
+  <!-- Version: V1.8.0 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -48,6 +48,24 @@
       opacity: 0.25;
       pointer-events: none;
       z-index: 0;
+    }
+    .release-badge {
+      position: fixed;
+      top: 76px;
+      right: 20px;
+      z-index: 150;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(10, 10, 15, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #E5E7EB;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      backdrop-filter: blur(6px);
+    }
+    @media (max-width: 768px) {
+      .release-badge { top: 64px; right: 12px; font-size: 9px; }
     }
     .container { position: relative; z-index: 1; }
     
@@ -425,6 +443,27 @@
       justify-content: center;
       position: relative;
     }
+    .collection-card-image {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 6px;
+      z-index: 1;
+    }
+    .collection-card-overlay {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 6px;
+      width: 100%;
+      background: linear-gradient(180deg, rgba(10,10,15,0.2), rgba(10,10,15,0.7));
+      border-radius: 6px;
+    }
     
     .collection-card:hover {
       transform: scale(1.08);
@@ -619,6 +658,7 @@
 </head>
 <body>
   <div class="bg-icon" aria-hidden="true"></div>
+  <div class="release-badge">Release V1.0.1</div>
   <header class="app-header">
     <div class="header-left">
       <a class="header-brand" href="index.html">
@@ -760,13 +800,11 @@
       </div>
     </div>
     
-      <p class="version">Deck Builder v1.5.0</p>
+      <p class="version">Deck Builder v1.8.0</p>
   </div>
 
-  <!-- Supabase SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- TOKEN DB Client -->
-  <script src="supabase/supabase-client.js"></script>
+  <script src="assets/onchain-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <script>
     // ============================================
     // CONFIGURATION
@@ -779,10 +817,137 @@
     };
     
     const DB_KEYS = {
-      CARDS: 'token_cards',
-      DECKS: 'token_decks',
       BATTLE_DECKS: 'token_battle_decks'
     };
+
+    const WALLET_SCAN_TTL_MS = 5 * 60 * 1000;
+    let lastWalletScanAt = 0;
+    let onchainCardsCache = [];
+
+    async function ensureBaseSepolia(provider) {
+      const chainId = await provider.request({ method: 'eth_chainId' });
+      const expectedHex = window.TokenOnchainConfig?.chain?.hexId || '0x14a34';
+      if (chainId === expectedHex) return true;
+
+      const chain = window.TokenOnchainConfig?.chain || {
+        id: 84532,
+        hexId: '0x14a34',
+        name: 'Base Sepolia'
+      };
+
+      try {
+        await provider.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: expectedHex }]
+        });
+        return true;
+      } catch (err) {
+        if (err?.code === 4902) {
+          await provider.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: chain.hexId,
+              chainName: chain.name,
+              nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+              rpcUrls: ['https://sepolia.base.org'],
+              blockExplorerUrls: ['https://sepolia.basescan.org']
+            }]
+          });
+          return true;
+        }
+        console.error(err);
+        return false;
+      }
+    }
+
+    async function refreshWalletOnchainCards(force) {
+      const now = Date.now();
+      if (!force && now - lastWalletScanAt < WALLET_SCAN_TTL_MS) return;
+
+      if (!window.ethereum) return;
+      const contractAddress = (window.TokenOnchainConfig?.contracts?.card || '').trim();
+      if (!contractAddress) return;
+
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      if (!await ensureBaseSepolia(provider.provider)) return;
+      const signer = provider.getSigner();
+      const abi = [
+        'function ownerOf(uint256 tokenId) view returns (address)',
+        'function tokenURI(uint256 tokenId) view returns (string)',
+        'function totalSupply() view returns (uint256)',
+        'function nextTokenId() view returns (uint256)',
+        'function xpByToken(uint256 tokenId) view returns (uint256)',
+        'function levelOf(uint256 tokenId) view returns (uint256)'
+      ];
+      const contract = new ethers.Contract(contractAddress, abi, signer);
+      let maxId = 0;
+      try {
+        maxId = (await contract.nextTokenId()).toNumber() - 1;
+      } catch (_) {
+        try {
+          maxId = (await contract.totalSupply()).toNumber();
+        } catch (_) {
+          return;
+        }
+      }
+
+      const owner = (window.TokenWallet?.getAddress?.() || '').toLowerCase();
+      if (!owner) return;
+
+      const collected = [];
+      const maxScan = Math.min(maxId, 500);
+      for (let tokenId = 1; tokenId <= maxScan; tokenId++) {
+        let tokenOwner;
+        try {
+          tokenOwner = (await contract.ownerOf(tokenId)).toLowerCase();
+        } catch (_) {
+          continue;
+        }
+        if (tokenOwner !== owner) continue;
+        try {
+          const uri = await contract.tokenURI(tokenId);
+          const meta = await fetch(uri).then((r) => r.json()).catch(() => null);
+          const attrs = Array.isArray(meta?.attributes) ? meta.attributes : [];
+          const getAttr = (key) => attrs.find((a) => String(a.trait_type || '').toLowerCase() === key)?.value;
+          const value = getAttr('value') || meta?.value || meta?.cardValue;
+          const house = (getAttr('house') || meta?.house || '').toString().toLowerCase();
+          const faction = (getAttr('faction') || meta?.factionName || '').toString().toUpperCase();
+          const cardName = meta?.name || meta?.cardName || `${faction} ${value}`;
+          const image = meta?.image || null;
+          if (value && house && faction) {
+            // Read XP and Level directly from contract (onchain truth)
+            let onchainXp = 0;
+            let onchainLevel = 1;
+            try {
+              onchainXp = (await contract.xpByToken(tokenId)).toNumber();
+              onchainLevel = (await contract.levelOf(tokenId)).toNumber();
+            } catch (_) {}
+
+            collected.push({
+              id: Date.now() + tokenId,
+              house,
+              value: String(value),
+              displayValue: String(value) === '11' ? 'J' : String(value),
+              cardName,
+              factionName: faction,
+              factionIcon: meta?.factionIcon || '❓',
+              image,
+              xp: onchainXp,
+              level: onchainLevel,
+              owner,
+              created: Date.now(),
+              tokenId,
+              tokenUri: uri,
+              contractAddress,
+              chainId: 84532
+            });
+          }
+        } catch (_) {}
+      }
+
+      onchainCardsCache = collected;
+      lastWalletScanAt = now;
+    }
     
     // State
     let allCards = [];
@@ -796,82 +961,27 @@
     // ============================================
     // DATA LOADING
     // ============================================
-    async function getUserId() {
-      TokenDB.init();
-      return await TokenDB.getOrCreateGuestUser();
-    }
-
     async function loadAllCards() {
       allCards = [];
-      
-      try {
-        const userId = await getUserId();
-        const singleCards = await TokenDB.getUserCards(userId);
-        singleCards.forEach(card => {
-          allCards.push({
-            ...card,
-            uid: `card-${card.id}`,
-            source: 'minter',
-            factionName: card.faction_name,
-            factionIcon: card.faction_icon,
-            displayValue: card.display_value
-          });
-        });
+      const connectedWallet = (window.TokenWallet?.getAddress?.() || '').toLowerCase();
 
-        const decks = await TokenDB.getUserDecks(userId);
-        decks.forEach(deck => {
-          (deck.cards || []).forEach(card => {
-            allCards.push({
-              uid: `deck-${deck.id}-${card.value}`,
-              id: `${deck.id}-${card.value}`,
-              house: deck.house,
-              value: card.value,
-              displayValue: card.displayValue || card.display_value || card.value,
-              cardName: card.cardName || card.card_name || 'CARD',
-              factionName: deck.faction_name || deck.faction,
-              factionIcon: deck.faction_icon || deck.factionIcon,
-              source: 'deck'
-            });
-          });
-        });
-      } catch (e) {
-        const singleCards = JSON.parse(localStorage.getItem(DB_KEYS.CARDS) || '[]');
-        singleCards.forEach(card => {
-          allCards.push({
-            ...card,
-            uid: `card-${card.id}`,
-            source: 'minter'
-          });
-        });
+      const scopedCards = connectedWallet
+        ? onchainCardsCache.filter((c) => String(c.owner || '').toLowerCase() === connectedWallet)
+        : onchainCardsCache;
 
-        const decks = JSON.parse(localStorage.getItem(DB_KEYS.DECKS) || '[]');
-        decks.forEach(deck => {
-          deck.cards.forEach(card => {
-            allCards.push({
-              uid: `deck-${deck.id}-${card.value}`,
-              id: `${deck.id}-${card.value}`,
-              house: deck.house,
-              value: card.value,
-              displayValue: card.displayValue,
-              cardName: card.cardName,
-              factionName: deck.faction,
-              factionIcon: deck.factionIcon,
-              source: 'deck'
-            });
-          });
+      scopedCards.forEach((card) => {
+        allCards.push({
+          ...card,
+          uid: `onchain-card-${card.tokenId || card.id}`,
+          source: 'onchain-card'
         });
-      }
-      
+      });
+
       return allCards;
     }
     
     async function loadSavedBattleDecks() {
-      try {
-        const userId = await getUserId();
-        return await TokenDB.getUserBattleDecks(userId);
-      } catch (e) {
-        return JSON.parse(localStorage.getItem(DB_KEYS.BATTLE_DECKS) || '[]');
-      }
+      return JSON.parse(localStorage.getItem(DB_KEYS.BATTLE_DECKS) || '[]');
     }
     
     // ============================================
@@ -926,7 +1036,7 @@
         container.innerHTML = `
           <div class="collection-empty" style="grid-column: 1/-1;">
             <div class="collection-empty-icon">🃏</div>
-            <div>No cards available. Mint some cards first!</div>
+            <div>No onchain NFT cards available. Connect wallet and mint first.</div>
           </div>
         `;
         return;
@@ -945,10 +1055,14 @@
         }
         
         const house = HOUSES[card.house];
+        const imageHtml = card.image ? `<img class="collection-card-image" src="${card.image}" alt="${card.cardName}">` : '';
         div.innerHTML = `
-          <span class="collection-card-symbol house-${card.house}">${house.symbol}</span>
-          <span class="collection-card-value">${card.displayValue}</span>
-          <span class="collection-card-name">${card.cardName}</span>
+          ${imageHtml}
+          <div class="collection-card-overlay">
+            <span class="collection-card-symbol house-${card.house}">${house.symbol}</span>
+            <span class="collection-card-value">${card.displayValue}</span>
+            <span class="collection-card-name">${card.cardName}</span>
+          </div>
         `;
         
         // Drag events
@@ -1486,20 +1600,9 @@
         created: Date.now()
       };
       
-      try {
-        const userId = await getUserId();
-        await TokenDB.createBattleDeck(userId, {
-          name: battleDeck.name,
-          deck1House: battleDeck.deck1House,
-          deck2House: battleDeck.deck2House,
-          deck1Cards: battleDeck.deck1Cards,
-          deck2Cards: battleDeck.deck2Cards
-        });
-      } catch (e) {
-        const saved = await loadSavedBattleDecks();
-        saved.push(battleDeck);
-        localStorage.setItem(DB_KEYS.BATTLE_DECKS, JSON.stringify(saved));
-      }
+      const saved = await loadSavedBattleDecks();
+      saved.push(battleDeck);
+      localStorage.setItem(DB_KEYS.BATTLE_DECKS, JSON.stringify(saved));
       
       renderSavedDecks();
       alert('Battle deck saved!');
@@ -1538,23 +1641,10 @@
     
     async function deleteBattleDeck(index) {
       if (!confirm('Delete this battle deck?')) return;
-      try {
-        const userId = await getUserId();
-        const saved = await loadSavedBattleDecks();
-        const toDelete = saved[index];
-        if (toDelete?.id) {
-          await TokenDB.deleteBattleDeck(toDelete.id);
-        } else {
-          saved.splice(index, 1);
-          localStorage.setItem(DB_KEYS.BATTLE_DECKS, JSON.stringify(saved));
-        }
-        renderSavedDecks();
-      } catch (e) {
-        const saved = await loadSavedBattleDecks();
-        saved.splice(index, 1);
-        localStorage.setItem(DB_KEYS.BATTLE_DECKS, JSON.stringify(saved));
-        renderSavedDecks();
-      }
+      const saved = await loadSavedBattleDecks();
+      saved.splice(index, 1);
+      localStorage.setItem(DB_KEYS.BATTLE_DECKS, JSON.stringify(saved));
+      renderSavedDecks();
     }
     
     // ============================================
@@ -1563,7 +1653,8 @@
     async function init() {
       deck1 = new Array(10).fill(null);
       deck2 = new Array(10).fill(null);
-      
+
+      await refreshWalletOnchainCards(true);
       await loadAllCards();
       updateGlobalFactionSelect(1);
       updateGlobalFactionSelect(2);
@@ -1575,6 +1666,12 @@
     }
     
     document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('token:wallet-updated', async () => {
+      await refreshWalletOnchainCards(true);
+      await loadAllCards();
+      renderCollection();
+      validateAll();
+    });
   </script>
   <script type="module" src="assets/wallet-ui.js"></script>
 </body>

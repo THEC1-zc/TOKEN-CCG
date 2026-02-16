@@ -1,6 +1,6 @@
 // ============================================
 // TOKEN-CCG Supabase Client
-// Version: V1.0.6
+// Version: V1.1.0
 // ============================================
 
 if (typeof window !== 'undefined' && window.TokenDB) {
@@ -9,6 +9,9 @@ if (typeof window !== 'undefined' && window.TokenDB) {
   (function () {
 const SUPABASE_URL = 'https://fyuqowfoklelfyzgndga.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ5dXFvd2Zva2xlbGZ5emduZGdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxMjAzMjksImV4cCI6MjA4NTY5NjMyOX0.EwJ9FmVg4jsO5pxnbIDvZbtfm9PMCpottzvKB07PRJg';
+const SUPABASE_RUNTIME_ENABLED =
+  (typeof window !== 'undefined' && window.TOKEN_SUPABASE_ENABLED === true) ||
+  (typeof localStorage !== 'undefined' && /^(1|true)$/i.test(localStorage.getItem('token_supabase_enabled') || ''));
 
 // Initialize Supabase client
 // Include this in your HTML: <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -16,6 +19,10 @@ let supabase = null;
 let cachedGuestId = null;
 
 function initSupabase() {
+  if (!SUPABASE_RUNTIME_ENABLED) {
+    console.warn('Supabase runtime disabled (onchain-only mode)');
+    return null;
+  }
   if (typeof window !== 'undefined' && window.supabase) {
     supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     console.log('Supabase initialized');
@@ -23,6 +30,14 @@ function initSupabase() {
   }
   console.error('Supabase JS not loaded');
   return null;
+}
+
+function requireSupabase() {
+  if (!SUPABASE_RUNTIME_ENABLED) {
+    throw new Error('Supabase runtime disabled');
+  }
+  if (!supabase) initSupabase();
+  if (!supabase) throw new Error('Supabase client unavailable');
 }
 
 async function getOrCreateGuestUser() {
@@ -45,12 +60,14 @@ async function getOrCreateGuestUser() {
 
 // Get current user
 async function getCurrentUser() {
+  requireSupabase();
   const { data: { user } } = await supabase.auth.getUser();
   return user;
 }
 
 // Sign in with wallet (custom flow)
 async function signInWithWallet(walletAddress) {
+  requireSupabase();
   // First check if user exists
   let { data: user } = await supabase
     .from('users')
@@ -75,6 +92,7 @@ async function signInWithWallet(walletAddress) {
 
 // Sign in with Farcaster
 async function signInWithFarcaster(fid, username, avatarUrl) {
+  requireSupabase();
   let { data: user } = await supabase
     .from('users')
     .select('*')
@@ -105,6 +123,7 @@ async function signInWithFarcaster(fid, username, avatarUrl) {
 
 // Get all cards for a user
 async function getUserCards(userId) {
+  requireSupabase();
   const { data, error } = await supabase
     .from('cards')
     .select('*')
@@ -118,6 +137,7 @@ async function getUserCards(userId) {
 
 // Admin: get all cards
 async function getAllCards(limit = 200) {
+  requireSupabase();
   const { data, error } = await supabase
     .from('cards')
     .select('*')
@@ -130,6 +150,7 @@ async function getAllCards(limit = 200) {
 
 // Create a new card
 async function createCard(userId, cardData) {
+  requireSupabase();
   const { data, error } = await supabase
     .from('cards')
     .insert({
@@ -155,6 +176,7 @@ async function createCard(userId, cardData) {
 
 // Update card XP
 async function updateCardXP(cardId, xpToAdd) {
+  requireSupabase();
   const { data, error } = await supabase
     .from('cards')
     .update({ xp: supabase.rpc('increment', { x: xpToAdd }) })
@@ -168,6 +190,7 @@ async function updateCardXP(cardId, xpToAdd) {
 
 // Delete a card
 async function deleteCard(cardId) {
+  requireSupabase();
   const { error } = await supabase
     .from('cards')
     .delete()
@@ -182,6 +205,7 @@ async function deleteCard(cardId) {
 
 // Get all decks for a user
 async function getUserDecks(userId) {
+  requireSupabase();
   const { data, error } = await supabase
     .from('decks')
     .select('*')
@@ -194,6 +218,7 @@ async function getUserDecks(userId) {
 
 // Admin: get all decks
 async function getAllDecks(limit = 200) {
+  requireSupabase();
   const { data, error } = await supabase
     .from('decks')
     .select('*')
@@ -206,6 +231,7 @@ async function getAllDecks(limit = 200) {
 
 // Create a new deck
 async function createDeck(userId, deckData) {
+  requireSupabase();
   const { data, error } = await supabase
     .from('decks')
     .insert({
@@ -224,6 +250,7 @@ async function createDeck(userId, deckData) {
 
 // Delete a deck
 async function deleteDeck(deckId) {
+  requireSupabase();
   const { error } = await supabase
     .from('decks')
     .delete()
@@ -238,6 +265,7 @@ async function deleteDeck(deckId) {
 
 // Get all battle decks for a user
 async function getUserBattleDecks(userId) {
+  requireSupabase();
   const { data, error } = await supabase
     .from('battle_decks')
     .select('*')
@@ -250,6 +278,7 @@ async function getUserBattleDecks(userId) {
 
 // Admin: get all battle decks
 async function getAllBattleDecks(limit = 200) {
+  requireSupabase();
   const { data, error } = await supabase
     .from('battle_decks')
     .select('*')
@@ -262,6 +291,7 @@ async function getAllBattleDecks(limit = 200) {
 
 // Create a battle deck
 async function createBattleDeck(userId, battleDeckData) {
+  requireSupabase();
   const { data, error } = await supabase
     .from('battle_decks')
     .insert({
@@ -281,6 +311,7 @@ async function createBattleDeck(userId, battleDeckData) {
 
 // Delete a battle deck
 async function deleteBattleDeck(battleDeckId) {
+  requireSupabase();
   const { error } = await supabase
     .from('battle_decks')
     .delete()
@@ -295,6 +326,7 @@ async function deleteBattleDeck(battleDeckId) {
 
 // Record a game result
 async function recordGame(gameData) {
+  requireSupabase();
   const { data, error } = await supabase
     .from('games')
     .insert({
@@ -320,6 +352,7 @@ async function recordGame(gameData) {
 
 // Get user game history
 async function getUserGames(userId, limit = 20) {
+  requireSupabase();
   const { data, error } = await supabase
     .from('games')
     .select('*')
@@ -333,6 +366,7 @@ async function getUserGames(userId, limit = 20) {
 
 // Get leaderboard
 async function getLeaderboard(limit = 100) {
+  requireSupabase();
   const { data, error } = await supabase
     .from('leaderboard')
     .select('*')
@@ -344,6 +378,7 @@ async function getLeaderboard(limit = 100) {
 
 // Admin: get all users
 async function getAllUsers(limit = 200) {
+  requireSupabase();
   const { data, error } = await supabase
     .from('users')
     .select('*')
@@ -359,6 +394,7 @@ async function getAllUsers(limit = 200) {
 // ============================================
 
 async function migrateFromLocalStorage(userId) {
+  requireSupabase();
   const results = {
     cards: 0,
     decks: 0,
@@ -433,6 +469,7 @@ async function migrateFromLocalStorage(userId) {
 if (typeof window !== 'undefined') {
   window.TokenDB = {
     init: initSupabase,
+    isEnabled: () => SUPABASE_RUNTIME_ENABLED,
     getOrCreateGuestUser,
     // Auth
     getCurrentUser,
