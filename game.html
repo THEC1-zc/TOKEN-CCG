@@ -674,6 +674,7 @@ document.addEventListener('DOMContentLoaded', loadDecks);
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <script>
     // Update XP onchain after game
+    // Claim XP for all cards used in the game (single transaction)
     async function updateXpOnchain(cardsUsed, xpGained) {
       if (!window.ethereum || typeof ethers === 'undefined') {
         console.log('No wallet connected, skipping onchain XP update');
@@ -686,39 +687,40 @@ document.addEventListener('DOMContentLoaded', loadDecks);
         return { success: false, reason: 'no-contract' };
       }
 
+      // Collect all token IDs from cards used
+      const tokenIds = cardsUsed
+        .filter(card => card.tokenId)
+        .map(card => parseInt(card.tokenId));
+
+      if (tokenIds.length === 0) {
+        console.log('No onchain cards to update');
+        return { success: false, reason: 'no-onchain-cards' };
+      }
+
+      // Cap XP at 50 per game (contract limit)
+      const xpToAdd = Math.min(xpGained, 50);
+
       try {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
         const abi = [
-          'function xpByToken(uint256 tokenId) view returns (uint256)',
-          'function setXp(uint256 tokenId, uint256 xp) external'
+          'function claimGameXp(uint256[] tokenIds, uint256 xpEach) external'
         ];
         const contract = new ethers.Contract(contractAddress, abi, signer);
 
-        const updates = [];
-        for (const card of cardsUsed) {
-          if (!card.tokenId) continue; // Skip non-NFT cards
-          
-          const tokenId = parseInt(card.tokenId);
-          try {
-            const currentXp = (await contract.xpByToken(tokenId)).toNumber();
-            const newXp = currentXp + xpGained;
-            
-            console.log(`Updating card #${tokenId}: ${currentXp} → ${newXp} XP`);
-            const tx = await contract.setXp(tokenId, newXp);
-            await tx.wait();
-            
-            updates.push({ tokenId, oldXp: currentXp, newXp });
-          } catch (err) {
-            console.error(`Failed to update XP for token ${tokenId}:`, err.message);
-            // Continue with other cards even if one fails
-          }
-        }
+        console.log(`Claiming ${xpToAdd} XP for ${tokenIds.length} cards:`, tokenIds);
+        
+        // Single transaction for all cards!
+        const tx = await contract.claimGameXp(tokenIds, xpToAdd);
+        console.log('Transaction sent:', tx.hash);
+        
+        await tx.wait();
+        console.log('XP claimed successfully!');
 
-        console.log('XP updates completed:', updates);
-        return { success: true, updates };
+        return { success: true, tokenIds, xpAdded: xpToAdd };
       } catch (err) {
-        console.error('XP update failed:', err);
+        console.error('XP claim failed:', err);
+        // Don't block the game if XP claim fails
         return { success: false, reason: err.message };
       }
     }
