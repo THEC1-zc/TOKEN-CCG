@@ -875,7 +875,9 @@
         'function ownerOf(uint256 tokenId) view returns (address)',
         'function tokenURI(uint256 tokenId) view returns (string)',
         'function totalSupply() view returns (uint256)',
-        'function nextTokenId() view returns (uint256)'
+        'function nextTokenId() view returns (uint256)',
+        'function xpByToken(uint256 tokenId) view returns (uint256)',
+        'function levelOf(uint256 tokenId) view returns (uint256)'
       ];
       const contract = new ethers.Contract(contractAddress, abi, signer);
       let maxId = 0;
@@ -913,6 +915,14 @@
           const cardName = meta?.name || meta?.cardName || `${faction} ${value}`;
           const image = meta?.image || null;
           if (value && house && faction) {
+            // Read XP and Level directly from contract (onchain truth)
+            let onchainXp = 0;
+            let onchainLevel = 1;
+            try {
+              onchainXp = (await contract.xpByToken(tokenId)).toNumber();
+              onchainLevel = (await contract.levelOf(tokenId)).toNumber();
+            } catch (_) {}
+
             collected.push({
               id: Date.now() + tokenId,
               house,
@@ -922,8 +932,8 @@
               factionName: faction,
               factionIcon: meta?.factionIcon || '❓',
               image,
-              xp: 0,
-              level: 1,
+              xp: onchainXp,
+              level: onchainLevel,
               owner,
               created: Date.now(),
               tokenId,

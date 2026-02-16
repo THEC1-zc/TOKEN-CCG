@@ -615,6 +615,29 @@ async function endGame(surr = false) {
   gameStats.gamesPlayed++;
   if (win) gameStats.wins++;
   localStorage.setItem('token_game_stats', JSON.stringify(gameStats));
+
+  // Calculate and update XP onchain for player's cards
+  if (!surr) {
+    // XP formula: base 10 + 5 per TOKEN + 20 for win
+    const baseXp = 10;
+    const tokenBonus = gs.playerTokens * 5;
+    const winBonus = win ? 20 : (tie ? 10 : 0);
+    const totalXp = baseXp + tokenBonus + winBonus;
+
+    // Get all cards the player used (from both decks)
+    const playerCards = [...pDeck1, ...pDeck2, ...(gs.playerJD || [])];
+    
+    console.log(`Game ended. XP to award: ${totalXp} (base:${baseXp} + tokens:${tokenBonus} + win:${winBonus})`);
+    
+    // Update XP onchain (non-blocking)
+    updateXpOnchain(playerCards, totalXp).then(result => {
+      if (result.success) {
+        console.log('XP updated onchain:', result.updates);
+      } else {
+        console.log('XP update skipped:', result.reason);
+      }
+    });
+  }
 }
 function calcScore(p) { let s = 0; const caps = p === 'player' ? gs.playerCaptures : gs.aiCaptures, toks = p === 'player' ? gs.playerTokens : gs.aiTokens, other = p === 'player' ? gs.aiCaptures : gs.playerCaptures; if (caps.length > other.length) s++; s += toks; const myA = countAces(p), theirA = countAces(p === 'player' ? 'ai' : 'player'); if (myA > theirA) s++; return s; }
 function countAces(p) { return (p === 'player' ? gs.playerCaptures : gs.aiCaptures).filter(c => c.value === '1' || c.displayValue === 'A').length; }
@@ -648,6 +671,58 @@ document.addEventListener('DOMContentLoaded', loadDecks);
 </script>
 
   <script src="assets/onchain-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <script>
+    // Update XP onchain after game
+    async function updateXpOnchain(cardsUsed, xpGained) {
+      if (!window.ethereum || typeof ethers === 'undefined') {
+        console.log('No wallet connected, skipping onchain XP update');
+        return { success: false, reason: 'no-wallet' };
+      }
+
+      const contractAddress = (window.TokenOnchainConfig?.contracts?.card || '').trim();
+      if (!contractAddress) {
+        console.log('No contract address configured');
+        return { success: false, reason: 'no-contract' };
+      }
+
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const abi = [
+          'function xpByToken(uint256 tokenId) view returns (uint256)',
+          'function setXp(uint256 tokenId, uint256 xp) external'
+        ];
+        const contract = new ethers.Contract(contractAddress, abi, signer);
+
+        const updates = [];
+        for (const card of cardsUsed) {
+          if (!card.tokenId) continue; // Skip non-NFT cards
+          
+          const tokenId = parseInt(card.tokenId);
+          try {
+            const currentXp = (await contract.xpByToken(tokenId)).toNumber();
+            const newXp = currentXp + xpGained;
+            
+            console.log(`Updating card #${tokenId}: ${currentXp} → ${newXp} XP`);
+            const tx = await contract.setXp(tokenId, newXp);
+            await tx.wait();
+            
+            updates.push({ tokenId, oldXp: currentXp, newXp });
+          } catch (err) {
+            console.error(`Failed to update XP for token ${tokenId}:`, err.message);
+            // Continue with other cards even if one fails
+          }
+        }
+
+        console.log('XP updates completed:', updates);
+        return { success: true, updates };
+      } catch (err) {
+        console.error('XP update failed:', err);
+        return { success: false, reason: err.message };
+      }
+    }
+  </script>
   <script type="module" src="assets/wallet-ui.js"></script>
 </body>
 </html>

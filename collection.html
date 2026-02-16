@@ -746,7 +746,9 @@
         'function ownerOf(uint256 tokenId) view returns (address)',
         'function tokenURI(uint256 tokenId) view returns (string)',
         'function totalSupply() view returns (uint256)',
-        'function nextTokenId() view returns (uint256)'
+        'function nextTokenId() view returns (uint256)',
+        'function xpByToken(uint256 tokenId) view returns (uint256)',
+        'function levelOf(uint256 tokenId) view returns (uint256)'
       ];
       const contract = new ethers.Contract(contractAddress, abi, signer);
 
@@ -785,6 +787,18 @@
           const faction = String(getAttr('faction') || meta?.factionName || '').toUpperCase();
           if (!value || !house || !faction) continue;
 
+          // Read XP and Level directly from contract (onchain truth)
+          let onchainXp = 0;
+          let onchainLevel = 1;
+          try {
+            onchainXp = (await contract.xpByToken(tokenId)).toNumber();
+            onchainLevel = (await contract.levelOf(tokenId)).toNumber();
+          } catch (_) {
+            // Fallback to metadata if contract call fails
+            onchainXp = Number(getAttr('xp') || meta?.xp || 0);
+            onchainLevel = Number(getAttr('level') || meta?.level || 1);
+          }
+
           collected.push({
             id: `onchain-card-${tokenId}`,
             house,
@@ -794,8 +808,8 @@
             factionName: faction,
             factionIcon: String(getAttr('factionIcon') || meta?.factionIcon || '❓'),
             image: meta?.image || null,
-            xp: Number(getAttr('xp') || meta?.xp || 0),
-            level: Number(getAttr('level') || meta?.level || 1),
+            xp: onchainXp,
+            level: onchainLevel,
             owner,
             created: now,
             source: 'onchain-card',
