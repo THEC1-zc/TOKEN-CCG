@@ -1,7 +1,7 @@
 # Admin Panel Plan
 
-Version: V1.2.0  
-Last updated: 2026-02-07
+Version: V1.3.0  
+Last updated: 2026-02-16
 
 ## Goal
 Provide a Supabase-backed admin dashboard for TOKEN with wallet-gated access (owner-only) to validate DB integration, inspect data, and perform basic admin checks during offchain testing.
@@ -42,6 +42,19 @@ Provide a Supabase-backed admin dashboard for TOKEN with wallet-gated access (ow
 - Added tokenURI template fill, last minted token display, and contract status check.
 - Added read utilities per contract: `nextTokenId`, `ownerOf(tokenId)`, `tokenURI(tokenId)`.
 - Deployment runbook: `docs/tokendeck-deploy.md`.
+
+## R2 Metadata Admin (New)
+- Page: `admin-access.html` (lightweight uploader)
+- Purpose: generate metadata + image in R2 and return `tokenURI` for minting.
+- Auth: `ADMIN_API_KEY` via header `x-admin-key` (server-side).
+
+### Required Env (Vercel)
+- `R2_BUCKET`
+- `R2_ENDPOINT` (S3 endpoint, e.g. `https://<ACCOUNT_ID>.r2.cloudflarestorage.com`)
+- `R2_ACCESS_KEY_ID`
+- `R2_SECRET_ACCESS_KEY`
+- `R2_PUBLIC_BASE_URL` (e.g. `https://pub-...r2.dev`)
+- `ADMIN_API_KEY`
 
 ## Data Model Expectations (Supabase)
 - Tables are read-only for admin MVP (no writes).

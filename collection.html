@@ -127,6 +127,77 @@
     .stat-total .stat-value { color: #FFFFFF; }
     .stat-factions .stat-value { color: #A855F7; }
     
+    /* Pending XP Section */
+    .pending-xp-section {
+      background: linear-gradient(135deg, #F7931A22 0%, #141419 100%);
+      border: 2px solid #F7931A;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      animation: pulse-glow 2s infinite;
+    }
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 10px rgba(247, 147, 26, 0.3); }
+      50% { box-shadow: 0 0 20px rgba(247, 147, 26, 0.5); }
+    }
+    .pending-xp-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .pending-xp-icon {
+      font-size: 24px;
+    }
+    .pending-xp-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: 2px;
+      color: #F7931A;
+    }
+    .pending-xp-total {
+      margin-left: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      font-weight: bold;
+      color: #10B981;
+    }
+    .pending-xp-desc {
+      font-size: 12px;
+      color: #A1A1AA;
+      margin-bottom: 12px;
+    }
+    .pending-xp-games {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .pending-game-chip {
+      background: #27272A;
+      border: 1px solid #3f3f46;
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-size: 11px;
+      color: #E5E7EB;
+    }
+    .pending-xp-claim-btn {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #F7931A 0%, #E67E00 100%);
+      border: none;
+      border-radius: 8px;
+      color: #000;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 16px;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .pending-xp-claim-btn:hover {
+      transform: scale(1.02);
+    }
+    
     /* Filters */
     .filters-bar {
       background: #141419;
@@ -555,6 +626,20 @@
         <div class="stat-value" id="statFactions">0</div>
         <div class="stat-label">Factions</div>
       </div>
+    </div>
+    
+    <!-- Pending XP Claims -->
+    <div id="pendingXpSection" class="pending-xp-section" style="display: none;">
+      <div class="pending-xp-header">
+        <span class="pending-xp-icon">⚡</span>
+        <span class="pending-xp-title">Pending XP Claims</span>
+        <span class="pending-xp-total" id="pendingXpTotal">0 XP</span>
+      </div>
+      <div class="pending-xp-desc">You have unclaimed XP from previous games. Claim now to update your cards!</div>
+      <div class="pending-xp-games" id="pendingXpGames"></div>
+      <button class="pending-xp-claim-btn" id="claimAllPendingBtn" onclick="claimAllPendingXp()">
+        🎮 Claim All Pending XP
+      </button>
     </div>
     
     <!-- Filters -->
@@ -1240,6 +1325,143 @@
     }
     
     // ============================================
+    // PENDING XP FROM TOKENGAME CONTRACT
+    // ============================================
+    
+    let pendingGames = [];
+    
+    async function checkPendingXp() {
+      const gameContractAddress = (window.TokenOnchainConfig?.contracts?.game || '').trim();
+      if (!gameContractAddress || !window.ethereum || typeof ethers === 'undefined') {
+        document.getElementById('pendingXpSection').style.display = 'none';
+        return;
+      }
+      
+      const owner = (window.TokenWallet?.getAddress?.() || '').toLowerCase();
+      if (!owner) {
+        document.getElementById('pendingXpSection').style.display = 'none';
+        return;
+      }
+      
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const abi = [
+          'function getPendingGames(address player) view returns (bytes32[])',
+          'function getGame(bytes32 gameId) view returns (address player, uint256[] tokenIds, uint256[] xpAmounts, uint256 timestamp, bool claimed, bool isDisconnect)',
+          'function getTotalPendingXp(address player) view returns (uint256)'
+        ];
+        const contract = new ethers.Contract(gameContractAddress, abi, provider);
+        
+        const pending = await contract.getPendingGames(owner);
+        const totalPending = await contract.getTotalPendingXp(owner);
+        
+        if (pending.length === 0 || totalPending.toNumber() === 0) {
+          document.getElementById('pendingXpSection').style.display = 'none';
+          return;
+        }
+        
+        // Load game details
+        pendingGames = [];
+        const gamesDiv = document.getElementById('pendingXpGames');
+        gamesDiv.innerHTML = '';
+        
+        for (const gameId of pending) {
+          const game = await contract.getGame(gameId);
+          const gameData = {
+            id: gameId,
+            tokenIds: game.tokenIds.map(id => id.toNumber()),
+            xpAmounts: game.xpAmounts.map(xp => xp.toNumber()),
+            timestamp: game.timestamp.toNumber(),
+            isDisconnect: game.isDisconnect
+          };
+          pendingGames.push(gameData);
+          
+          const totalXp = gameData.xpAmounts.reduce((a, b) => a + b, 0);
+          const date = new Date(gameData.timestamp * 1000).toLocaleDateString();
+          const chip = document.createElement('div');
+          chip.className = 'pending-game-chip';
+          chip.innerHTML = `${date} • ${gameData.tokenIds.length} cards • ${totalXp} XP ${gameData.isDisconnect ? '(DC)' : ''}`;
+          gamesDiv.appendChild(chip);
+        }
+        
+        document.getElementById('pendingXpTotal').textContent = `${totalPending.toNumber()} XP`;
+        document.getElementById('pendingXpSection').style.display = 'block';
+        
+      } catch (err) {
+        console.error('Error checking pending XP:', err);
+        document.getElementById('pendingXpSection').style.display = 'none';
+      }
+    }
+    
+    async function claimAllPendingXp() {
+      if (pendingGames.length === 0) return;
+      
+      const cardContractAddress = (window.TokenOnchainConfig?.contracts?.card || '').trim();
+      const gameContractAddress = (window.TokenOnchainConfig?.contracts?.game || '').trim();
+      
+      if (!cardContractAddress || !gameContractAddress) {
+        alert('Contracts not configured');
+        return;
+      }
+      
+      const btn = document.getElementById('claimAllPendingBtn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Claiming...';
+      
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        
+        // First, mark games as claimed in TokenGame
+        const gameAbi = ['function claimGameXp(bytes32 gameId) external'];
+        const gameContract = new ethers.Contract(gameContractAddress, gameAbi, signer);
+        
+        // Then, claim XP on TokenCard
+        const cardAbi = ['function claimXp(uint256[] tokenIds, uint256[] xpAmounts) external'];
+        const cardContract = new ethers.Contract(cardContractAddress, cardAbi, signer);
+        
+        // Aggregate all tokenIds and xpAmounts
+        const allTokenIds = [];
+        const allXpAmounts = [];
+        
+        for (const game of pendingGames) {
+          for (let i = 0; i < game.tokenIds.length; i++) {
+            const existingIdx = allTokenIds.indexOf(game.tokenIds[i]);
+            if (existingIdx >= 0) {
+              allXpAmounts[existingIdx] += game.xpAmounts[i];
+            } else {
+              allTokenIds.push(game.tokenIds[i]);
+              allXpAmounts.push(game.xpAmounts[i]);
+            }
+          }
+          
+          // Mark game as claimed
+          console.log('Claiming game:', game.id);
+          const claimTx = await gameContract.claimGameXp(game.id);
+          await claimTx.wait();
+        }
+        
+        // Claim all XP in one transaction
+        console.log('Claiming XP:', allTokenIds.length, 'cards');
+        const xpTx = await cardContract.claimXp(allTokenIds, allXpAmounts);
+        await xpTx.wait();
+        
+        alert('✅ XP claimed successfully!');
+        
+        // Refresh
+        await checkPendingXp();
+        await refreshCollectionFromWallet(true);
+        
+      } catch (err) {
+        console.error('Claim failed:', err);
+        alert('❌ Claim failed: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🎮 Claim All Pending XP';
+      }
+    }
+    
+    // ============================================
     // INIT
     // ============================================
     async function init() {
@@ -1248,6 +1470,7 @@
       updateStats();
       populateFactionFilter();
       applyFilters();
+      await checkPendingXp();
     }
 
     async function refreshCollectionFromWallet(force) {

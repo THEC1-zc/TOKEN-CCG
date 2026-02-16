@@ -111,3 +111,6 @@ Last updated: 2026-02-08
 
 ## 2026-02-13
 - Collection now reads NFT cards directly from connected wallet on Base Sepolia via onchain scan (`ownerOf` + `tokenURI`) and no longer depends on localStorage card/deck fallback for displayed inventory. Added ethers import, wallet refresh hooks, and image preview rendering from metadata when available. (`collection.html` V1.7.0)
+
+## 2026-02-16
+- Added Cloudflare R2 backend utilities and metadata/admin endpoints for dynamic NFT metadata + image generation. (`api/_utils/r2.js` V1.0.0, `api/admin/upload-card.js` V1.0.0, `api/metadata/[tokenId].js` V1.0.0, `admin-access.html` V1.0.0, `docs/admin.md` V1.3.0)

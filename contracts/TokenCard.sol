@@ -9,18 +9,14 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract TokenCard is ERC721URIStorage, Ownable {
     uint256 public nextTokenId;
     mapping(address => bool) public admins;
+    mapping(address => bool) public gameContracts;  // Authorized game contracts
     mapping(uint256 => uint256) public xpByToken;
-    
-    // TokenGame contract that can assign XP
-    address public gameContract;
 
     event TokenMinted(address indexed to, uint256 indexed tokenId, string uri);
     event TokenBatchMinted(address indexed to, uint256[] tokenIds, string[] uris);
     event TokenBurned(uint256 indexed tokenId);
     event XpClaimed(address indexed player, uint256[] tokenIds, uint256[] xpAmounts, uint256 totalXp);
-    event XpAssigned(address indexed player, uint256[] tokenIds, uint256[] xpAmounts, uint256 totalXp);
     event TokenUriUpdated(uint256 indexed tokenId, string uri);
-    event GameContractUpdated(address indexed gameContract);
 
     constructor(address admin1, address admin2) ERC721("TOKEN Card", "TCARD") Ownable(msg.sender) {
         admins[admin1] = true;
@@ -31,19 +27,18 @@ contract TokenCard is ERC721URIStorage, Ownable {
         require(admins[msg.sender] || owner() == msg.sender, "Not admin");
         _;
     }
-    
-    modifier onlyGame() {
-        require(msg.sender == gameContract, "Not game contract");
+
+    modifier onlyGameOrAdmin() {
+        require(gameContracts[msg.sender] || admins[msg.sender] || owner() == msg.sender, "Not authorized");
         _;
     }
 
     function setAdmin(address admin, bool allowed) external onlyOwner {
         admins[admin] = allowed;
     }
-    
-    function setGameContract(address _gameContract) external onlyOwner {
-        gameContract = _gameContract;
-        emit GameContractUpdated(_gameContract);
+
+    function setGameContract(address game, bool allowed) external onlyOwner {
+        gameContracts[game] = allowed;
     }
 
     // ============================================
@@ -82,7 +77,7 @@ contract TokenCard is ERC721URIStorage, Ownable {
 
     /// @notice Player claims XP directly (normal game end)
     /// @param tokenIds Array of token IDs
-    /// @param xpAmounts Array of XP amounts (same length)
+    /// @param xpAmounts Array of XP amounts (different for each card)
     function claimXp(uint256[] calldata tokenIds, uint256[] calldata xpAmounts) external {
         require(tokenIds.length > 0 && tokenIds.length <= 20, "1-20 cards");
         require(tokenIds.length == xpAmounts.length, "Arrays must match");
@@ -99,30 +94,26 @@ contract TokenCard is ERC721URIStorage, Ownable {
         
         emit XpClaimed(msg.sender, tokenIds, xpAmounts, totalXp);
     }
-    
-    /// @notice TokenGame contract assigns XP (for pending claims)
-    /// @param player The player who owns the cards
+
+    /// @notice Game contract or admin adds XP (for pending claims from disconnects)
+    /// @param player The card owner
     /// @param tokenIds Array of token IDs
     /// @param xpAmounts Array of XP amounts
-    function assignXp(
-        address player,
-        uint256[] calldata tokenIds, 
-        uint256[] calldata xpAmounts
-    ) external onlyGame {
+    function addXpFor(address player, uint256[] calldata tokenIds, uint256[] calldata xpAmounts) external onlyGameOrAdmin {
         require(tokenIds.length > 0 && tokenIds.length <= 20, "1-20 cards");
         require(tokenIds.length == xpAmounts.length, "Arrays must match");
         
         uint256 totalXp = 0;
         
         for (uint256 i = 0; i < tokenIds.length; i++) {
-            require(_ownerOf(tokenIds[i]) == player, "Player must own card");
+            require(_ownerOf(tokenIds[i]) == player, "Player doesn't own card");
             require(xpAmounts[i] <= 100, "Max 100 XP per card");
             
             xpByToken[tokenIds[i]] += xpAmounts[i];
             totalXp += xpAmounts[i];
         }
         
-        emit XpAssigned(player, tokenIds, xpAmounts, totalXp);
+        emit XpClaimed(player, tokenIds, xpAmounts, totalXp);
     }
 
     /// @notice Get XP of a token
@@ -138,7 +129,7 @@ contract TokenCard is ERC721URIStorage, Ownable {
     }
 
     // ============================================
-    // ADMIN - Backend/moderation only
+    // ADMIN
     // ============================================
 
     function adminBurn(uint256 tokenId) external onlyAdmin {

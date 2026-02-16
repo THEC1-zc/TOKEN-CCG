@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TOKEN - Admin Access v1.0.0</title>
+  <!-- Version: V1.0.0 -->
+  <link rel="stylesheet" href="assets/header.css">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #0b0b10;
+      color: #f4f4f5;
+      padding: 32px;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #111118;
+      border: 1px solid #27272a;
+      border-radius: 12px;
+      padding: 24px;
+    }
+    h1 {
+      font-size: 22px;
+      margin: 0 0 12px;
+    }
+    .note {
+      color: #a1a1aa;
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+    label {
+      display: block;
+      margin: 10px 0 6px;
+      font-size: 12px;
+      color: #d4d4d8;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #3f3f46;
+      background: #0b0b10;
+      color: #f4f4f5;
+      font-size: 14px;
+    }
+    button {
+      margin-top: 16px;
+      background: #22c55e;
+      color: #0b0b10;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .out {
+      margin-top: 16px;
+      background: #0b0b10;
+      border: 1px solid #27272a;
+      padding: 12px;
+      border-radius: 8px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Admin Metadata Uploader</h1>
+    <div class="note">Creates metadata + image in R2 and returns a tokenURI to mint.</div>
+
+    <label>Admin API Key</label>
+    <input id="adminKey" type="password" placeholder="ADMIN_API_KEY">
+
+    <div class="row">
+      <div>
+        <label>Name</label>
+        <input id="name" placeholder="Faction J">
+      </div>
+      <div>
+        <label>Token ID (optional)</label>
+        <input id="tokenId" placeholder="leave blank to auto-generate">
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>House</label>
+        <select id="house">
+          <option value="bitcoin">bitcoin</option>
+          <option value="ethereum">ethereum</option>
+          <option value="base">base</option>
+          <option value="tysm">tysm</option>
+        </select>
+      </div>
+      <div>
+        <label>Faction</label>
+        <input id="faction" placeholder="GG1">
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Value</label>
+        <input id="value" placeholder="2..10 or J">
+      </div>
+      <div>
+        <label>Faction Icon</label>
+        <input id="factionIcon" placeholder="⚔️">
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>XP</label>
+        <input id="xp" type="number" value="0">
+      </div>
+      <div>
+        <label>Level</label>
+        <input id="level" type="number" value="1">
+      </div>
+    </div>
+
+    <label>Description</label>
+    <textarea id="description" rows="2">TOKEN CCG Card</textarea>
+
+    <label>Image (optional)</label>
+    <input id="image" type="file" accept="image/*">
+
+    <button id="submitBtn">Create Metadata</button>
+
+    <div class="out" id="output">Ready.</div>
+  </div>
+
+  <script>
+    async function toDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    document.getElementById('submitBtn').addEventListener('click', async () => {
+      const adminKey = document.getElementById('adminKey').value.trim();
+      const name = document.getElementById('name').value.trim();
+      const tokenId = document.getElementById('tokenId').value.trim();
+      const house = document.getElementById('house').value.trim();
+      const faction = document.getElementById('faction').value.trim();
+      const value = document.getElementById('value').value.trim();
+      const factionIcon = document.getElementById('factionIcon').value.trim();
+      const xp = Number(document.getElementById('xp').value || 0);
+      const level = Number(document.getElementById('level').value || 1);
+      const description = document.getElementById('description').value.trim();
+      const imageFile = document.getElementById('image').files[0];
+      const imageDataUrl = imageFile ? await toDataUrl(imageFile) : '';
+
+      const payload = {
+        name,
+        tokenId: tokenId || undefined,
+        house,
+        faction,
+        value,
+        factionIcon,
+        xp,
+        level,
+        description,
+        imageDataUrl
+      };
+
+      const res = await fetch('/api/admin/upload-card', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-key': adminKey
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const json = await res.json();
+      document.getElementById('output').textContent = JSON.stringify(json, null, 2);
+    });
+  </script>
+</body>
+</html>
