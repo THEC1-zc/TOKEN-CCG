@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Deck Minter v2.0.3</title>
-  <!-- Version: V2.0.3 -->
+  <title>TOKEN - Deck Minter v2.1.0</title>
+  <!-- Version: V2.1.0 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
   <link rel="stylesheet" href="assets/header.css">
@@ -671,7 +671,7 @@
       </div>
     </div>
     
-    <p class="version">Deck Minter v2.0.3</p>
+    <p class="version">Deck Minter v2.1.0</p>
   </div>
 
   <!-- JSZip Library for ZIP download -->
@@ -735,15 +735,8 @@
     }
     
     function loadStats() {
-      const owner = getConnectedWalletAddress();
-      const onchainDecks = getOnchainDecks().filter((d) =>
-        owner ? String(d.owner || '').toLowerCase() === owner : false
-      );
-      const onchainCards = getOnchainCards().filter((c) =>
-        owner ? String(c.owner || '').toLowerCase() === owner : false
-      );
-      document.getElementById('statDecks').textContent = onchainDecks.length;
-      document.getElementById('statCards').textContent = onchainCards.length;
+      document.getElementById('statDecks').textContent = String(sessionDecks);
+      document.getElementById('statCards').textContent = String(sessionCards);
     }
     
     // ============================================
@@ -857,15 +850,11 @@
       currentDeck = deck;
       displayDeck(deck);
 
-      document.getElementById('progressText').textContent = 'Saving deck locally...';
-      const saveResult = await saveDeck();
-      if (!saveResult?.ok) {
-        progressSection.classList.remove('visible');
-        btn.classList.remove('generating');
-        btn.textContent = 'MINT 10 NFT CARDS';
-        validateInputs();
-        return;
-      }
+      document.getElementById('progressText').textContent = 'Finalizing...';
+      sessionDecks += 1;
+      sessionCards += 10;
+      loadStats();
+      alert('Deck crafted from onchain-minted NFT cards.');
 
       btn.classList.remove('generating');
       btn.textContent = 'MINT 10 NFT CARDS';
@@ -1120,36 +1109,52 @@
       document.body.removeChild(link);
     }
     
-    async function saveDeck() {
-      if (!currentDeck) return { ok: false };
-      
-      const deckToSave = {
-        ...currentDeck,
-        cards: currentDeck.cards.map(c => ({
-          value: c.value,
-          displayValue: c.displayValue,
-          cardName: c.cardName
-        }))
-      };
-      
-      const decks = getOnchainDecks();
-      decks.push({
-        ...deckToSave,
-        owner: window.TokenWallet?.getAddress?.() || 'guest',
-        deckId: 'deck-' + Date.now(),
-        chainId: 84532
-      });
-      saveOnchainDecks(decks);
-
-      loadStats();
-      alert('Deck crafted from onchain-minted NFT cards.');
-      return { ok: true };
+    function base64Encode(str) {
+      return btoa(unescape(encodeURIComponent(str)));
     }
 
-    function buildOnchainUri(contract, factionName, value) {
-      const safeFaction = encodeURIComponent(String(factionName || '').toLowerCase());
-      const now = Date.now();
-      return `https://example.com/token/${contract.slice(0, 8)}-${safeFaction}-${value}-${now}.json`;
+    function getHouseColors(house) {
+      const palette = {
+        bitcoin: ['#F7931A', '#FFD93D'],
+        ethereum: ['#C0C0C0', '#E8E8E8'],
+        base: ['#0052FF', '#5C9DFF'],
+        tysm: ['#FCD34D', '#3B82F6']
+      };
+      return palette[house] || ['#1F2937', '#111827'];
+    }
+
+    function buildCardSvg({ house, faction, displayValue, icon }) {
+      const colors = getHouseColors(house);
+      return `<?xml version="1.0" encoding="UTF-8"?>` +
+        `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="720" viewBox="0 0 512 720">` +
+        `<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">` +
+        `<stop offset="0%" stop-color="${colors[0]}"/><stop offset="100%" stop-color="${colors[1]}"/></linearGradient></defs>` +
+        `<rect width="512" height="720" rx="28" fill="#0B0B10"/>` +
+        `<rect x="20" y="20" width="472" height="680" rx="24" fill="url(#bg)"/>` +
+        `<rect x="40" y="40" width="432" height="640" rx="20" fill="rgba(6,6,12,0.82)"/>` +
+        `<text x="256" y="110" text-anchor="middle" font-family="Arial, sans-serif" font-size="44" fill="#FFFFFF" letter-spacing="6">TOKEN</text>` +
+        `<text x="256" y="190" text-anchor="middle" font-family="Arial, sans-serif" font-size="26" fill="#E5E7EB">${faction}</text>` +
+        `<text x="256" y="520" text-anchor="middle" font-family="Arial, sans-serif" font-size="120" fill="#FFFFFF">${displayValue}</text>` +
+        `<text x="256" y="590" text-anchor="middle" font-family="Arial, sans-serif" font-size="46" fill="#FFFFFF">${icon || ''}</text>` +
+        `</svg>`;
+    }
+
+    function buildOnchainUri({ house, faction, displayValue, icon }) {
+      const meta = {
+        name: `${faction} ${displayValue}`,
+        description: 'TOKEN CCG onchain testnet card.',
+        image: '',
+        attributes: [
+          { trait_type: 'house', value: house },
+          { trait_type: 'faction', value: faction },
+          { trait_type: 'value', value: displayValue },
+          { trait_type: 'factionIcon', value: icon }
+        ]
+      };
+      const svg = buildCardSvg({ house, faction, displayValue, icon });
+      meta.image = `data:image/svg+xml;base64,${base64Encode(svg)}`;
+      const json = JSON.stringify(meta);
+      return `data:application/json;base64,${base64Encode(json)}`;
     }
 
     async function ensureBaseSepolia(provider) {
@@ -1203,56 +1208,52 @@
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         if (!await ensureBaseSepolia(provider.provider)) return { ok: false };
         const signer = provider.getSigner();
-        const abi = ['function mint(string uri) external returns (uint256)'];
+        const abi = [
+          'function mint(string uri) external returns (uint256)',
+          'function batchMint(string[] calldata uris) external returns (uint256[] memory)'
+        ];
         const contract = new ethers.Contract(address, abi, signer);
 
-        const mintedCards = [];
-        for (let i = 0; i < CARD_VALUES.length; i++) {
-          const value = CARD_VALUES[i];
-          const uri = buildOnchainUri(address, factionName, value);
-          document.getElementById('progressText').textContent = `Minting onchain card ${i + 1} of 10...`;
-          document.getElementById('progressFill').style.width = `${(i + 1) * 10}%`;
+        const uris = CARD_VALUES.map((_, i) =>
+          buildOnchainUri({
+            house: selectedHouse,
+            faction: factionName,
+            displayValue: DISPLAY_VALUES[i],
+            icon: selectedIcon
+          })
+        );
+        document.getElementById('progressText').textContent = 'Minting 10 onchain cards in a single batch...';
+        document.getElementById('progressFill').style.width = '20%';
 
-          const tx = await contract.mint(uri);
+        let tokenIds = [];
+        let txHash = '';
+        if (typeof contract.batchMint === 'function') {
+          const tx = await contract.batchMint(uris);
+          txHash = tx.hash;
           const receipt = await tx.wait();
-          let tokenId = null;
-          const transferEvent = receipt?.events?.find((e) => e.event === 'Transfer');
-          if (transferEvent?.args?.tokenId) {
-            tokenId = transferEvent.args.tokenId.toString();
+          const events = receipt?.events?.filter((e) => e.event === 'Transfer') || [];
+          tokenIds = events.map((e) => e.args?.tokenId?.toString()).filter(Boolean);
+        } else {
+          for (let i = 0; i < uris.length; i++) {
+            document.getElementById('progressText').textContent = `Minting onchain card ${i + 1} of 10...`;
+            document.getElementById('progressFill').style.width = `${(i + 1) * 10}%`;
+            const tx = await contract.mint(uris[i]);
+            txHash = tx.hash;
+            const receipt = await tx.wait();
+            const transferEvent = receipt?.events?.find((e) => e.event === 'Transfer');
+            if (transferEvent?.args?.tokenId) {
+              tokenIds.push(transferEvent.args.tokenId.toString());
+            }
           }
-          mintedCards.push({
-            value,
-            tokenId,
-            txHash: tx.hash,
-            tokenUri: uri,
-            contractAddress: address
-          });
         }
 
-        const owner = getConnectedWalletAddress();
-        const onchainCards = getOnchainCards();
-        mintedCards.forEach((minted, idx) => {
-          onchainCards.push({
-            id: Date.now() + idx,
-            house: selectedHouse,
-            value: minted.value,
-            displayValue: DISPLAY_VALUES[idx],
-            cardName: `${factionName} ${DISPLAY_VALUES[idx]}`,
-            factionName: factionName,
-            factionIcon: selectedIcon,
-            image: null,
-            xp: 0,
-            level: 1,
-            owner: owner,
-            created: Date.now(),
-            tokenId: minted.tokenId,
-            txHash: minted.txHash,
-            tokenUri: minted.tokenUri,
-            contractAddress: minted.contractAddress,
-            chainId: 84532
-          });
-        });
-        localStorage.setItem(DB_KEYS.ONCHAIN_CARDS, JSON.stringify(onchainCards));
+        const mintedCards = uris.map((uri, idx) => ({
+          value: CARD_VALUES[idx],
+          tokenId: tokenIds[idx] || null,
+          txHash,
+          tokenUri: uri,
+          contractAddress: address
+        }));
 
         return { ok: true, cards: mintedCards };
       } catch (err) {

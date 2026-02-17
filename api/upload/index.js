@@ -25,7 +25,7 @@ module.exports = async function handler(req, res) {
       return;
     }
 
-    const baseUrl = process.env.R2_PUBLIC_URL || 'https://token-ccg.r2.dev';
+    const baseUrl = process.env.R2_PUBLIC_BASE_URL || 'https://token-ccg.r2.dev';
     
     // Upload image if provided (base64 data URL)
     let imageUrl = null;
