@@ -1,4 +1,4 @@
-// Version: V1.3.0 - TokenCard V0.5.0 + TokenGame V0.1.0
+// Version: V1.4.0 - TokenCard V0.5.0 + TokenGame V0.1.0 DEPLOYED
 (function () {
   if (typeof window === 'undefined') return;
   const defaults = {
@@ -8,9 +8,9 @@
       name: 'Base Sepolia'
     },
     contracts: {
-      card: '0xDA0bab807633f07f013f94DD0E6A4F96F8742B53',  // TokenCard V0.4.0 (upgrade to V0.5.0 pending)
+      card: '0x9D7f74d0C41E726EC95884E0e97Fa6129e3b5E99',  // TokenCard V0.5.0
       deck: '0xc75170E7268A25CE759cEe019F1c6030F414a82d',  // TokenDeck V0.1.0
-      game: ''  // TokenGame V0.1.0 - DEPLOY PENDING
+      game: '0xd2a5bC10698FD955D1Fe6cb468a17809A08fd005'   // TokenGame V0.1.0
     }
   };
 
