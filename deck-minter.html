@@ -891,7 +891,7 @@
     // ============================================
     // CARD IMAGE GENERATION
     // ============================================
-    async function generateCardImage(house, value, displayValue, cardName, factionName, factionIcon) {
+    async function generateCardImage(house, value, displayValue, cardName, factionName, factionIcon, tokenId = null) {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       
@@ -1056,6 +1056,16 @@
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText('0 XP • LV1', width / 2, xpBarTop + xpBarHeight / 2);
+      
+      // Token ID (bottom right, small)
+      if (tokenId) {
+        const tokenIdFontSize = Math.round(height * 0.022);
+        ctx.fillStyle = '#71717A';
+        ctx.font = `${tokenIdFontSize}px monospace`;
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(`#${tokenId}`, width - borderWidth - Math.round(width * 0.04), height - borderWidth - Math.round(height * 0.015));
+      }
       
       return canvas.toDataURL('image/png');
     }
@@ -1277,8 +1287,8 @@
           let imageUrl = null;
           
           if (tokenId) {
-            // Generate card image
-            const imageDataUrl = await generateCardImage(selectedHouse, value, displayValue, cardName, factionName, selectedIcon);
+            // Generate card image WITH tokenId
+            const imageDataUrl = await generateCardImage(selectedHouse, value, displayValue, cardName, factionName, selectedIcon, tokenId);
             
             // Upload to R2
             const metadata = {
@@ -1294,19 +1304,29 @@
             };
             
             try {
-              const uploadResponse = await fetch('/api/upload', {
+              const uploadResponse = await fetch('/api/admin/upload-card', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                  'Content-Type': 'application/json',
+                  'x-admin-key': (window.TOKEN_ADMIN_API_KEY || '')
+                },
                 body: JSON.stringify({
                   tokenId,
-                  image: imageDataUrl,
-                  metadata
+                  name: metadata.name,
+                  description: metadata.description,
+                  house: metadata.house,
+                  faction: metadata.faction,
+                  value: metadata.value,
+                  factionIcon: metadata.factionIcon,
+                  xp: metadata.xp,
+                  level: metadata.level,
+                  imageDataUrl: imageDataUrl
                 })
               });
               
               if (uploadResponse.ok) {
                 const uploadResult = await uploadResponse.json();
-                metadataUrl = uploadResult.metadataUrl;
+                metadataUrl = uploadResult.tokenUri;
                 imageUrl = uploadResult.imageUrl;
                 console.log(`Card ${i + 1} uploaded:`, uploadResult);
               }

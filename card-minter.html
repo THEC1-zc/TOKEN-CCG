@@ -1808,52 +1808,23 @@
 
       // Increment faction card count
       incrementFactionCount(state.factionName);
-      
-      // Generate card image
-      const imageDataUrl = await generateCardImage();
-      state.lastGeneratedImage = imageDataUrl;
-      
-      // Build card payload
-      const card = {
-        id: Date.now(),
-        house: state.house,
-        value: state.value,
-        displayValue: displayValue,
-        cardName: state.cardName,
-        factionName: state.factionName,
-        factionIcon: state.factionIcon,
-        factionIconType: state.factionIconType,
-        image: state.image,
-        xp: 0,
-        level: 1,
-        owner: owner,
-        created: Date.now()
-      };
 
       const onchainResult = await mintOnchainCard();
       if (!onchainResult?.ok) return;
 
-      const cards = getOnchainCards();
-      cards.push({
-        ...card,
-        tokenId: onchainResult.tokenId,
-        txHash: onchainResult.txHash,
-        tokenUri: onchainResult.tokenUri,
-        contractAddress: onchainResult.contractAddress,
-        chainId: 84532
-      });
-      saveOnchainCards(cards);
-
-      await saveCard(card);
-      updateStats();
-      updateFactionDropdown();
-
-      // Show modal with image
-      document.getElementById('modalCardImage').src = imageDataUrl;
+      // Show modal with tokenId
+      const tokenId = onchainResult.tokenId || '?';
+      document.getElementById('modalCardImage').src = state.lastGeneratedImage;
       document.getElementById('successModal').classList.add('visible');
+      
+      // Update modal to show tokenId
+      const modalText = document.querySelector('.modal-text');
+      if (modalText) {
+        modalText.innerHTML = `Your card has been minted onchain (Base Sepolia).<br><strong>Token ID: #${tokenId}</strong>`;
+      }
     }
     
-    async function generateCardImage() {
+    async function generateCardImage(tokenId = null) {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       
@@ -2089,6 +2060,16 @@
       ctx.textBaseline = 'middle';
       ctx.fillText('0 XP • LV1', width / 2, xpBarTop + xpBarHeight / 2);
       
+      // Token ID (bottom right, small)
+      if (tokenId) {
+        const tokenIdFontSize = Math.round(height * 0.022);
+        ctx.fillStyle = '#71717A';
+        ctx.font = `${tokenIdFontSize}px monospace`;
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(`#${tokenId}`, width - borderWidth - Math.round(width * 0.04), height - borderWidth - Math.round(height * 0.015));
+      }
+      
       return canvas.toDataURL('image/png');
     }
     
@@ -2300,8 +2281,8 @@
           return { ok: false };
         }
         
-        // Generate card image
-        const imageDataUrl = await generateCardImage();
+        // Generate card image WITH tokenId
+        const imageDataUrl = await generateCardImage(tokenId);
         state.lastGeneratedImage = imageDataUrl;
         
         // Upload image and metadata to R2
