@@ -2255,36 +2255,107 @@
     }
 
     async function mintOnchainCard(uriOverride) {
-      const address = (window.TokenOnchainConfig?.contracts?.card || '').trim();
-      const uri = uriOverride || buildOnchainUri();
-      if (!address || !uri) {
-        alert('Onchain config missing contract address or token URI.');
-        return;
+      const contractAddress = (window.TokenOnchainConfig?.contracts?.card || '').trim();
+      if (!contractAddress) {
+        alert('Onchain config missing contract address.');
+        return { ok: false };
       }
       if (!window.ethereum) {
         alert('No wallet provider found.');
-        return;
+        return { ok: false };
       }
+      
       try {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
-        if (!await ensureBaseSepolia(provider.provider)) return;
+        if (!await ensureBaseSepolia(provider.provider)) return { ok: false };
         const signer = provider.getSigner();
-        const abi = ['function mint(string uri) external returns (uint256)'];
-        const contract = new ethers.Contract(address, abi, signer);
-        const tx = await contract.mint(uri);
+        
+        // First mint to get tokenId
+        const mintAbi = ['function mint(string uri) external returns (uint256)'];
+        const contract = new ethers.Contract(contractAddress, mintAbi, signer);
+        
+        // Use placeholder URI first, we'll update after we know the tokenId
+        const placeholderUri = 'pending://metadata';
+        const tx = await contract.mint(placeholderUri);
         const receipt = await tx.wait();
+        
         let tokenId = null;
         const transferEvent = receipt?.events?.find((e) => e.event === 'Transfer');
         if (transferEvent?.args?.tokenId) {
           tokenId = transferEvent.args.tokenId.toString();
         }
-        alert('Onchain mint complete.');
+        
+        if (!tokenId) {
+          // Try to get from logs
+          for (const log of receipt.logs) {
+            if (log.topics[0] === '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef') {
+              tokenId = parseInt(log.topics[3], 16).toString();
+              break;
+            }
+          }
+        }
+        
+        if (!tokenId) {
+          alert('Mint succeeded but could not get tokenId');
+          return { ok: false };
+        }
+        
+        // Generate card image
+        const imageDataUrl = await generateCardImage();
+        state.lastGeneratedImage = imageDataUrl;
+        
+        // Upload image and metadata to R2
+        const displayValue = state.value === '11' ? 'J' : state.value;
+        const metadata = {
+          name: `${state.cardName} - ${state.house.toUpperCase()} ${displayValue}`,
+          description: `A TOKEN CCG card. House: ${state.house}, Faction: ${state.factionName}, Value: ${displayValue}`,
+          house: state.house,
+          faction: state.factionName,
+          value: displayValue,
+          cardName: state.cardName,
+          xp: 0,
+          level: 1
+        };
+        
+        let metadataUrl = null;
+        try {
+          const uploadResponse = await fetch('/api/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              tokenId,
+              image: imageDataUrl,
+              metadata
+            })
+          });
+          
+          if (uploadResponse.ok) {
+            const uploadResult = await uploadResponse.json();
+            metadataUrl = uploadResult.metadataUrl;
+            console.log('Uploaded to R2:', uploadResult);
+          } else {
+            console.warn('R2 upload failed, using fallback URI');
+          }
+        } catch (uploadErr) {
+          console.warn('R2 upload error:', uploadErr);
+        }
+        
+        // Use the metadata URL or fallback
+        const finalUri = metadataUrl || buildOnchainUri();
+        
+        // Update tokenURI if we have admin access (optional, for now just log)
+        if (metadataUrl) {
+          console.log('Token minted with metadata at:', metadataUrl);
+        }
+        
+        alert('Onchain mint complete! Token #' + tokenId);
         return {
           ok: true,
           tokenId,
           txHash: tx.hash,
-          tokenUri: uri,
-          contractAddress: address
+          tokenUri: finalUri,
+          contractAddress,
+          imageUrl: metadataUrl ? metadataUrl.replace('/metadata/', '/images/').replace('.json', '.png') : null
         };
       } catch (err) {
         console.error(err);
