@@ -1,4 +1,4 @@
-// Version: V1.3.4
+// Version: V1.3.5
 
 const state = {
   sdk: null,
@@ -10,6 +10,7 @@ const state = {
   fcSignIn: null,
 };
 const DISCONNECT_KEY = 'token_wallet_disconnected';
+const AUTOCONNECT_KEY = 'token_wallet_autoconnect';
 
 function safeGet(key) {
   try {
@@ -166,6 +167,7 @@ async function connectBaseWallet() {
     state.chainId = await provider.request({ method: 'eth_chainId' });
     attachProviderEvents(provider);
     safeSet(DISCONNECT_KEY, '0');
+    safeSet(AUTOCONNECT_KEY, '1');
   } catch (err) {
     console.error('Base wallet connect failed', err);
   }
@@ -185,6 +187,7 @@ async function connectBrowserWallet() {
     state.chainId = await provider.request({ method: 'eth_chainId' });
     attachProviderEvents(provider);
     safeSet(DISCONNECT_KEY, '0');
+    safeSet(AUTOCONNECT_KEY, '1');
   } catch (err) {
     console.error('Browser wallet connect failed', err);
     alert('Wallet connect failed. Check if MetaMask is unlocked and connected.');
@@ -206,6 +209,7 @@ async function connectWallet() {
     if (isBaseChain(state.chainId)) state.providerType = 'base';
     attachProviderEvents(provider);
     safeSet(DISCONNECT_KEY, '0');
+    safeSet(AUTOCONNECT_KEY, '1');
   } catch (err) {
     console.error('Wallet connect failed', err);
   }
@@ -220,6 +224,7 @@ function disconnectWallet() {
   state.fcUser = null;
   state.fcSignIn = null;
   safeSet(DISCONNECT_KEY, '1');
+  safeSet(AUTOCONNECT_KEY, '0');
   updateUI();
 }
 
@@ -367,7 +372,7 @@ function updateUI() {
   const baseProvider = getBaseProvider();
   fcBtn.style.display = isMiniApp && state.sdk?.actions?.signIn ? 'block' : 'none';
   baseBtn.style.display = Boolean(baseProvider && typeof baseProvider.request === 'function') ? 'block' : 'none';
-  browserBtn.style.display = window.ethereum ? 'block' : 'none';
+  browserBtn.style.display = 'block';
   disconnectBtn.style.display = state.address || state.fcUser ? 'block' : 'none';
   adminBtn.style.display = isOwnerAny(OWNER_WALLETS) ? 'block' : 'none';
 
@@ -384,7 +389,8 @@ async function boot() {
   try {
     buildHeader();
     await initSdk();
-    if (window.ethereum?.request && safeGet(DISCONNECT_KEY) !== '1') {
+    const allowAuto = safeGet(AUTOCONNECT_KEY) === '1' && safeGet(DISCONNECT_KEY) !== '1';
+    if (allowAuto && window.ethereum?.request) {
       const accounts = await window.ethereum.request({ method: 'eth_accounts' });
       if (accounts?.[0]) {
         state.address = accounts[0];

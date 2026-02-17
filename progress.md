@@ -6,3 +6,5 @@ Original prompt: devi aggiornare il percorso cartella repo locale: /Users/fabio/
 - Ran Playwright web-game client against key pages (index, card-minter, deck-minter, deck-builder, collection, game, admin) and captured screenshots under output/web-game/.
 - Observed header shows wallet icon and Release V1.0.1 badge on pages; login icon appears in screenshots.
 - No code changes made; generated local test artifacts only.
+
+- 2026-02-17: Ran headless Playwright checks for index/card-minter/deck-minter/deck-builder/collection/game/admin; screenshots in output/web-game/*. No console errors captured in run output.
