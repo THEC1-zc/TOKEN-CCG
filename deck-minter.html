@@ -1214,30 +1214,42 @@
         ];
         const contract = new ethers.Contract(address, abi, signer);
 
-        const uris = CARD_VALUES.map((_, i) =>
-          buildOnchainUri({
-            house: selectedHouse,
-            faction: factionName,
-            displayValue: DISPLAY_VALUES[i],
-            icon: selectedIcon
-          })
-        );
-        document.getElementById('progressText').textContent = 'Minting 10 onchain cards in a single batch...';
+        // Use placeholder URIs for now - we'll upload real metadata after getting tokenIds
+        const placeholderUris = CARD_VALUES.map(() => 'pending://metadata');
+        
+        document.getElementById('progressText').textContent = 'Minting 10 NFT cards onchain...';
         document.getElementById('progressFill').style.width = '20%';
 
         let tokenIds = [];
         let txHash = '';
+        
         if (typeof contract.batchMint === 'function') {
-          const tx = await contract.batchMint(uris);
+          const tx = await contract.batchMint(placeholderUris);
           txHash = tx.hash;
+          document.getElementById('progressText').textContent = 'Waiting for confirmation...';
+          document.getElementById('progressFill').style.width = '40%';
+          
           const receipt = await tx.wait();
+          
+          // Extract tokenIds from Transfer events
           const events = receipt?.events?.filter((e) => e.event === 'Transfer') || [];
           tokenIds = events.map((e) => e.args?.tokenId?.toString()).filter(Boolean);
+          
+          // Fallback: parse from logs if events don't work
+          if (tokenIds.length === 0) {
+            for (const log of receipt.logs) {
+              if (log.topics[0] === '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef') {
+                const tid = parseInt(log.topics[3], 16).toString();
+                if (tid) tokenIds.push(tid);
+              }
+            }
+          }
         } else {
-          for (let i = 0; i < uris.length; i++) {
-            document.getElementById('progressText').textContent = `Minting onchain card ${i + 1} of 10...`;
-            document.getElementById('progressFill').style.width = `${(i + 1) * 10}%`;
-            const tx = await contract.mint(uris[i]);
+          // Fallback to individual mints
+          for (let i = 0; i < placeholderUris.length; i++) {
+            document.getElementById('progressText').textContent = `Minting card ${i + 1} of 10...`;
+            document.getElementById('progressFill').style.width = `${20 + (i * 4)}%`;
+            const tx = await contract.mint(placeholderUris[i]);
             txHash = tx.hash;
             const receipt = await tx.wait();
             const transferEvent = receipt?.events?.find((e) => e.event === 'Transfer');
@@ -1247,15 +1259,76 @@
           }
         }
 
-        const mintedCards = uris.map((uri, idx) => ({
-          value: CARD_VALUES[idx],
-          tokenId: tokenIds[idx] || null,
-          txHash,
-          tokenUri: uri,
-          contractAddress: address
-        }));
+        document.getElementById('progressText').textContent = 'Uploading images & metadata to R2...';
+        document.getElementById('progressFill').style.width = '60%';
 
+        // Now upload images and metadata for each card
+        const mintedCards = [];
+        for (let i = 0; i < CARD_VALUES.length; i++) {
+          const value = CARD_VALUES[i];
+          const displayValue = DISPLAY_VALUES[i];
+          const tokenId = tokenIds[i] || null;
+          const cardName = `${factionName} ${displayValue}`;
+          
+          document.getElementById('progressText').textContent = `Uploading card ${i + 1} of 10...`;
+          document.getElementById('progressFill').style.width = `${60 + (i * 4)}%`;
+          
+          let metadataUrl = null;
+          let imageUrl = null;
+          
+          if (tokenId) {
+            // Generate card image
+            const imageDataUrl = await generateCardImage(selectedHouse, value, displayValue, cardName, factionName, selectedIcon);
+            
+            // Upload to R2
+            const metadata = {
+              name: `${cardName} - ${selectedHouse.toUpperCase()} ${displayValue}`,
+              description: `A TOKEN CCG card. House: ${selectedHouse}, Faction: ${factionName}, Value: ${displayValue}`,
+              house: selectedHouse,
+              faction: factionName,
+              value: displayValue,
+              cardName: cardName,
+              factionIcon: selectedIcon,
+              xp: 0,
+              level: 1
+            };
+            
+            try {
+              const uploadResponse = await fetch('/api/upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  tokenId,
+                  image: imageDataUrl,
+                  metadata
+                })
+              });
+              
+              if (uploadResponse.ok) {
+                const uploadResult = await uploadResponse.json();
+                metadataUrl = uploadResult.metadataUrl;
+                imageUrl = uploadResult.imageUrl;
+                console.log(`Card ${i + 1} uploaded:`, uploadResult);
+              }
+            } catch (uploadErr) {
+              console.warn(`R2 upload failed for card ${i + 1}:`, uploadErr);
+            }
+          }
+          
+          mintedCards.push({
+            value: value,
+            displayValue: displayValue,
+            tokenId: tokenId,
+            txHash: txHash,
+            tokenUri: metadataUrl || `pending://metadata/${tokenId}`,
+            imageUrl: imageUrl,
+            contractAddress: address
+          });
+        }
+
+        document.getElementById('progressFill').style.width = '100%';
         return { ok: true, cards: mintedCards };
+        
       } catch (err) {
         console.error(err);
         alert('Onchain mint failed: ' + (err?.message || err));
