@@ -1,139 +1,119 @@
-# coordination.md v1.4.0 - TokenCard V0.4.0 DEPLOYED, audit passed
+# coordination.md v1.6.0 - Full debug session, NFT metadata on R2
 
 # AI Integration - Coordination File
 
 **Branch**: `main`  
-**Last Updated**: 2025-02-16 (Claude)  
-**Contract**: TokenCard V0.4.0 @ `0xDA0bab807633f07f013f94DD0E6A4F96F8742B53`
+**Last Updated**: 2026-02-17 (Claude)  
+**Contract**: TokenCard V0.5.0 @ `0x9D7f74d0C41E726EC95884E0e97Fa6129e3b5E99`
 
 ---
 
-## ✅ AUDIT PASSED
+## ✅ CURRENT STATUS
 
-Security and coherence audit completed. See `docs/SECURITY_AUDIT.md` for full report.
-
-| Check | Status |
-|-------|--------|
-| Contract deployed | ✅ V0.4.0 on Base Sepolia |
-| Config updated | ✅ onchain-config.js |
-| ABI consistent | ✅ claimGameXp in game.html |
-| XP reading | ✅ collection + deck-builder |
-| No secrets in code | ✅ |
-| No eval/dangerous | ✅ |
+| Component | Status | Notes |
+|-----------|--------|-------|
+| TokenCard V0.5.0 | ✅ Deployed | `0x9D7f74d0C41E726EC95884E0e97Fa6129e3b5E99` |
+| TokenGame V0.1.0 | ✅ Deployed | `0xd2a5bC10698FD955D1Fe6cb468a17809A08fd005` |
+| TokenDeck V0.1.0 | ✅ Deployed | `0xc75170E7268A25CE759cEe019F1c6030F414a82d` |
+| R2 Upload API | ✅ Ready | `/api/upload` |
+| Card Minter | ✅ Fixed | tokenId extraction improved |
+| Deck Minter | ✅ Fixed | tokenId extraction improved |
+| Collection | ✅ Reads onchain | Shows tokenId |
+| Wallet Logout | ✅ Fixed | Revokes permissions |
 
 ---
 
-## 🎮 FLUSSO COMPLETO
+## 🎮 NFT FLOW
 
 ```
-MINT → PLAY → CLAIM XP → SELL
-  │       │        │        │
-  │       │        │        └── Marketplace (futuro)
-  │       │        │
-  │       │        └── 1 firma wallet, tutte le carte
-  │       │
-  │       └── Offchain, gratis
-  │
-  └── batchMint(), paga gas
+MINT CARD/DECK
+     │
+     ▼
+┌─────────────────┐
+│ 1. Mint onchain │ → Get tokenId from receipt
+└────────┬────────┘
+         ▼
+┌─────────────────┐
+│ 2. Generate IMG │ → Canvas with tokenId visible
+└────────┬────────┘
+         ▼
+┌─────────────────┐
+│ 3. Upload R2    │ → /api/upload (image + metadata)
+└────────┬────────┘
+         ▼
+┌─────────────────┐
+│ 4. NFT Ready    │ → Visible in wallet with image
+└─────────────────┘
 ```
 
 ---
 
-## 📋 STATO PER CODEX
-
-### ✅ Completato (Claude)
-- TokenCard V0.4.0 deployed
-- `claimGameXp()` per players
-- Frontend aggiornato (game.html)
-- XP letto da contratto
-- Audit sicurezza passato
-
-### 🔄 In Progress (Codex)
-- Cloudflare image storage
-- Sostituire `example.com` URLs con Cloudflare
-
-### ⏳ Da Fare
-- Test completo flusso
-- UI per claim XP (popup a fine partita?)
-
----
-
-## 🔧 CONTRATTI
+## 🔧 CONTRACTS
 
 | Contract | Version | Address | Chain |
 |----------|---------|---------|-------|
-| **TokenCard** | **V0.4.0** | `0xDA0bab807633f07f013f94DD0E6A4F96F8742B53` | Base Sepolia |
-| TokenDeck | V0.1.0 | `0xc75170E7268A25CE759cEe019F1c6030F414a82d` | Base Sepolia |
+| **TokenCard** | **V0.5.0** | `0x9D7f74d0C41E726EC95884E0e97Fa6129e3b5E99` | Base Sepolia |
+| **TokenGame** | **V0.1.0** | `0xd2a5bC10698FD955D1Fe6cb468a17809A08fd005` | Base Sepolia |
+| **TokenDeck** | **V0.1.0** | `0xc75170E7268A25CE759cEe019F1c6030F414a82d` | Base Sepolia |
 
-### TokenCard V0.4.0 ABI
-```solidity
-// PLAYER FUNCTIONS
-mint(string uri) → uint256
-batchMint(string[] uris) → uint256[]
-claimGameXp(uint256[] tokenIds, uint256 xpEach)  // max 50 XP
-getXp(uint256 tokenId) → uint256
-levelOf(uint256 tokenId) → uint256
+---
 
-// ADMIN ONLY (backend)
-adminBurn(uint256 tokenId)
-adminSetXp(uint256 tokenId, uint256 xp)
-setTokenUri(uint256 tokenId, string uri)
+## 📁 KEY FILES
+
+| File | Purpose |
+|------|---------|
+| `assets/onchain-config.js` | Contract addresses |
+| `api/upload/index.js` | Upload image+metadata to R2 |
+| `api/metadata/[tokenId].js` | Read metadata from R2 |
+| `card-minter.html` | Single card mint |
+| `deck-minter.html` | Batch 10 cards mint |
+| `collection.html` | View cards from wallet |
+| `game.html` | Play + XP claim |
+
+---
+
+## 🎯 NFT METADATA FORMAT
+
+```json
+{
+  "name": "Card Name - HOUSE VALUE",
+  "description": "A TOKEN CCG card...",
+  "image": "https://r2.../images/{tokenId}.png",
+  "external_url": "https://token-ccg.vercel.app/collection.html?card={tokenId}",
+  "attributes": [
+    { "trait_type": "House", "value": "bitcoin" },
+    { "trait_type": "Faction", "value": "satoshi" },
+    { "trait_type": "Value", "value": "7" },
+    { "trait_type": "Card Name", "value": "..." },
+    { "trait_type": "XP", "value": 0 },
+    { "trait_type": "Level", "value": 1 }
+  ]
+}
 ```
 
 ---
 
-## 🎯 XP SYSTEM
+## 🚨 RULES
 
-### Formula (game.html)
-```javascript
-baseXp = 10                      // per game
-tokenBonus = playerTokens * 5    // per TOKEN/scopa
-winBonus = win ? 20 : tie ? 10 : 0
-totalXp = min(base + token + win, 50)
-```
-
-### Esempio
-| Risultato | TOKENs | XP Totale |
-|-----------|--------|-----------|
-| Vittoria, 2 TOKEN | 2 | 10 + 10 + 20 = 40 |
-| Sconfitta, 1 TOKEN | 1 | 10 + 5 + 0 = 15 |
-| Pareggio, 0 TOKEN | 0 | 10 + 0 + 10 = 20 |
-
----
-
-## 📁 FILE CHIAVE
-
-| File | Scopo |
-|------|-------|
-| `contracts/TokenCard.sol` | Contratto V0.4.0 |
-| `assets/onchain-config.js` | Indirizzi contratti |
-| `game.html` | Logica XP claim |
-| `collection.html` | Lettura XP da chain |
-| `deck-builder.html` | Lettura XP da chain |
-| `docs/SECURITY_AUDIT.md` | Report audit |
-
----
-
-## 🚨 REGOLE
-
-1. **ONCHAIN** = cards, decks, XP
-2. **NO SUPABASE** per game data
-3. **Admin** = solo backend/moderation
-4. **Pull prima di lavorare**
-5. **Aggiorna questo file dopo modifiche**
+1. **ONCHAIN** = source of truth for cards, XP
+2. **NO localStorage** for card data (only cache)
+3. **TokenId visible** on all card images
+4. **R2** for image/metadata storage
+5. **Pull before working**
+6. **Update this file after changes**
 
 ---
 
 ## 📝 SESSION LOG
 
-### 2025-02-16 - Claude
-- TokenCard V0.4.0 creato e deployed
-- Config aggiornata con nuovo CA
-- Audit sicurezza e coerenza completato
-- Documentazione aggiornata
-
-### 2025-02-16 - Codex
-- Cloudflare image storage (in progress)
+### 2026-02-17 - Claude
+- Fixed wallet logout (revokes permissions)
+- Fixed TOKEN title style in Quick Rules
+- Added tokenId to card images (bottom right)
+- Removed localStorage dependency in minters
+- Fixed tokenId extraction from tx receipt (ethers.BigNumber)
+- Added tokenId display in collection grid/modal
+- Aligned deck-minter to R2 upload flow
 
 ---
 
@@ -141,8 +121,8 @@ totalXp = min(base + token + win, 50)
 
 - **Repo**: https://github.com/THEC1-zc/TOKEN-CCG
 - **Live**: https://token-ccg.vercel.app
-- **TokenCard V0.4.0**: https://sepolia.basescan.org/address/0xDA0bab807633f07f013f94DD0E6A4F96F8742B53
+- **TokenCard**: https://sepolia.basescan.org/address/0x9D7f74d0C41E726EC95884E0e97Fa6129e3b5E99
 
 ---
 
-end of coordination.md v1.4.0
+end of coordination.md v1.6.0
