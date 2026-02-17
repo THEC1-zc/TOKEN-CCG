@@ -216,7 +216,21 @@ async function connectWallet() {
   updateUI();
 }
 
-function disconnectWallet() {
+async function disconnectWallet() {
+  // Try to revoke permissions (forces re-approval on next connect)
+  if (state.provider?.request) {
+    try {
+      // wallet_revokePermissions supported by MetaMask and others
+      await state.provider.request({
+        method: 'wallet_revokePermissions',
+        params: [{ eth_accounts: {} }]
+      });
+    } catch (err) {
+      // Not all wallets support this, continue anyway
+      console.log('wallet_revokePermissions not supported:', err.message);
+    }
+  }
+  
   state.address = null;
   state.chainId = null;
   state.provider = null;
