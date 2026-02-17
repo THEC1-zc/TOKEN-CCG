@@ -1233,6 +1233,9 @@
         let tokenIds = [];
         let txHash = '';
         
+        // ERC721 Transfer event signature
+        const transferSig = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+        
         if (typeof contract.batchMint === 'function') {
           const tx = await contract.batchMint(placeholderUris);
           txHash = tx.hash;
@@ -1241,19 +1244,23 @@
           
           const receipt = await tx.wait();
           
-          // Extract tokenIds from Transfer events
-          const events = receipt?.events?.filter((e) => e.event === 'Transfer') || [];
-          tokenIds = events.map((e) => e.args?.tokenId?.toString()).filter(Boolean);
+          // Method 1: Extract tokenIds from Transfer events array
+          if (receipt.events) {
+            const events = receipt.events.filter((e) => e.event === 'Transfer') || [];
+            tokenIds = events.map((e) => e.args?.tokenId?.toString()).filter(Boolean);
+          }
           
-          // Fallback: parse from logs if events don't work
-          if (tokenIds.length === 0) {
+          // Method 2: Parse from logs directly (more reliable)
+          if (tokenIds.length === 0 && receipt.logs) {
             for (const log of receipt.logs) {
-              if (log.topics[0] === '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef') {
-                const tid = parseInt(log.topics[3], 16).toString();
+              if (log.topics && log.topics[0] === transferSig && log.topics.length >= 4) {
+                const tid = ethers.BigNumber.from(log.topics[3]).toString();
                 if (tid) tokenIds.push(tid);
               }
             }
           }
+          
+          console.log('Batch mint tokenIds:', tokenIds);
         } else {
           // Fallback to individual mints
           for (let i = 0; i < placeholderUris.length; i++) {
@@ -1262,10 +1269,28 @@
             const tx = await contract.mint(placeholderUris[i]);
             txHash = tx.hash;
             const receipt = await tx.wait();
-            const transferEvent = receipt?.events?.find((e) => e.event === 'Transfer');
-            if (transferEvent?.args?.tokenId) {
-              tokenIds.push(transferEvent.args.tokenId.toString());
+            
+            let tokenId = null;
+            
+            // Try events first
+            if (receipt.events) {
+              const transferEvent = receipt.events.find((e) => e.event === 'Transfer');
+              if (transferEvent?.args?.tokenId) {
+                tokenId = transferEvent.args.tokenId.toString();
+              }
             }
+            
+            // Fallback to logs
+            if (!tokenId && receipt.logs) {
+              for (const log of receipt.logs) {
+                if (log.topics && log.topics[0] === transferSig && log.topics.length >= 4) {
+                  tokenId = ethers.BigNumber.from(log.topics[3]).toString();
+                  break;
+                }
+              }
+            }
+            
+            if (tokenId) tokenIds.push(tokenId);
           }
         }
 

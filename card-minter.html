@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOKEN - Card Minter v2.3.6</title>
+  <title>TOKEN - Card Minter v2.3.7</title>
   <!-- Version: V2.3.7 -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/wallet-ui.css">
@@ -1234,7 +1234,7 @@
       </div>
     </div>
     
-    <p class="version">Card Minter v2.3.6 - Onchain Only</p>
+    <p class="version">Card Minter v2.3.7 - Onchain Only</p>
   </div>
   
   <!-- Success Modal -->
@@ -2261,23 +2261,48 @@
         const receipt = await tx.wait();
         
         let tokenId = null;
-        const transferEvent = receipt?.events?.find((e) => e.event === 'Transfer');
-        if (transferEvent?.args?.tokenId) {
-          tokenId = transferEvent.args.tokenId.toString();
+        
+        // Method 1: Try events array (if available)
+        if (receipt.events) {
+          const transferEvent = receipt.events.find((e) => e.event === 'Transfer');
+          if (transferEvent?.args?.tokenId) {
+            tokenId = transferEvent.args.tokenId.toString();
+          }
         }
         
-        if (!tokenId) {
-          // Try to get from logs
+        // Method 2: Parse logs directly (more reliable)
+        if (!tokenId && receipt.logs) {
+          // ERC721 Transfer event signature
+          const transferSig = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
           for (const log of receipt.logs) {
-            if (log.topics[0] === '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef') {
-              tokenId = parseInt(log.topics[3], 16).toString();
+            if (log.topics && log.topics[0] === transferSig && log.topics.length >= 4) {
+              // tokenId is in topics[3] for ERC721 Transfer(from, to, tokenId)
+              tokenId = ethers.BigNumber.from(log.topics[3]).toString();
               break;
             }
           }
         }
         
+        // Method 3: Try TokenMinted event
+        if (!tokenId && receipt.logs) {
+          // Look for TokenMinted event in our contract
+          for (const log of receipt.logs) {
+            if (log.address.toLowerCase() === contractAddress.toLowerCase()) {
+              try {
+                // TokenMinted has tokenId as indexed param
+                if (log.topics.length >= 3) {
+                  tokenId = ethers.BigNumber.from(log.topics[2]).toString();
+                  break;
+                }
+              } catch (_) {}
+            }
+          }
+        }
+        
         if (!tokenId) {
-          alert('Mint succeeded but could not get tokenId');
+          alert('Mint succeeded but could not get tokenId. Check console for tx hash: ' + tx.hash);
+          console.log('Receipt:', receipt);
+          return { ok: false };
           return { ok: false };
         }
         
