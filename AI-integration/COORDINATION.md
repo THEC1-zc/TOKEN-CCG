@@ -1,35 +1,50 @@
-# coordination.md v1.7.0 - Full audit, removed duplicate API, documented admin key flow
+# coordination.md v2.0.0 - HARD RULES + PRODUCT ROADMAP
 
-# AI Integration - Coordination File
+## ⚠️ HARD RULES - LEGGERE PRIMA DI OGNI MODIFICA
 
-**Branch**: `main`  
-**Last Updated**: 2026-02-17 (Claude)  
-**Contract**: TokenCard V0.5.0 @ `0x9D7f74d0C41E726EC95884E0e97Fa6129e3b5E99`
+1. **MAI localStorage** - solo come cache momentanea, MAI come storage dati
+2. **MINT = NFT COMPLETO** - ogni mint crea NFT con immagine su R2, visibile in wallet
+3. **ONCHAIN = verità** - cards, XP, ownership dal contratto
+4. **SUPABASE = backend** - user stats, battle decks, game history
+5. **OGNI MODIFICA = PRODOTTO FUNZIONANTE** - no prove, no vicoli ciechi
+6. **AGGIORNA SEMPRE COORDINATION** - prima di codificare: leggi. dopo: aggiorna.
 
 ---
 
-## ✅ CURRENT STATUS
+## 🎯 PRODUCT ROADMAP
 
-| Component | Status | Notes |
-|-----------|--------|-------|
-| TokenCard V0.5.0 | ✅ Deployed | `0x9D7f74d0C41E726EC95884E0e97Fa6129e3b5E99` |
-| TokenGame V0.1.0 | ✅ Deployed | `0xd2a5bC10698FD955D1Fe6cb468a17809A08fd005` |
-| TokenDeck V0.1.0 | ✅ Deployed | `0xc75170E7268A25CE759cEe019F1c6030F414a82d` |
-| R2 Admin Upload | ✅ Ready | `/api/admin/upload-card` (requires admin key) |
-| Card Minter | ✅ Fixed | tokenId extraction, R2 upload |
-| Deck Minter | ✅ Fixed | tokenId extraction, R2 upload |
-| Collection | ✅ Reads onchain | Shows tokenId |
-| Wallet Logout | ✅ Fixed | Revokes permissions |
+### ✅ FASE 1 - MINT (in corso)
+- [x] TokenCard V0.5.0 deployed
+- [ ] Card Minter → mint + upload R2 automatico
+- [ ] Deck Minter → batch mint + upload R2 automatico
+- [ ] Collection → legge NFT dal wallet
+
+### ⏳ FASE 2 - PLAY
+- [ ] Deck Builder → crea Battle Deck (salva su Supabase)
+- [ ] Game → usa Battle Deck reale
+- [ ] XP Claim → transazione a fine partita
+
+### 🔮 FASE 3 - PVP
+- [ ] Matchmaking
+- [ ] Game PvP
+
+### 🔮 FASE 4 - TOKEN
+- [ ] $TOKEN integration
+- [ ] Fees in-game
+
+### 🔮 FASE 5 - BURN & MINT 12-15
+- [ ] Burn mechanic
+- [ ] Mint carte speciali 12-15
 
 ---
 
 ## 🔧 CONTRACTS
 
-| Contract | Version | Address | Chain |
-|----------|---------|---------|-------|
-| **TokenCard** | **V0.5.0** | `0x9D7f74d0C41E726EC95884E0e97Fa6129e3b5E99` | Base Sepolia |
-| **TokenGame** | **V0.1.0** | `0xd2a5bC10698FD955D1Fe6cb468a17809A08fd005` | Base Sepolia |
-| **TokenDeck** | **V0.1.0** | `0xc75170E7268A25CE759cEe019F1c6030F414a82d` | Base Sepolia |
+| Contract | Address | Chain |
+|----------|---------|-------|
+| TokenCard V0.5.0 | `0x9D7f74d0C41E726EC95884E0e97Fa6129e3b5E99` | Base Sepolia |
+| TokenGame V0.1.0 | `0xd2a5bC10698FD955D1Fe6cb468a17809A08fd005` | Base Sepolia |
+| TokenDeck V0.1.0 | `0xc75170E7268A25CE759cEe019F1c6030F414a82d` | Base Sepolia |
 
 ---
 
@@ -37,98 +52,72 @@
 
 | Endpoint | Auth | Purpose |
 |----------|------|---------|
-| `/api/admin/upload-card` | x-admin-key | Upload image+metadata to R2 |
-| `/api/metadata/[tokenId]` | None | Read metadata from R2 |
+| `/api/upload-card` | **NONE** | Upload image+metadata (public) |
+| `/api/metadata/[tokenId]` | None | Read metadata |
+| `/api/admin/upload-card` | admin key | Admin upload (deprecated) |
 
-**Note**: Removed duplicate `/api/upload` (was public, security risk).
+**Protezione anti-spam**: L'utente DEVE pagare gas per mintare. Questo è il filtro.
 
 ---
 
-## 🔑 ADMIN KEY FLOW
+## 🎮 FLUSSI
 
+### MINT CARD
 ```
-1. Admin sets ADMIN_API_KEY in Vercel env vars
-2. User saves key in localStorage:
-   localStorage.setItem('token_onchain_config', JSON.stringify({admin:{apiKey:'...'}}))
-3. onchain-config.js loads it into window.TOKEN_ADMIN_API_KEY
-4. Minters send x-admin-key header to /api/admin/upload-card
-5. If no key or wrong key → upload fails → fallback to placeholder URI
-```
-
-**For testnet**: Users without admin key can still mint, but NFT won't have R2 image.
-
----
-
-## 📁 KEY FILES
-
-| File | Purpose |
-|------|---------|
-| `assets/onchain-config.js` | Contract addresses + admin key |
-| `api/admin/upload-card.js` | Upload image+metadata to R2 (Codex) |
-| `api/metadata/[tokenId].js` | Read metadata from R2 (Codex) |
-| `api/_utils/r2.js` | R2 client utilities (Codex) |
-| `card-minter.html` | Single card mint |
-| `deck-minter.html` | Batch 10 cards mint |
-| `collection.html` | View cards from wallet |
-| `game.html` | Play + XP claim |
-
----
-
-## 🎯 NFT METADATA FORMAT
-
-```json
-{
-  "name": "Card Name - HOUSE VALUE",
-  "description": "A TOKEN CCG card...",
-  "image": "https://r2.../images/{tokenId}.png",
-  "external_url": "https://token-ccg.vercel.app/collection.html?card={tokenId}",
-  "attributes": [
-    { "trait_type": "House", "value": "bitcoin" },
-    { "trait_type": "Faction", "value": "satoshi" },
-    { "trait_type": "Value", "value": "7" },
-    { "trait_type": "Card Name", "value": "..." },
-    { "trait_type": "XP", "value": 0 },
-    { "trait_type": "Level", "value": 1 }
-  ]
-}
+User apre card-minter
+  → Configura carta
+  → Clicca MINT
+  → Firma transazione (paga gas)
+  → NFT creato onchain
+  → Immagine uploadata su R2 (automatico)
+  → Carta visibile in wallet ✓
 ```
 
----
+### MINT DECK (10 carte)
+```
+User apre deck-minter
+  → Sceglie House + Faction
+  → Clicca MINT
+  → Firma transazione batch (paga gas)
+  → 10 NFT creati onchain
+  → 10 immagini uploadate su R2
+  → Carte visibili in wallet ✓
+```
 
-## 🚨 HARD RULES
+### COLLECTION
+```
+User apre collection
+  → Legge NFT dal wallet (ownerOf)
+  → Fetch metadata da R2
+  → Mostra carte per House/Faction/XP
+```
 
-1. **ONCHAIN** = source of truth for cards, XP
-2. **NO localStorage** for card data (only cache)
-3. **TokenId visible** on all card images
-4. **R2** for image/metadata storage (admin only)
-5. **Pull before working**
-6. **Update this file after EVERY change**
-7. **First and last line** must contain version
+### BATTLE DECK (Supabase)
+```
+User apre deck-builder
+  → Vede proprie carte (dal wallet)
+  → Seleziona 20 carte (2 deck da 10)
+  → Salva → POST /api/battle-deck (Supabase)
+```
+
+### GAME + XP
+```
+User apre game
+  → Carica Battle Deck da Supabase
+  → Gioca vs AI
+  → Fine partita → Claim XP (transazione)
+  → Stats salvate su Supabase
+```
 
 ---
 
 ## 📝 SESSION LOG
 
-### 2026-02-17 - Claude (afternoon)
-- Full audit of all files for inconsistencies
-- Removed duplicate `/api/upload` (was unused, security risk)
-- Documented admin key flow for R2 uploads
-- Verified all contract addresses match
-- Verified ABI consistency across files
-
-### 2026-02-17 - Claude (morning)
-- Fixed wallet logout (revokes permissions)
-- Fixed TOKEN title style in Quick Rules
-- Added tokenId to card images (bottom right)
-- Removed localStorage dependency in minters
-- Fixed tokenId extraction from tx receipt (ethers.BigNumber)
-- Added tokenId display in collection grid/modal
-- Aligned deck-minter to R2 upload flow
-
-### 2026-02-17 - Codex
-- Created api/admin/upload-card.js with admin key auth
-- Created api/metadata/[tokenId].js
-- Created api/_utils/r2.js
+### 2026-02-17 - Claude
+- Creato `/api/upload-card` pubblico (no admin key)
+- Aggiornato card-minter e deck-minter per usare endpoint pubblico
+- Definite HARD RULES
+- Definita ROADMAP prodotto
 
 ---
 
@@ -136,8 +125,8 @@
 
 - **Repo**: https://github.com/THEC1-zc/TOKEN-CCG
 - **Live**: https://token-ccg.vercel.app
-- **TokenCard**: https://sepolia.basescan.org/address/0x9D7f74d0C41E726EC95884E0e97Fa6129e3b5E99
+- **Contracts**: Base Sepolia
 
 ---
 
-end of coordination.md v1.7.0
+end of coordination.md v2.0.0
