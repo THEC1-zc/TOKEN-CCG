@@ -373,6 +373,13 @@
       color: #71717A;
     }
     
+    .card-token-id {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      color: #52525B;
+      margin-top: 2px;
+    }
+    
     /* Card placeholder (no image stored) */
     .card-placeholder {
       width: 120px;
@@ -1049,6 +1056,7 @@
           <div class="card-info">
             <div class="card-name house-${card.house}">${card.cardName}</div>
             <div class="card-faction">${card.factionIcon || ''} ${card.factionName}</div>
+            ${card.tokenId ? `<div class="card-token-id">#${card.tokenId}</div>` : ''}
           </div>
         `;
         
@@ -1086,6 +1094,7 @@
         <span class="house-${card.house}">${house.symbol} ${house.name}</span> • 
         Value ${card.displayValue} • 
         ${card.factionIcon || ''} ${card.factionName}
+        ${card.tokenId ? `<br><span style="color:#52525B;font-family:monospace;">Token #${card.tokenId}</span>` : ''}
       `;
       
       document.getElementById('modalXP').textContent = card.xp || 0;
